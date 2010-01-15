@@ -1,0 +1,372 @@
+Attribute VB_Name = "Sqlite3"
+Option Explicit
+
+' Notes:
+' Microsoft uses UTF-16, little endian byte order.
+
+Private Const JULIANDAY_OFFSET As Double = 2415018.5
+
+' Returned from SQLite3Initialize
+Public Const SQLITE_INIT_OK     As Long = 0
+Public Const SQLITE_INIT_ERROR  As Long = 1
+
+' SQLite data types
+Public Const SQLITE_INTEGER  As Long = 1
+Public Const SQLITE_FLOAT    As Long = 2
+Public Const SQLITE_TEXT     As Long = 3
+Public Const SQLITE_BLOB     As Long = 4
+Public Const SQLITE_NULL     As Long = 5
+
+' SQLite atandard return value
+Public Const SQLITE_OK          As Long = 0    ' Successful result
+Public Const SQLITE_ERROR       As Long = 1   ' SQL error or missing database
+Public Const SQLITE_INTERNAL    As Long = 2   ' Internal logic error in SQLite
+Public Const SQLITE_PERM        As Long = 3   ' Access permission denied
+Public Const SQLITE_ABORT       As Long = 4   ' Callback routine requested an abort
+Public Const SQLITE_BUSY        As Long = 5   ' The database file is locked
+Public Const SQLITE_LOCKED      As Long = 6   ' A table in the database is locked
+Public Const SQLITE_NOMEM       As Long = 7   ' A malloc() failed
+Public Const SQLITE_READONLY    As Long = 8   ' Attempt to write a readonly database
+Public Const SQLITE_INTERRUPT   As Long = 9   ' Operation terminated by sqlite3_interrupt()
+Public Const SQLITE_IOERR      As Long = 10   ' Some kind of disk I/O error occurred
+Public Const SQLITE_CORRUPT    As Long = 11   ' The database disk image is malformed
+Public Const SQLITE_NOTFOUND   As Long = 12   ' NOT USED. Table or record not found
+Public Const SQLITE_FULL       As Long = 13   ' Insertion failed because database is full
+Public Const SQLITE_CANTOPEN   As Long = 14   ' Unable to open the database file
+Public Const SQLITE_PROTOCOL   As Long = 15   ' NOT USED. Database lock protocol error
+Public Const SQLITE_EMPTY      As Long = 16   ' Database is empty
+Public Const SQLITE_SCHEMA     As Long = 17   ' The database schema changed
+Public Const SQLITE_TOOBIG     As Long = 18   ' String or BLOB exceeds size limit
+Public Const SQLITE_CONSTRAINT As Long = 19   ' Abort due to constraint violation
+Public Const SQLITE_MISMATCH   As Long = 20   ' Data type mismatch
+Public Const SQLITE_MISUSE     As Long = 21   ' Library used incorrectly
+Public Const SQLITE_NOLFS      As Long = 22   ' Uses OS features not supported on host
+Public Const SQLITE_AUTH       As Long = 23   ' Authorization denied
+Public Const SQLITE_FORMAT     As Long = 24   ' Auxiliary database format error
+Public Const SQLITE_RANGE      As Long = 25   ' 2nd parameter to sqlite3_bind out of range
+Public Const SQLITE_NOTADB     As Long = 26   ' File opened that is not a database file
+Public Const SQLITE_ROW        As Long = 100  ' sqlite3_step() has another row ready
+Public Const SQLITE_DONE       As Long = 101  ' sqlite3_step() has finished executing
+
+' Extended error codes
+'#define SQLITE_IOERR_READ              (SQLITE_IOERR | (1<<8))
+'#define SQLITE_IOERR_SHORT_READ        (SQLITE_IOERR | (2<<8))
+'#define SQLITE_IOERR_WRITE             (SQLITE_IOERR | (3<<8))
+'#define SQLITE_IOERR_FSYNC             (SQLITE_IOERR | (4<<8))
+'#define SQLITE_IOERR_DIR_FSYNC         (SQLITE_IOERR | (5<<8))
+'#define SQLITE_IOERR_TRUNCATE          (SQLITE_IOERR | (6<<8))
+'#define SQLITE_IOERR_FSTAT             (SQLITE_IOERR | (7<<8))
+'#define SQLITE_IOERR_UNLOCK            (SQLITE_IOERR | (8<<8))
+'#define SQLITE_IOERR_RDLOCK            (SQLITE_IOERR | (9<<8))
+'#define SQLITE_IOERR_DELETE            (SQLITE_IOERR | (10<<8))
+'#define SQLITE_IOERR_BLOCKED           (SQLITE_IOERR | (11<<8))
+'#define SQLITE_IOERR_NOMEM             (SQLITE_IOERR | (12<<8))
+'#define SQLITE_IOERR_ACCESS            (SQLITE_IOERR | (13<<8))
+'#define SQLITE_IOERR_CHECKRESERVEDLOCK (SQLITE_IOERR | (14<<8))
+'#define SQLITE_IOERR_LOCK              (SQLITE_IOERR | (15<<8))
+'#define SQLITE_IOERR_CLOSE             (SQLITE_IOERR | (16<<8))
+'#define SQLITE_IOERR_DIR_CLOSE         (SQLITE_IOERR | (17<<8))
+'#define SQLITE_LOCKED_SHAREDCACHE      (SQLITE_LOCKED | (1<<8) )
+
+' Options for Text and Blob binding
+Private Const SQLITE_STATIC      As Long = 0
+Private Const SQLITE_TRANSIENT   As Long = -1
+
+' System calls
+Private Const CP_UTF8 As Long = 65001
+Private Declare Function MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
+Private Declare Function WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpDefaultChar As Long, ByVal lpUsedDefaultChar As Long) As Long
+Private Declare Function lstrcpynW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long, ByVal cchCount As Long) As Long
+Private Declare Function lstrcpyW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long) As Long
+Private Declare Function lstrlenW Lib "kernel32" (ByVal pwsString As Long) As Long
+Private Declare Function SysAllocString Lib "OleAut32" (ByRef pwsString As Long) As Long
+Private Declare Function SysStringLen Lib "OleAut32" (ByVal bstrString As Long) As Long
+Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
+Private Declare Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) As Long
+
+'=====================================================================================
+' SQLite StdCall Imports
+'-----------------------
+' SQLite library version
+Private Declare Function sqlite3_stdcall_libversion Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_libversion@0" () As Long ' PtrUtf8String
+' Database connections
+Private Declare Function sqlite3_stdcall_open16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_open16@8" (ByVal pwsFileName As Long, ByRef hDb As Long) As Long ' PtrDb
+Private Declare Function sqlite3_stdcall_close Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_close@4" (ByVal hDb As Long) As Long
+' Database connection error info
+Private Declare Function sqlite3_stdcall_errmsg Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_errmsg@4" (ByVal hDb As Long) As Long ' PtrUtf8String
+Private Declare Function sqlite3_stdcall_errmsg16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_errmsg16@4" (ByVal hDb As Long) As Long ' PtrUtf16String
+Private Declare Function sqlite3_stdcall_errcode Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_errcode@4" (ByVal hDb As Long) As Long
+Private Declare Function sqlite3_stdcall_extended_errcode Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_extended_errcode@4" (ByVal hDb As Long) As Long
+' Database connection change counts
+Private Declare Function sqlite3_stdcall_changes Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_changes@4" (ByVal hDb As Long) As Long
+Private Declare Function sqlite3_stdcall_total_changes Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_total_changes@4" (ByVal hDb As Long) As Long
+
+' Statements
+Private Declare Function sqlite3_stdcall_prepare16_v2 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_prepare16_v2@20" _
+    (ByVal hDb As Long, ByVal pwsSql As Long, ByVal nSqlLength As Long, ByRef hStmt As Long, ByVal ppwsTailOut As Long) As Long
+Private Declare Function sqlite3_stdcall_step Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_step@4" (ByVal hStmt As Long) As Long
+Private Declare Function sqlite3_stdcall_reset Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_reset@4" (ByVal hStmt As Long) As Long
+Private Declare Function sqlite3_stdcall_finalize Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_finalize@4" (ByVal hStmt As Long) As Long
+
+' Statement column access (0-based indices)
+Private Declare Function sqlite3_stdcall_column_count Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_count@4" (ByVal hStmt As Long) As Long
+Private Declare Function sqlite3_stdcall_column_type Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_type@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+Private Declare Function sqlite3_stdcall_column_name Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_name@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
+Private Declare Function sqlite3_stdcall_column_name16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_name16@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
+
+Private Declare Function sqlite3_stdcall_column_blob Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_blob@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrData
+Private Declare Function sqlite3_stdcall_column_bytes Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_bytes@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+Private Declare Function sqlite3_stdcall_column_bytes16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_bytes16@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+Private Declare Function sqlite3_stdcall_column_double Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_double@8" (ByVal hStmt As Long, ByVal iCol As Long) As Double
+Private Declare Function sqlite3_stdcall_column_int Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_int@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+Private Declare Function sqlite3_stdcall_column_int64 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_int64@8" (ByVal hStmt As Long, ByVal iCol As Long) As Currency ' UNTESTED ....?
+Private Declare Function sqlite3_stdcall_column_text Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_text@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
+Private Declare Function sqlite3_stdcall_column_text16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_text16@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
+Private Declare Function sqlite3_stdcall_column_value Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_column_value@8" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrSqlite3Value
+
+' Statement parameter binding (1-based indices!)
+Private Declare Function sqlite3_stdcall_bind_parameter_count Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_parameter_count@4" (ByVal hStmt As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_parameter_name Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_parameter_name@8" (ByVal hStmt As Long, ByVal paramIndex As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_parameter_index Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_parameter_index@8" (ByVal hStmt As Long, ByVal paramName As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_null Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_null@8" (ByVal hStmt As Long, ByVal paramIndex As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_blob Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_blob@20" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal pValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_zeroblob Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_zeroblob@12" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal nBytes As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_double Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_double@16" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal Value As Double) As Long
+Private Declare Function sqlite3_stdcall_bind_int Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_int@12" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal Value As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_int64 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_int64@16" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal Value As Currency) As Long ' UNTESTED ....?
+Private Declare Function sqlite3_stdcall_bind_text Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_text@20" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal psValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_text16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_text16@20" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal pswValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
+Private Declare Function sqlite3_stdcall_bind_value Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_value@12" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal pSqlite3Value As Long) As Long
+Private Declare Function sqlite3_stdcall_clear_bindings Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_clear_bindings@4" (ByVal hStmt As Long) As Long
+
+'=====================================================================================
+' Initialize - load libraries explicitly
+Private hSQLiteLibrary As Long
+Private hSQLiteStdCallLibrary As Long
+
+Public Function SQLite3Initialize(Optional ByVal libDir As String) As Long
+    If libDir = "" Then libDir = ThisWorkbook.Path
+    If Right(libDir, 1) <> "\" Then libDir = libDir & "\"
+    
+    If hSQLiteLibrary = 0 Then
+        hSQLiteLibrary = LoadLibrary(libDir + "SQLite3.dll")
+        If hSQLiteLibrary = 0 Then
+            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3.dll:", Err.LastDllError
+            SQLite3Initialize = SQLITE_INIT_ERROR
+            Exit Function
+        End If
+    End If
+        
+    If hSQLiteStdCallLibrary = 0 Then
+        hSQLiteStdCallLibrary = LoadLibrary(libDir + "SQLite3_StdCall.dll")
+        If hSQLiteStdCallLibrary = 0 Then
+            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3_StdCall.dll:", Err.LastDllError
+            SQLite3Initialize = SQLITE_INIT_ERROR
+            Exit Function
+        End If
+    End If
+    SQLite3Initialize = SQLITE_INIT_OK
+End Function
+
+Public Sub SQLite3Free()
+    If hSQLiteLibrary <> 0 Then
+        FreeLibrary hSQLiteLibrary
+    End If
+    If hSQLiteStdCallLibrary <> 0 Then
+        FreeLibrary hSQLiteStdCallLibrary
+    End If
+End Sub
+
+
+'=====================================================================================
+' SQLite library version
+
+Public Function SQLite3LibVersion() As String
+    SQLite3LibVersion = Utf8PtrToString(sqlite3_stdcall_libversion())
+End Function
+
+'=====================================================================================
+' Database connections
+
+Public Function SQLite3Open(ByVal FileName As String, ByRef DbHandle As Long) As Long
+    SQLite3Open = sqlite3_stdcall_open16(StrPtr(FileName), DbHandle)
+End Function
+
+Public Function SQLite3Close(ByVal DbHandle As Long) As Long
+    SQLite3Close = sqlite3_stdcall_close(DbHandle)
+End Function
+
+'=====================================================================================
+' Error information
+
+Public Function SQLite3ErrMsg(ByVal DbHandle As Long) As String
+    SQLite3ErrMsg = Utf8PtrToString(sqlite3_stdcall_errmsg(DbHandle))
+End Function
+
+Public Function SQLite3ErrCode(ByVal DbHandle As Long) As Long
+    SQLite3ErrCode = Utf8PtrToString(sqlite3_stdcall_errcode(DbHandle))
+End Function
+
+Public Function SQLite3ExtendedErrCode(ByVal DbHandle As Long) As Long
+    SQLite3ExtendedErrCode = Utf8PtrToString(sqlite3_stdcall_extended_errcode(DbHandle))
+End Function
+
+'=====================================================================================
+' Change Counts
+
+Public Function SQLite3Changes(ByVal DbHandle As Long) As Long
+    SQLite3Changes = sqlite3_stdcall_changes(DbHandle)
+End Function
+
+Public Function SQLite3TotalChanges(ByVal DbHandle As Long) As Long
+    SQLite3TotalChanges = sqlite3_stdcall_total_changes(DbHandle)
+End Function
+
+'=====================================================================================
+' Statements
+
+Public Function SQLite3PrepareV2(ByVal DbHandle As Long, ByVal Sql As String, ByRef stmtHandle As Long) As Long
+    ' Only the first statement (up to ';') is prepared. Currently we don't retrieve the 'tail' pointer.
+    SQLite3PrepareV2 = sqlite3_stdcall_prepare16_v2(DbHandle, StrPtr(Sql), Len(Sql) * 2, stmtHandle, 0)
+End Function
+
+Public Function SQLite3Step(ByVal stmtHandle As Long) As Long
+    SQLite3Step = sqlite3_stdcall_step(stmtHandle)
+End Function
+
+Public Function SQLite3Reset(ByVal stmtHandle As Long) As Long
+    SQLite3Reset = sqlite3_stdcall_reset(stmtHandle)
+End Function
+
+Public Function SQLite3Finalize(ByVal stmtHandle As Long) As Long
+    SQLite3Finalize = sqlite3_stdcall_finalize(stmtHandle)
+End Function
+
+'=====================================================================================
+' Statement column access (0-based indices)
+
+Public Function SQLite3ColumnCount(ByVal stmtHandle As Long) As Long
+    SQLite3ColumnCount = sqlite3_stdcall_column_count(stmtHandle)
+End Function
+
+Public Function SQLite3ColumnType(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As Long
+    SQLite3ColumnType = sqlite3_stdcall_column_type(stmtHandle, ZeroBasedColIndex)
+End Function
+
+Public Function SQLite3ColumnName(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As String
+    SQLite3ColumnName = Utf8PtrToString(sqlite3_stdcall_column_name(stmtHandle, ZeroBasedColIndex))
+End Function
+
+Public Function SQLite3ColumnDouble(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As Double
+    SQLite3ColumnDouble = sqlite3_stdcall_column_double(stmtHandle, ZeroBasedColIndex)
+End Function
+
+Public Function SQLite3ColumnInt32(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As Long
+    SQLite3ColumnInt32 = sqlite3_stdcall_column_int(stmtHandle, ZeroBasedColIndex)
+End Function
+
+Public Function SQLite3ColumnText(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As String
+    SQLite3ColumnText = Utf8PtrToString(sqlite3_stdcall_column_text(stmtHandle, ZeroBasedColIndex))
+End Function
+
+Public Function SQLite3ColumnDate(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As Date
+    SQLite3ColumnDate = FromJulianDay(sqlite3_stdcall_column_double(stmtHandle, ZeroBasedColIndex))
+End Function
+
+'=====================================================================================
+' Statement bindings
+
+Public Function SQLite3BindText(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByVal Value As String) As Long
+    SQLite3BindText = sqlite3_stdcall_bind_text16(stmtHandle, OneBasedParamIndex, StrPtr(Value), -1, SQLITE_TRANSIENT)
+End Function
+
+Public Function SQLite3BindDouble(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByVal Value As Double) As Long
+    SQLite3BindDouble = sqlite3_stdcall_bind_double(stmtHandle, OneBasedParamIndex, Value)
+End Function
+
+Public Function SQLite3BindInt32(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByVal Value As Long) As Long
+    SQLite3BindInt32 = sqlite3_stdcall_bind_int(stmtHandle, OneBasedParamIndex, Value)
+End Function
+
+Public Function SQLite3BindDate(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByVal Value As Date) As Long
+    SQLite3BindDate = sqlite3_stdcall_bind_double(stmtHandle, OneBasedParamIndex, ToJulianDay(Value))
+End Function
+
+Public Function SQLite3BindNull(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long) As Long
+    SQLite3BindNull = sqlite3_stdcall_bind_null(stmtHandle, OneBasedParamIndex)
+End Function
+
+Public Function SQLite3BindParameterCount(ByVal stmtHandle As Long) As Long
+    SQLite3BindParameterCount = sqlite3_stdcall_bind_parameter_count(stmtHandle)
+End Function
+
+Public Function SQLite3BindParameterName(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long) As String
+    SQLite3BindParameterName = Utf8PtrToString(sqlite3_stdcall_bind_parameter_name(stmtHandle, OneBasedParamIndex))
+End Function
+
+Public Function SQLite3BindParameterIndex(ByVal stmtHandle As Long, ByVal paramName As String) As Long
+    Dim buf() As Byte
+    buf = StringToUtf8Bytes(paramName)
+    SQLite3BindParameterIndex = sqlite3_stdcall_bind_parameter_index(stmtHandle, VarPtr(buf(0)))
+End Function
+
+Public Function SQLite3ClearBindings(ByVal stmtHandle As Long) As Long
+    SQLite3ClearBindings = sqlite3_stdcall_clear_bindings(stmtHandle)
+End Function
+
+
+' String Helpers
+Function Utf8PtrToString(ByVal pUtf8String As Long) As String
+    Dim buf As String
+    Dim cSize As Long
+    Dim RetVal As Long
+    
+    cSize = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, 0, 0)
+    If cSize = 0 Then
+        Exit Function
+    End If
+    
+    Utf8PtrToString = String(cSize - 1, "*")
+    RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, cSize - 1, StrPtr(Utf8PtrToString), cSize - 1)
+    If RetVal = 0 Then
+        Debug.Print "Utf8PtrToString Error:", Err.LastDllError
+        Return
+    End If
+End Function
+
+Function StringToUtf8Bytes(ByVal str As String) As Byte()
+    Dim bSize As Long
+    Dim RetVal As Long
+    Dim buf() As Byte
+    
+    bSize = WideCharToMultiByte(CP_UTF8, 0, StrPtr(str), -1, 0, 0, 0, 0)
+    If bSize = 0 Then
+        Exit Function
+    End If
+    
+    ReDim buf(bSize)
+    RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(str), -1, VarPtr(buf(0)), bSize, 0, 0)
+    If RetVal = 0 Then
+        Debug.Print "StringToUtf8Bytes Error:", Err.LastDllError
+        Return
+    End If
+    StringToUtf8Bytes = buf
+End Function
+
+Function Utf16PtrToString(ByVal pUtf16String As Long) As String
+    Dim StrLen As Long
+    Dim RetVal As Long
+    
+    StrLen = lstrlenW(pUtf16String)
+    Utf16PtrToString = String(StrLen, "*")
+    lstrcpynW StrPtr(Utf16PtrToString), pUtf16String, StrLen
+End Function
+
+' Date Helpers
+Public Function ToJulianDay(oleDate As Date) As Double
+    ToJulianDay = CDbl(oleDate) + JULIANDAY_OFFSET
+End Function
+
+Public Function FromJulianDay(julianDay As Double) As Date
+    FromJulianDay = CDate(julianDay - JULIANDAY_OFFSET)
+End Function
