@@ -49,24 +49,24 @@ Public Const SQLITE_ROW        As Long = 100  ' sqlite3_step() has another row r
 Public Const SQLITE_DONE       As Long = 101  ' sqlite3_step() has finished executing
 
 ' Extended error codes
-'#define SQLITE_IOERR_READ              (SQLITE_IOERR | (1<<8))
-'#define SQLITE_IOERR_SHORT_READ        (SQLITE_IOERR | (2<<8))
-'#define SQLITE_IOERR_WRITE             (SQLITE_IOERR | (3<<8))
-'#define SQLITE_IOERR_FSYNC             (SQLITE_IOERR | (4<<8))
-'#define SQLITE_IOERR_DIR_FSYNC         (SQLITE_IOERR | (5<<8))
-'#define SQLITE_IOERR_TRUNCATE          (SQLITE_IOERR | (6<<8))
-'#define SQLITE_IOERR_FSTAT             (SQLITE_IOERR | (7<<8))
-'#define SQLITE_IOERR_UNLOCK            (SQLITE_IOERR | (8<<8))
-'#define SQLITE_IOERR_RDLOCK            (SQLITE_IOERR | (9<<8))
-'#define SQLITE_IOERR_DELETE            (SQLITE_IOERR | (10<<8))
-'#define SQLITE_IOERR_BLOCKED           (SQLITE_IOERR | (11<<8))
-'#define SQLITE_IOERR_NOMEM             (SQLITE_IOERR | (12<<8))
-'#define SQLITE_IOERR_ACCESS            (SQLITE_IOERR | (13<<8))
-'#define SQLITE_IOERR_CHECKRESERVEDLOCK (SQLITE_IOERR | (14<<8))
-'#define SQLITE_IOERR_LOCK              (SQLITE_IOERR | (15<<8))
-'#define SQLITE_IOERR_CLOSE             (SQLITE_IOERR | (16<<8))
-'#define SQLITE_IOERR_DIR_CLOSE         (SQLITE_IOERR | (17<<8))
-'#define SQLITE_LOCKED_SHAREDCACHE      (SQLITE_LOCKED | (1<<8) )
+Public Const SQLITE_IOERR_READ               As Long = 266 ' (SQLITE_IOERR | (1<<8))
+Public Const SQLITE_IOERR_SHORT_READ         As Long = 522  '(SQLITE_IOERR | (2<<8))
+Public Const SQLITE_IOERR_WRITE              As Long = 778  '(SQLITE_IOERR | (3<<8))
+Public Const SQLITE_IOERR_FSYNC              As Long = 1034 '(SQLITE_IOERR | (4<<8))
+Public Const SQLITE_IOERR_DIR_FSYNC          As Long = 1290 '(SQLITE_IOERR | (5<<8))
+Public Const SQLITE_IOERR_TRUNCATE           As Long = 1546 '(SQLITE_IOERR | (6<<8))
+Public Const SQLITE_IOERR_FSTAT              As Long = 1802 '(SQLITE_IOERR | (7<<8))
+Public Const SQLITE_IOERR_UNLOCK             As Long = 2058 '(SQLITE_IOERR | (8<<8))
+Public Const SQLITE_IOERR_RDLOCK             As Long = 2314 '(SQLITE_IOERR | (9<<8))
+Public Const SQLITE_IOERR_DELETE             As Long = 2570 '(SQLITE_IOERR | (10<<8))
+Public Const SQLITE_IOERR_BLOCKED            As Long = 2826 '(SQLITE_IOERR | (11<<8))
+Public Const SQLITE_IOERR_NOMEM              As Long = 3082 '(SQLITE_IOERR | (12<<8))
+Public Const SQLITE_IOERR_ACCESS             As Long = 3338 '(SQLITE_IOERR | (13<<8))
+Public Const SQLITE_IOERR_CHECKRESERVEDLOCK  As Long = 3594 '(SQLITE_IOERR | (14<<8))
+Public Const SQLITE_IOERR_LOCK               As Long = 3850 '(SQLITE_IOERR | (15<<8))
+Public Const SQLITE_IOERR_CLOSE              As Long = 4106 '(SQLITE_IOERR | (16<<8))
+Public Const SQLITE_IOERR_DIR_CLOSE          As Long = 4362 '(SQLITE_IOERR | (17<<8))
+Public Const SQLITE_LOCKED_SHAREDCACHE       As Long = 265  '(SQLITE_LOCKED | (1<<8) )
 
 ' Options for Text and Blob binding
 Private Const SQLITE_STATIC      As Long = 0
@@ -139,6 +139,14 @@ Private Declare Function sqlite3_stdcall_bind_text16 Lib "SQLite3_StdCall" Alias
 Private Declare Function sqlite3_stdcall_bind_value Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_bind_value@12" (ByVal hStmt As Long, ByVal paramIndex As Long, ByVal pSqlite3Value As Long) As Long
 Private Declare Function sqlite3_stdcall_clear_bindings Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_clear_bindings@4" (ByVal hStmt As Long) As Long
 
+'Backup
+Private Declare Function sqlite3_stdcall_sleep Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_sleep@4" (ByVal msToSleep As Long) As Long
+Private Declare Function sqlite3_stdcall_backup_init Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_backup_init@16" (ByVal hDbDest As Long, ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
+Private Declare Function sqlite3_stdcall_backup_step Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_backup_step@8" (ByVal hBackup As Long, ByVal nPage As Long) As Long
+Private Declare Function sqlite3_stdcall_backup_finish Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_backup_finish@4" (ByVal hBackup As Long) As Long
+Private Declare Function sqlite3_stdcall_backup_remaining Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_backup_remaining@4" (ByVal hBackup As Long) As Long
+Private Declare Function sqlite3_stdcall_backup_pagecount Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_backup_pagecount@4" (ByVal hBackup As Long) As Long
+
 '=====================================================================================
 ' Initialize - load libraries explicitly
 Private hSQLiteLibrary As Long
@@ -188,46 +196,46 @@ End Function
 '=====================================================================================
 ' Database connections
 
-Public Function SQLite3Open(ByVal FileName As String, ByRef DbHandle As Long) As Long
-    SQLite3Open = sqlite3_stdcall_open16(StrPtr(FileName), DbHandle)
+Public Function SQLite3Open(ByVal FileName As String, ByRef dbHandle As Long) As Long
+    SQLite3Open = sqlite3_stdcall_open16(StrPtr(FileName), dbHandle)
 End Function
 
-Public Function SQLite3Close(ByVal DbHandle As Long) As Long
-    SQLite3Close = sqlite3_stdcall_close(DbHandle)
+Public Function SQLite3Close(ByVal dbHandle As Long) As Long
+    SQLite3Close = sqlite3_stdcall_close(dbHandle)
 End Function
 
 '=====================================================================================
 ' Error information
 
-Public Function SQLite3ErrMsg(ByVal DbHandle As Long) As String
-    SQLite3ErrMsg = Utf8PtrToString(sqlite3_stdcall_errmsg(DbHandle))
+Public Function SQLite3ErrMsg(ByVal dbHandle As Long) As String
+    SQLite3ErrMsg = Utf8PtrToString(sqlite3_stdcall_errmsg(dbHandle))
 End Function
 
-Public Function SQLite3ErrCode(ByVal DbHandle As Long) As Long
-    SQLite3ErrCode = Utf8PtrToString(sqlite3_stdcall_errcode(DbHandle))
+Public Function SQLite3ErrCode(ByVal dbHandle As Long) As Long
+    SQLite3ErrCode = sqlite3_stdcall_errcode(dbHandle)
 End Function
 
-Public Function SQLite3ExtendedErrCode(ByVal DbHandle As Long) As Long
-    SQLite3ExtendedErrCode = Utf8PtrToString(sqlite3_stdcall_extended_errcode(DbHandle))
+Public Function SQLite3ExtendedErrCode(ByVal dbHandle As Long) As Long
+    SQLite3ExtendedErrCode = sqlite3_stdcall_extended_errcode(dbHandle)
 End Function
 
 '=====================================================================================
 ' Change Counts
 
-Public Function SQLite3Changes(ByVal DbHandle As Long) As Long
-    SQLite3Changes = sqlite3_stdcall_changes(DbHandle)
+Public Function SQLite3Changes(ByVal dbHandle As Long) As Long
+    SQLite3Changes = sqlite3_stdcall_changes(dbHandle)
 End Function
 
-Public Function SQLite3TotalChanges(ByVal DbHandle As Long) As Long
-    SQLite3TotalChanges = sqlite3_stdcall_total_changes(DbHandle)
+Public Function SQLite3TotalChanges(ByVal dbHandle As Long) As Long
+    SQLite3TotalChanges = sqlite3_stdcall_total_changes(dbHandle)
 End Function
 
 '=====================================================================================
 ' Statements
 
-Public Function SQLite3PrepareV2(ByVal DbHandle As Long, ByVal Sql As String, ByRef stmtHandle As Long) As Long
+Public Function SQLite3PrepareV2(ByVal dbHandle As Long, ByVal sql As String, ByRef stmtHandle As Long) As Long
     ' Only the first statement (up to ';') is prepared. Currently we don't retrieve the 'tail' pointer.
-    SQLite3PrepareV2 = sqlite3_stdcall_prepare16_v2(DbHandle, StrPtr(Sql), Len(Sql) * 2, stmtHandle, 0)
+    SQLite3PrepareV2 = sqlite3_stdcall_prepare16_v2(dbHandle, StrPtr(sql), Len(sql) * 2, stmtHandle, 0)
 End Function
 
 Public Function SQLite3Step(ByVal stmtHandle As Long) As Long
@@ -315,6 +323,36 @@ Public Function SQLite3ClearBindings(ByVal stmtHandle As Long) As Long
 End Function
 
 
+'=====================================================================================
+' Backup
+Public Function SQLite3Sleep(ByVal timeToSleepInMs As Long) As Long
+    SQLite3Sleep = sqlite3_stdcall_sleep(timeToSleepInMs)
+End Function
+
+Public Function SQLite3BackupInit(ByVal dbHandleDestination As Long, ByVal destinationName As String, ByVal dbHandleSource As Long, ByVal sourceName As String) As Long
+    Dim bufDestinationName() As Byte
+    Dim bufSourceName() As Byte
+    bufDestinationName = StringToUtf8Bytes(destinationName)
+    bufSourceName = StringToUtf8Bytes(sourceName)
+    SQLite3BackupInit = sqlite3_stdcall_backup_init(dbHandleDestination, VarPtr(bufDestinationName(0)), dbHandleSource, VarPtr(bufSourceName(0)))
+End Function
+
+Public Function SQLite3BackupFinish(ByVal backupHandle As Long) As Long
+    SQLite3BackupFinish = sqlite3_stdcall_backup_finish(backupHandle)
+End Function
+
+Public Function SQLite3BackupStep(ByVal backupHandle As Long, ByVal numberOfPages) As Long
+    SQLite3BackupStep = sqlite3_stdcall_backup_step(backupHandle, numberOfPages)
+End Function
+
+Public Function SQLite3BackupPageCount(ByVal backupHandle As Long) As Long
+    SQLite3BackupPageCount = sqlite3_stdcall_backup_pagecount(backupHandle)
+End Function
+
+Public Function SQLite3BackupRemaining(ByVal backupHandle As Long) As Long
+    SQLite3BackupRemaining = sqlite3_stdcall_backup_remaining(backupHandle)
+End Function
+
 ' String Helpers
 Function Utf8PtrToString(ByVal pUtf8String As Long) As String
     Dim buf As String
@@ -334,7 +372,7 @@ Function Utf8PtrToString(ByVal pUtf8String As Long) As String
     End If
 End Function
 
-Function StringToUtf8Bytes(ByVal str As String) As Byte()
+Function StringToUtf8Bytes(ByVal str As String) As Variant
     Dim bSize As Long
     Dim RetVal As Long
     Dim buf() As Byte

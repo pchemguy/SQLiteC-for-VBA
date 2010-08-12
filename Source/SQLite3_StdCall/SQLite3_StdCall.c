@@ -230,3 +230,39 @@ SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_bind_parameter_index(sqlite3_s
 	return sqlite3_bind_parameter_index(pStmt, zName);
 }
 
+SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_sleep(int msToSleep)
+{
+	return sqlite3_sleep(msToSleep);
+}
+// Backup API
+SQLITE3_STDCALL_API sqlite3_backup* __stdcall sqlite3_stdcall_backup_init(
+  sqlite3 *pDest,                        /* Destination database handle */
+  const char *zDestName,                 /* Destination database name */
+  sqlite3 *pSource,                      /* Source database handle */
+  const char *zSourceName                /* Source database name */
+	)
+{
+	return sqlite3_backup_init(pDest, zDestName, pSource, zSourceName);
+}
+
+SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_backup_step(sqlite3_backup *p, int nPage)
+{
+	return sqlite3_backup_step(p, nPage);
+}
+
+SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_backup_finish(sqlite3_backup *p)
+{
+	return sqlite3_backup_finish(p);
+}
+
+SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_backup_remaining(sqlite3_backup *p)
+{
+	return sqlite3_backup_remaining(p);
+}
+
+SQLITE3_STDCALL_API int __stdcall sqlite3_stdcall_backup_pagecount(sqlite3_backup *p)
+{
+	return sqlite3_backup_pagecount(p);
+}
+
+

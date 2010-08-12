@@ -16,7 +16,8 @@ Public Sub AllTests()
     TestInsert
     TestSelect
     TestBinding
-    TestDates
+    'TestDates
+    TestBackup
     
     SQLite3Free ' Quite optional
 End Sub
@@ -592,12 +593,12 @@ Public Sub TestBindingMore()
     ' Create the table
     ' ================
     ' (O've got no error checking here...)
-    SQLite3ExecuteNonQuery myDbHandle, "CREATE TABLE MyBigTable (TheId INTEGER, TheDate REAL, TheText TEXT, TheValue REAL)", myStmtHandle
+    SQLite3ExecuteNonQuery myDbHandle, "CREATE TABLE MyBigTable (TheId INTEGER, TheDate REAL, TheText TEXT, TheValue REAL)"
     
     '---------------------------
     ' Add an index
     ' ================
-    SQLite3ExecuteNonQuery myDbHandle, "CREATE INDEX idx_MyBigTable_Id_Date ON MyBigTable (TheId, TheDate)", myStmtHandle
+    SQLite3ExecuteNonQuery myDbHandle, "CREATE INDEX idx_MyBigTable_Id_Date ON MyBigTable (TheId, TheDate)"
     
     ' START Insert Time
     testStart = Now()
@@ -605,7 +606,7 @@ Public Sub TestBindingMore()
     '-------------------
     ' Begin transaction
     '==================
-    SQLite3ExecuteNonQuery myDbHandle, "BEGIN TRANSACTION", myStmtHandle
+    SQLite3ExecuteNonQuery myDbHandle, "BEGIN TRANSACTION"
 
     '-------------------------
     ' Prepare an insert statement with parameters
@@ -670,7 +671,7 @@ Public Sub TestBindingMore()
     '-------------------
     ' Commit transaction
     '==================
-    SQLite3ExecuteNonQuery myDbHandle, "COMMIT TRANSACTION", myStmtHandle
+    SQLite3ExecuteNonQuery myDbHandle, "COMMIT TRANSACTION"
 
     ' STOP Insert Time
     Debug.Print "Insert Elapsed: " & Format(Now() - testStart, "HH:mm:ss")
@@ -702,10 +703,10 @@ Public Sub TestBindingMore()
     
     startDate = DateValue("1 Jan 2000")
     
-    For i = 1 To 100000
-        offset = i Mod 10000
+    For i = 1 To 10000
+        offset = i Mod 1000
         ' Bind the parameters
-        RetVal = SQLite3BindInt32(myStmtHandle, paramIndexId, 42000 + 500 + offset)
+        RetVal = SQLite3BindInt32(myStmtHandle, paramIndexId, 4200 + 500 + offset)
         If RetVal <> SQLITE_OK Then
             Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
@@ -837,13 +838,99 @@ Public Sub TestDates()
     Debug.Print "----- TestDates End -----"
 End Sub
 
+Public Sub TestBackup()
+    Dim testFile As String
+    Dim testFileBackup As String
+    
+    Dim myDbHandle As Long
+    Dim myDbBackupHandle As Long
+    Dim myBackupHandle As Long
+    
+    Dim RetVal As Long
+    Dim i As Long
+    
+    Debug.Print "----- TestBackup Start -----"
+    
+    ' Open the database - getting a DbHandle back
+    testFile = "C:\TestSqlite3ForExcel.db3"
+    RetVal = SQLite3Open(testFile, myDbHandle)
+    Debug.Print "SQLite3Open returned " & RetVal
+    
+    SQLite3ExecuteNonQuery myDbHandle, "CREATE TABLE MyTestTable (Key INT PRIMARY KEY, Value TEXT)"
+    SQLite3ExecuteNonQuery myDbHandle, "INSERT INTO MyTestTable VALUES (1, 'First')"
+    SQLite3ExecuteNonQuery myDbHandle, "INSERT INTO MyTestTable VALUES (2, 'Second')"
+    SQLite3ExecuteQuery myDbHandle, "SELECT * FROM MyTestTable"
+    
+    ' Now do a backup
+    testFileBackup = "C:\TestSqlite3ForExcel_Backup.db3"
+    RetVal = SQLite3Open(testFileBackup, myDbBackupHandle)
+    Debug.Print "SQLite3Open returned " & RetVal
+    
+    myBackupHandle = SQLite3BackupInit(myDbBackupHandle, "main", myDbHandle, "main")
+    If myBackupHandle <> 0 Then
+        RetVal = SQLite3BackupStep(myBackupHandle, -1)
+        Debug.Print "SQLite3BackupStep returned " & RetVal
+        RetVal = SQLite3BackupFinish(myBackupHandle)
+        Debug.Print "SQLite3BackupFinish returned " & RetVal
+    End If
+    RetVal = SQLite3ErrCode(myDbBackupHandle)
+    Debug.Print "Backup result " & RetVal
+    Debug.Print "Selecting from backup:"
+    SQLite3ExecuteQuery myDbBackupHandle, "SELECT * FROM MyTestTable"
+    
+    RetVal = SQLite3Close(myDbHandle)
+    RetVal = SQLite3Close(myDbBackupHandle)
+    
+    Kill testFile
+    Kill testFileBackup
+    
+    Debug.Print "----- TestBackup End -----"
+End Sub
+
 ' SQLite3 Helper Functions
-Public Function SQLite3ExecuteNonQuery(ByVal DbHandle As Long, ByVal SqlCommand As String) As Long
+Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As Long, ByVal SqlCommand As String) As Long
     Dim stmtHandle As Long
     
-    SQLite3PrepareV2 DbHandle, SqlCommand, stmtHandle
+    SQLite3PrepareV2 dbHandle, SqlCommand, stmtHandle
     SQLite3Step stmtHandle
     SQLite3Finalize stmtHandle
     
-    SQLite3ExecuteNonQuery = SQLite3Changes(DbHandle)
+    SQLite3ExecuteNonQuery = SQLite3Changes(dbHandle)
 End Function
+
+Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal sqlQuery As String)
+    ' Dumps a query to the debug window. No error checking
+    
+    Dim stmtHandle As Long
+    Dim RetVal As Long
+
+    RetVal = SQLite3PrepareV2(dbHandle, sqlQuery, stmtHandle)
+    Debug.Print "SQLite3PrepareV2 returned " & RetVal
+    
+    ' Start running the statement
+    RetVal = SQLite3Step(stmtHandle)
+    If RetVal = SQLITE_ROW Then
+        Debug.Print "SQLite3Step Row Ready"
+        PrintColumns stmtHandle
+    Else
+        Debug.Print "SQLite3Step returned " & RetVal
+    End If
+    
+    ' Move to next row
+    RetVal = SQLite3Step(stmtHandle)
+    Do While RetVal = SQLITE_ROW
+        Debug.Print "SQLite3Step Row Ready"
+        PrintColumns stmtHandle
+        RetVal = SQLite3Step(stmtHandle)
+    Loop
+
+    If RetVal = SQLITE_DONE Then
+        Debug.Print "SQLite3Step Done"
+    Else
+        Debug.Print "SQLite3Step returned " & RetVal
+    End If
+    
+    ' Finalize (delete) the statement
+    RetVal = SQLite3Finalize(stmtHandle)
+    Debug.Print "SQLite3Finalize returned " & RetVal
+End Sub
