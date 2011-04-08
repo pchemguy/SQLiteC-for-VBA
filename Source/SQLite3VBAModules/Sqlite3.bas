@@ -1,4 +1,3 @@
-Attribute VB_Name = "Sqlite3"
 Option Explicit
 
 ' Notes:
@@ -360,7 +359,9 @@ Function Utf8PtrToString(ByVal pUtf8String As Long) As String
     Dim RetVal As Long
     
     cSize = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, 0, 0)
-    If cSize = 0 Then
+    ' cSize includes the terminating null character
+    If cSize <= 1 Then
+        Utf8PtrToString = ""
         Exit Function
     End If
     
@@ -368,7 +369,7 @@ Function Utf8PtrToString(ByVal pUtf8String As Long) As String
     RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, cSize - 1, StrPtr(Utf8PtrToString), cSize - 1)
     If RetVal = 0 Then
         Debug.Print "Utf8PtrToString Error:", Err.LastDllError
-        Return
+        Exit Function
     End If
 End Function
 
@@ -386,7 +387,7 @@ Function StringToUtf8Bytes(ByVal str As String) As Variant
     RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(str), -1, VarPtr(buf(0)), bSize, 0, 0)
     If RetVal = 0 Then
         Debug.Print "StringToUtf8Bytes Error:", Err.LastDllError
-        Return
+        Exit Function
     End If
     StringToUtf8Bytes = buf
 End Function
