@@ -1,3 +1,4 @@
+Attribute VB_Name = "Sqlite3"
 Option Explicit
 
 ' Notes:
@@ -17,7 +18,7 @@ Public Const SQLITE_BLOB     As Long = 4
 Public Const SQLITE_NULL     As Long = 5
 
 ' SQLite atandard return value
-Public Const SQLITE_OK          As Long = 0    ' Successful result
+Public Const SQLITE_OK          As Long = 0   ' Successful result
 Public Const SQLITE_ERROR       As Long = 1   ' SQL error or missing database
 Public Const SQLITE_INTERNAL    As Long = 2   ' Internal logic error in SQLite
 Public Const SQLITE_PERM        As Long = 3   ' Access permission denied
@@ -48,7 +49,7 @@ Public Const SQLITE_ROW        As Long = 100  ' sqlite3_step() has another row r
 Public Const SQLITE_DONE       As Long = 101  ' sqlite3_step() has finished executing
 
 ' Extended error codes
-Public Const SQLITE_IOERR_READ               As Long = 266 ' (SQLITE_IOERR | (1<<8))
+Public Const SQLITE_IOERR_READ               As Long = 266  '(SQLITE_IOERR | (1<<8))
 Public Const SQLITE_IOERR_SHORT_READ         As Long = 522  '(SQLITE_IOERR | (2<<8))
 Public Const SQLITE_IOERR_WRITE              As Long = 778  '(SQLITE_IOERR | (3<<8))
 Public Const SQLITE_IOERR_FSYNC              As Long = 1034 '(SQLITE_IOERR | (4<<8))
@@ -152,6 +153,7 @@ Private hSQLiteLibrary As Long
 Private hSQLiteStdCallLibrary As Long
 
 Public Function SQLite3Initialize(Optional ByVal libDir As String) As Long
+    ' A nice option here is to call SetDllDirectory, but that API is only available since Windows XP SP1.
     If libDir = "" Then libDir = ThisWorkbook.Path
     If Right(libDir, 1) <> "\" Then libDir = libDir & "\"
     
@@ -365,8 +367,8 @@ Function Utf8PtrToString(ByVal pUtf8String As Long) As String
         Exit Function
     End If
     
-    Utf8PtrToString = String(cSize - 1, "*")
-    RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, cSize - 1, StrPtr(Utf8PtrToString), cSize - 1)
+    Utf8PtrToString = String(cSize - 1, "*") ' and a termintating null char.
+    RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, StrPtr(Utf8PtrToString), cSize)
     If RetVal = 0 Then
         Debug.Print "Utf8PtrToString Error:", Err.LastDllError
         Exit Function

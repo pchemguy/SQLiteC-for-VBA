@@ -1,4 +1,9 @@
-Version 0.6 (8 April 2010)
+Version 0.7 (25 June 2011)
+==========================
+* Fixed Unicode string conversion bug.
+* Updated Distribution version of SQLite3.dll to 3.7.7.
+
+Version 0.6 (8 April 2011)
 ==========================
 * Fixed empty string bug.
 * Added SQLiteForWord example.
