@@ -76,6 +76,7 @@ Private Const SQLITE_TRANSIENT   As Long = -1
 Private Const CP_UTF8 As Long = 65001
 Private Declare Function MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
 Private Declare Function WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpDefaultChar As Long, ByVal lpUsedDefaultChar As Long) As Long
+Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSource As Long, ByVal length As Long)
 Private Declare Function lstrcpynW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long, ByVal cchCount As Long) As Long
 Private Declare Function lstrcpyW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long) As Long
 Private Declare Function lstrlenW Lib "kernel32" (ByVal pwsString As Long) As Long
@@ -282,6 +283,18 @@ Public Function SQLite3ColumnDate(ByVal stmtHandle As Long, ByVal ZeroBasedColIn
     SQLite3ColumnDate = FromJulianDay(sqlite3_stdcall_column_double(stmtHandle, ZeroBasedColIndex))
 End Function
 
+Public Function SQLite3ColumnBlob(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As Byte()
+    Dim ptr As Long
+    Dim length As Long
+    Dim buf() As Byte
+    
+    ptr = sqlite3_stdcall_column_blob(stmtHandle, ZeroBasedColIndex)
+    length = sqlite3_stdcall_column_bytes(stmtHandle, ZeroBasedColIndex)
+    ReDim buf(length - 1)
+    RtlMoveMemory VarPtr(buf(0)), ptr, length
+    SQLite3ColumnBlob = buf
+End Function
+
 '=====================================================================================
 ' Statement bindings
 
@@ -299,6 +312,12 @@ End Function
 
 Public Function SQLite3BindDate(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByVal Value As Date) As Long
     SQLite3BindDate = sqlite3_stdcall_bind_double(stmtHandle, OneBasedParamIndex, ToJulianDay(Value))
+End Function
+
+Public Function SQLite3BindBlob(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByRef Value() As Byte) As Long
+    Dim length As Long
+    length = UBound(Value) - LBound(Value) + 1
+    SQLite3BindBlob = sqlite3_stdcall_bind_blob(stmtHandle, OneBasedParamIndex, VarPtr(Value(0)), length, SQLITE_TRANSIENT)
 End Function
 
 Public Function SQLite3BindNull(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long) As Long

@@ -1,3 +1,10 @@
+Version 0.8 (24 July 2012)
+==========================
+* Added (non-incremental) Blob access, and small test.
+* Add support for 64-bit Excel 2010. 
+  The SQLiteForExcel_64.xlsm has VBA code that supports 32-bit and 64-bit versions of Excel.
+* Updated Distribution version of SQLite3.dll to 3.7.13 and added x64\SQLite3.dll.
+
 Version 0.7 (25 June 2011)
 ==========================
 * Fixed Unicode string conversion bug.
