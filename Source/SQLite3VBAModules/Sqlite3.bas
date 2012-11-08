@@ -68,6 +68,28 @@ Public Const SQLITE_IOERR_CLOSE              As Long = 4106 '(SQLITE_IOERR | (16
 Public Const SQLITE_IOERR_DIR_CLOSE          As Long = 4362 '(SQLITE_IOERR | (17<<8))
 Public Const SQLITE_LOCKED_SHAREDCACHE       As Long = 265  '(SQLITE_LOCKED | (1<<8) )
 
+' Flags For File Open Operations
+Public Const SQLITE_OPEN_READONLY           As Long = 1       ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_READWRITE          As Long = 2       ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_CREATE             As Long = 4       ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_DELETEONCLOSE      As Long = 8       ' VFS only
+Public Const SQLITE_OPEN_EXCLUSIVE          As Long = 16      ' VFS only
+Public Const SQLITE_OPEN_AUTOPROXY          As Long = 32      ' VFS only
+Public Const SQLITE_OPEN_URI                As Long = 64      ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_MEMORY             As Long = 128     ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_MAIN_DB            As Long = 256     ' VFS only
+Public Const SQLITE_OPEN_TEMP_DB            As Long = 512     ' VFS only
+Public Const SQLITE_OPEN_TRANSIENT_DB       As Long = 1024    ' VFS only
+Public Const SQLITE_OPEN_MAIN_JOURNAL       As Long = 2048    ' VFS only
+Public Const SQLITE_OPEN_TEMP_JOURNAL       As Long = 4096    ' VFS only
+Public Const SQLITE_OPEN_SUBJOURNAL         As Long = 8192    ' VFS only
+Public Const SQLITE_OPEN_MASTER_JOURNAL     As Long = 16384   ' VFS only
+Public Const SQLITE_OPEN_NOMUTEX            As Long = 32768   ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_FULLMUTEX          As Long = 65536   ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_SHAREDCACHE        As Long = 131072  ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_PRIVATECACHE       As Long = 262144  ' Ok for sqlite3_open_v2()
+Public Const SQLITE_OPEN_WAL                As Long = 524288  ' VFS only
+
 ' Options for Text and Blob binding
 Private Const SQLITE_STATIC      As Long = 0
 Private Const SQLITE_TRANSIENT   As Long = -1
@@ -92,6 +114,7 @@ Private Declare Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) A
 Private Declare Function sqlite3_stdcall_libversion Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_libversion@0" () As Long ' PtrUtf8String
 ' Database connections
 Private Declare Function sqlite3_stdcall_open16 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_open16@8" (ByVal pwsFileName As Long, ByRef hDb As Long) As Long ' PtrDb
+Private Declare Function sqlite3_stdcall_open_v2 Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_open_v2@16" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As Long ' PtrDb
 Private Declare Function sqlite3_stdcall_close Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_close@4" (ByVal hDb As Long) As Long
 ' Database connection error info
 Private Declare Function sqlite3_stdcall_errmsg Lib "SQLite3_StdCall" Alias "_sqlite3_stdcall_errmsg@4" (ByVal hDb As Long) As Long ' PtrUtf8String
@@ -198,8 +221,20 @@ End Function
 '=====================================================================================
 ' Database connections
 
-Public Function SQLite3Open(ByVal FileName As String, ByRef dbHandle As Long) As Long
-    SQLite3Open = sqlite3_stdcall_open16(StrPtr(FileName), dbHandle)
+Public Function SQLite3Open(ByVal fileName As String, ByRef dbHandle As Long) As Long
+    SQLite3Open = sqlite3_stdcall_open16(StrPtr(fileName), dbHandle)
+End Function
+
+Public Function SQLite3OpenV2(ByVal fileName As String, ByRef dbHandle As Long, ByVal flags As Long, ByVal vfsName As String) As Long
+    Dim bufFileName() As Byte
+    Dim bufVfsName() As Byte
+    bufFileName = StringToUtf8Bytes(fileName)
+    If vfsName = Empty Then
+        SQLite3OpenV2 = sqlite3_stdcall_open_v2(VarPtr(bufFileName(0)), dbHandle, flags, 0)
+    Else
+        bufVfsName = StringToUtf8Bytes(vfsName)
+        SQLite3OpenV2 = sqlite3_stdcall_open_v2(VarPtr(bufFileName(0)), dbHandle, flags, VarPtr(bufVfsName(0)))
+    End If
 End Function
 
 Public Function SQLite3Close(ByVal dbHandle As Long) As Long

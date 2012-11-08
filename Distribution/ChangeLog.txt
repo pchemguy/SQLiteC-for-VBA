@@ -1,3 +1,7 @@
+Version 0.9 (8 November 2012)
+=============================
+* Add support for sqlite_open_v2
+
 Version 0.8 (24 July 2012)
 ==========================
 * Added (non-incremental) Blob access, and small test.

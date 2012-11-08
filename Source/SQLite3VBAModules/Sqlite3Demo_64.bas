@@ -17,6 +17,7 @@ Public Sub AllTests()
     
     TestVersion
     TestOpenClose
+    TestOpenCloseV2
     TestError
     TestInsert
     TestSelect
@@ -25,6 +26,7 @@ Public Sub AllTests()
     TestStrings
     TestBackup
     TestBlob
+    TestWriteReadOnly
     SQLite3Free ' Quite optional
 End Sub
 
@@ -61,6 +63,37 @@ Public Sub TestOpenClose()
     testFile = "C:\TestSqlite3ForExcel.db3"
     RetVal = SQLite3Open(testFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
+    
+    RetVal = SQLite3Close(myDbHandle)
+    Debug.Print "SQLite3Close returned " & RetVal
+    
+    Kill testFile
+
+End Sub
+
+Public Sub TestOpenCloseV2()
+    Dim testFile As String
+    #If Win64 Then
+    Dim myDbHandle As LongPtr
+    Dim myDbHandleV2 As LongPtr
+    #Else
+    Dim myDbHandle As Long
+    Dim myDbHandleV2 As Long
+    #End If
+    Dim RetVal As Long
+    
+    ' Open the database in Read Write Access
+    testFile = "C:\TestSqlite3ForExcel.db3"
+    RetVal = SQLite3Open(testFile, myDbHandle)
+    Debug.Print "SQLite3Open returned " & RetVal
+    
+    ' Open the database in Read Only Access
+    testFile = "C:\TestSqlite3ForExcel.db3"
+    RetVal = SQLite3OpenV2(testFile, myDbHandleV2, SQLITE_OPEN_READONLY, "")
+    Debug.Print "SQLite3OpenV2 returned " & RetVal
+    
+    RetVal = SQLite3Close(myDbHandleV2)
+    Debug.Print "SQLite3Close V2 returned " & RetVal
     
     RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
@@ -1186,6 +1219,83 @@ Public Sub TestBlob()
     Debug.Print "----- TestBlob End -----"
 End Sub
 
+Public Sub TestWriteReadOnly()
+    Dim testFile As String
+    #If Win64 Then
+    Dim myDbHandle As LongPtr
+    Dim myDbHandleV2 As LongPtr
+    Dim myStmtHandle As LongPtr
+    #Else
+    Dim myDbHandle As Long
+    Dim myDbHandleV2 As Long
+    Dim myStmtHandle As Long
+    #End If
+    Dim RetVal As Long
+    
+    ' Open the database in Read Write Access
+    testFile = "C:\TestSqlite3ForExcel.db3"
+    RetVal = SQLite3Open(testFile, myDbHandle)
+    Debug.Print "SQLite3Open returned " & RetVal
+    
+    ' Open the database in Read Only Access
+    testFile = "C:\TestSqlite3ForExcel.db3"
+    RetVal = SQLite3OpenV2(testFile, myDbHandleV2, SQLITE_OPEN_READONLY, Empty)
+    Debug.Print "SQLite3OpenV2 returned " & RetVal
+    
+    ' Create the sql statement - getting a StmtHandle back
+    RetVal = SQLite3PrepareV2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    Debug.Print "SQLite3PrepareV2 returned " & RetVal
+    
+    ' Start running the statement
+    RetVal = SQLite3Step(myStmtHandle)
+    Debug.Print "SQLite3Step returned " & RetVal
+    
+    ' Finalize (delete) the statement
+    RetVal = SQLite3Finalize(myStmtHandle)
+    Debug.Print "SQLite3Finalize returned " & RetVal
+    
+    ' Create the sql statement - getting a StmtHandle back with Read Only
+    RetVal = SQLite3PrepareV2(myDbHandleV2, "CREATE TABLE MySecondTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    'RetVal = SQLite3PrepareV2(myDbHandleV2, "SELECT * FROM MyFirstTable", myStmtHandle)
+    Debug.Print "SQLite3PrepareV2 returned " & RetVal
+    
+    ' Start running the statement with Read Only
+    RetVal = SQLite3Step(myStmtHandle)
+    Debug.Print "SQLite3Step returned " & RetVal
+    
+    If RetVal = SQLITE_READONLY Then
+        Debug.Print "Cannot Write in Read Only database"
+    End If
+    
+    ' Finalize (delete) the statement with Read Only
+    RetVal = SQLite3Finalize(myStmtHandle)
+    Debug.Print "SQLite3Finalize returned " & RetVal
+    
+    ' Create the sql statement - getting a StmtHandle back with Read Only
+    RetVal = SQLite3PrepareV2(myDbHandleV2, "SELECT * FROM MyFirstTable", myStmtHandle)
+    Debug.Print "SQLite3PrepareV2 returned " & RetVal
+    
+    ' Start running the statement with Read Only
+    RetVal = SQLite3Step(myStmtHandle)
+    Debug.Print "SQLite3Step returned " & RetVal
+        
+    If RetVal = SQLITE_DONE Then
+        Debug.Print "But Reading is granted on Read Only database"
+    End If
+    
+    ' Finalize (delete) the statement with Read Only
+    RetVal = SQLite3Finalize(myStmtHandle)
+    Debug.Print "SQLite3Finalize returned " & RetVal
+    
+    RetVal = SQLite3Close(myDbHandleV2)
+    Debug.Print "SQLite3Close V2 returned " & RetVal
+    
+    RetVal = SQLite3Close(myDbHandle)
+    Debug.Print "SQLite3Close returned " & RetVal
+    
+    Kill testFile
+
+End Sub
 
 ' SQLite3 Helper Functions
 #If Win64 Then
