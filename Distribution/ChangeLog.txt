@@ -1,3 +1,10 @@
+Version 1.0 (12 March 2016)
+===========================
+* Fix bug in SQLite3Free when SQLite3Initialize / SQLite3Free is called repeatedly.
+* Fix up demo code to place file under TEMP directory.
+* Update Distribution version of SQLite3.dll to 3.11.1.
+* Update and rebuild SQLite3_StdCall.dll under Visual Studio 2015, with updated sqlite3.h.
+
 Version 0.9 (8 November 2012)
 =============================
 * Add support for sqlite_open_v2

@@ -202,11 +202,20 @@ Public Function SQLite3Initialize(Optional ByVal libDir As String) As Long
 End Function
 
 Public Sub SQLite3Free()
-    If hSQLiteLibrary <> 0 Then
-        FreeLibrary hSQLiteLibrary
+   Dim refCount As Long
+   If hSQLiteStdCallLibrary <> 0 Then
+        refCount = FreeLibrary(hSQLiteStdCallLibrary)
+        hSQLiteStdCallLibrary = 0
+        If refCount = 0 Then
+            Debug.Print "SQLite3Free Error Freeing SQLite3_StdCall.dll:", refCount, Err.LastDllError
+        End If
     End If
-    If hSQLiteStdCallLibrary <> 0 Then
-        FreeLibrary hSQLiteStdCallLibrary
+    If hSQLiteLibrary <> 0 Then
+        refCount = FreeLibrary(hSQLiteLibrary)
+        hSQLiteLibrary = 0
+        If refCount = 0 Then
+            Debug.Print "SQLite3Free Error Freeing SQLite3.dll:", refCount, Err.LastDllError
+        End If
     End If
 End Sub
 
