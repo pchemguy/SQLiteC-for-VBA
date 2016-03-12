@@ -10,7 +10,7 @@ The current release has the following parts:
 * *64-bit support* for use with the 64-bit versions of Excel can be found in {"SQLiteForExcel_64.xlsm"} which has VBA code that supports both 32-bit and 64-bit versions of Excel. A 64-bit build of SQLite 3.7.13 is located in x64\SQLite3.dll. The corresponding {"Sqlite3Demo_64.bas"} module shows how to target both 32-bit and 64-bit Excel with the same VBA code (some #Ifs are required). (Note that the default install of Office is always the 32-bit version, even on a 64-bit version of Windows. Only if the 64-bit version of Office has been specifically selected will the 64-bit modules be required.) 
 
 # Getting Started
-* Download the release archive.
+* Download the release archive .zip file from https://github.com/govert/SQLiteForExcel/releases.
 * Unzip the download to a convenient location.
 * Open the Distribution\SQLiteForExcel.xls file.
 * Open the VBA Editor (Alt+F11).
