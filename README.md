@@ -2,12 +2,19 @@
 [SQLite](http://www.sqlite.org) is a small, easy-to-use, open-source SQL database engine. This project, *SQLite for Excel*, is a lightweight wrapper to give access to the SQLite3 library from VBA. It provides a high-performance path to the SQLite3 API functions, preserving the semantics of the SQLite3 library calls and allowing access to the distributed SQLite3.dll without recompilation.
 
 The current release has the following parts:
-* *SQLite3_StdCall* is a small and very simple C .dll that makes it possible to use the standard SQLite3 .dll from VBA. It just passes calls from VBA on to SQLite without any change in the parameters, but this allows the StdCall calling convention that VB6 and VBA is limited to.
-* *Sqlite3.bas VBA module* has all the VBA Declares, and does the parameter and string conversions. It exposes a number of SQLite3xxxx functions. These map as directly as possible to the SQLite C API, with no change in the semantics. Although I have not exposed the whole API, most of the core interface is included, in particular the prepared statement, binding, retrieval and backup functions. Date values are stored as Julian day real numbers in the database.
-* *Sqlite3Demo.bas VBA module* has tests that serve as nice examples of how to use the SQLite3xxxx functions. 
-* *SQLite3Demo.xls* contains the two VBA modules.
+### Distribution directory
+* *ChangeLog.txt* contains details of the changes in every version.
+* *SQLite3_StdCall.dll* is a small and very simple C .dll that makes it possible to use the standard SQLite3 .dll from VBA. It just passes calls from VBA on to SQLite without any change in the parameters, but this allows the StdCall calling convention that VB6 and VBA is limited to.
+* *SQLiteForExcel.xls* contains the two VBA modules:
+   * *SQLite3.bas VBA module* has all the VBA Declares, and does the parameter and string conversions. It exposes a number of SQLite3xxxx functions. These map as directly as possible to the SQLite C API, with no change in the semantics. Although I have not exposed the whole API, most of the core interface is included, in particular the prepared statement, binding, retrieval and backup functions. Date values are stored as Julian day real numbers in the database.
+   * *SQLite3Demo.bas VBA module* has tests that serve as nice examples of how to use the SQLite3xxxx functions. 
+* *SQLiteForExcel_64.xlsm* contains 64-bit versions of the two VBA modules in a version that supports both 32-bit and 64-bit versions of Excel.The corresponding {"Sqlite3Demo_64.bas"} module shows how to target both 32-bit and 64-bit Excel with the same VBA code (some #Ifs are required). (Note that the default install of Office is always the 32-bit version, even on a 64-bit version of Windows. Only if the 64-bit version of Office has been specifically selected will the 64-bit modules be required.) 
+* *sqlite3.dll* is a copy of SQLite version 3.11.1, as downloaded from the SQLite website.
+* *x64\SQLite3.dll* is a 64-bit build of SQLite 3.11.1. 
 
-* *64-bit support* for use with the 64-bit versions of Excel can be found in {"SQLiteForExcel_64.xlsm"} which has VBA code that supports both 32-bit and 64-bit versions of Excel. A 64-bit build of SQLite 3.7.13 is located in x64\SQLite3.dll. The corresponding {"Sqlite3Demo_64.bas"} module shows how to target both 32-bit and 64-bit Excel with the same VBA code (some #Ifs are required). (Note that the default install of Office is always the 32-bit version, even on a 64-bit version of Windows. Only if the 64-bit version of Office has been specifically selected will the 64-bit modules be required.) 
+### Source directory
+* *SQLite3VBAModules* contains the four VBA modules described about (32-bit and 64-bit).
+* *SQLite3_StdCall* contains the C language source code for the library described above.
 
 # Getting Started
 * Download the release archive .zip file from https://github.com/govert/SQLiteForExcel/releases.
