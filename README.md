@@ -32,7 +32,7 @@ The current release has the following parts:
 
 # Related Projects
 * The *SQLite* home is at http://www.sqlite.org and the most recent version of the SQLite3.dll library can be found here http://www.sqlite.org/download.html.
-* To create User-Defined Functions (UDFs) for Excel using C#, VB.NET or F#, have a look at my [Excel-DNA](http://https://github.com/Excel-DNA/ExcelDna) project. It provides free and easy integration of .NET with Excel.
+* To create User-Defined Functions (UDFs) for Excel using C#, VB.NET or F#, have a look at my [Excel-DNA](https://github.com/Excel-DNA/ExcelDna) project. It provides free and easy integration of .NET with Excel.
 * For access to SQLite from .NET I recommend:
     * the official [System.Data.SQLite](http://system.data.sqlite.org) is a full-featured ADO.NET driver with full Linq and Entity Framework support, or
     * the sweet-looking [sqlite-net](https://github.com/praeclarum/sqlite-net), a light-weight wrapper with attribute-based object-to-database mapping and some Linq support.
