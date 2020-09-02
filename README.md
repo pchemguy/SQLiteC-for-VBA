@@ -1,10 +1,6 @@
 # Overview
 [SQLite](http://www.sqlite.org) is a small, easy-to-use, open-source SQL database engine. This project, *SQLite for Excel*, is a lightweight wrapper to give access to the SQLite3 library from VBA. It provides a high-performance path to the SQLite3 API functions, preserving the semantics of the SQLite3 library calls and allowing access to the distributed SQLite3.dll without recompilation.
 
-_SQLiteForExcel is being sponsored by the following tool; please help to support us by taking a look and signing up to a free trial._
-
-<a href="https://tracking.gitads.io/?repo=SQLiteForExcel"><img src="https://images.gitads.io/SQLiteForExcel" alt="GitAds"/></a>
-
 ## Release Details
 
 The current release has the following parts:
