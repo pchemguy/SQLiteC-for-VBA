@@ -8,7 +8,7 @@ I plan to document this project properly later; for the time being, please refer
 
 
 
-<!-- References --!>
+<!-- References -->
 
 [SQLiteODBC CW]: http://www.ch-werner.de/sqliteodbc/
 [SQLiteODBC PG]: https://pchemguy.github.io/SQLite-ICU-MinGW/odbc
