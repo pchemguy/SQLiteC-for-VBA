@@ -1,0 +1,6 @@
+desktop.ini
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+*.journal
