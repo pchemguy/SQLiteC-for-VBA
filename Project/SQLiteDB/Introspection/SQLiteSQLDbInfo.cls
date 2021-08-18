@@ -67,6 +67,7 @@ Attribute Databases.VB_Description = "Generates a query returning the list of at
 End Property
 
 
+'''' @Proxy
 '@Description "Generates a query returning all non-system database objects."
 Public Function GetDbSchema(Optional ByVal Schema As String = vbNullString) As String
 Attribute GetDbSchema.VB_Description = "Generates a query returning all non-system database objects."
@@ -74,6 +75,7 @@ Attribute GetDbSchema.VB_Description = "Generates a query returning all non-syst
 End Function
 
 
+'''' @Proxy
 '@Description "Generates a query returning all non-system database objects, but triggers"
 Public Function DbSchemaNoTriggers(Optional ByVal Schema As String = vbNullString) As String
 Attribute DbSchemaNoTriggers.VB_Description = "Generates a query returning all non-system database objects, but triggers"
@@ -81,6 +83,7 @@ Attribute DbSchemaNoTriggers.VB_Description = "Generates a query returning all n
 End Function
 
 
+'''' @Proxy
 '@Description "Generates a query returning triggers"
 Public Function Triggers(Optional ByVal Schema As String = vbNullString) As String
 Attribute Triggers.VB_Description = "Generates a query returning triggers"
@@ -110,6 +113,7 @@ Attribute CheckFKs.VB_Description = "Generates a query running integrity check."
 End Property
 
 
+'''' @Proxy
 '@Description "Generates a query returning database tables."
 Public Function Tables(Optional ByVal Schema As String = vbNullString) As String
 Attribute Tables.VB_Description = "Generates a query returning database tables."
@@ -117,6 +121,7 @@ Attribute Tables.VB_Description = "Generates a query returning database tables."
 End Function
 
 
+'''' @Proxy
 '@Description "Generates a query returning all foreing keys in the SQLite database"
 Public Property Get ForeingKeys() As String
 Attribute ForeingKeys.VB_Description = "Generates a query returning all foreing keys in the SQLite database"
@@ -124,6 +129,7 @@ Attribute ForeingKeys.VB_Description = "Generates a query returning all foreing 
 End Property
 
 
+'''' @Proxy
 '@Description "Generates a query returning all indices in the SQLite database"
 Public Function Indices(Optional ByVal NonSys As Boolean = True) As String
 Attribute Indices.VB_Description = "Generates a query returning all indices in the SQLite database"
@@ -131,6 +137,7 @@ Attribute Indices.VB_Description = "Generates a query returning all indices in t
 End Function
 
 
+'''' @Proxy
 '''' See the called class for details
 '@Description "Generates a query returning child columns for all foreing keys and corresponding indices."
 Public Property Get FKChildIndices() As String
@@ -139,6 +146,7 @@ Attribute FKChildIndices.VB_Description = "Generates a query returning child col
 End Property
 
 
+'''' @Proxy
 '''' See the called class for details
 '@Description "Generates a query returning similar indices."
 Public Property Get SimilarIndices() As String
