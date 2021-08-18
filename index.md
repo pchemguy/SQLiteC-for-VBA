@@ -10,7 +10,7 @@ The SQLiteDB VBA library uses the ADODB package and relies on the Christian Wern
 
 From the calling code's perspective, the top-level API object is *SQLiteDB* (Fig. 1). It uses the *Introspection* subpackage to generate appropriate SQL code, runs the query via the ADODB library, and exposes the resulting ADODB.Recordset object.
 
-The main class of the *Introspection* subpackage, *SQLiteSQLDbInfo*, contains most of the routines generating SQL code used to obtain database-related information. A separate supporting module *SQLiteSQLDbIdxFK* is responsible for bulky code related to indices and foreign keys. SQL code focused on the engine-related information is provided by another supporting module, *SQLiteSQLEngineInfo*. The functionality of both supporting modules is exposed on the main subpackage class via proxies.
+The main class of the *Introspection* subpackage, *SQLiteSQLDbInfo*, contains most of the routines generating SQL code used to obtain database-related information. A separate module *SQLiteSQLDbIdxFK* is responsible for bulky code related to indices and foreign keys, and the main subpackage class exposes this functionality via proxies. SQL code focused on the engine-related information is provided by the *SQLiteSQLEngineInfo* exposed on the main subpackage class via encapsulation.
 
 *SQLlib* module is responsible for generic SQL code, and *ADOlib* contains routines manipulating ADODB objects and related helper routines. *VerifyOrGetDefaultPath* routine from *ShellRoutines.bas* resolves database filepath with several checks and fallbacks, as described in the code comments.
 
