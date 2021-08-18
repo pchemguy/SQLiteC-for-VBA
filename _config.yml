@@ -18,3 +18,5 @@ ya_tracking: "79433089"
 # Plugins
 plugins:
   - jekyll-seo-tag
+
+theme: jekyll-theme-slate
