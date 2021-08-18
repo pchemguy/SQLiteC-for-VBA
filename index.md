@@ -1,10 +1,3 @@
----
-layout: default
-title: Overview
-nav_order: 1
-permalink: /
----
-
 SQLiteDB VBA library is a set of VBA helper functions for the SQLite engine. The primary motivation behind this project is to provide convenient access to extended introspection features. Because of its generality, ADODB/ADOX libraries provide only limited metadata information. Furthermore, this information is only available if the underlying driver implements the relevant functionality. The *Introspection* subpackage of this library, on the other hand, relies on the generic SQL querying mechanism and specialized SQL queries. It facilitates access to complete information about both the features of the active engine used and objects/attributes of the attached database.
 
 The benefits of examining the metadata are twofold. For once, SQLite employs a modular architecture, with a significant portion of its widely used functionality provided via extensions. The availability of this functionality depends on the used compilation options, and some extensions, such as the ICU Unicode extension, also require external libraries. Thus, an application relying on the system copy of SQLite should verify that the necessary features are available. On the other hand, analyzing the structure of the attached database may add coding flexibility. This information may reduce the necessity for hardcoding specific database objects or provide a means to catch issues early (for example, when a third-party application modifies the database incorrectly).
@@ -15,7 +8,7 @@ The SQLiteDB VBA library uses the ADODB package and relies on the Christian Wern
 <img src="https://raw.githubusercontent.com/pchemguy/SQLiteDB-VBA-Library/develop/Assets/Diagrams/Class Diagram.svg" alt="Class Diagram" width="100%" />  
 <p align="center"><b>Figure 1. Class diagram</b></p>  
 
-The main (public) class of the library is *SQLiteDB* (Fig. 1). It uses the *Introspection* subpackage to generate appropriate SQL code, runs the query via the ADODB library, and exposes the resulting ADODB.Recordset object.
+From the calling code's perspective, the top-level API object is *SQLiteDB* (Fig. 1). It uses the *Introspection* subpackage to generate appropriate SQL code, runs the query via the ADODB library, and exposes the resulting ADODB.Recordset object.
 
 The main class of the *Introspection* subpackage, *SQLiteSQLDbInfo*, contains most of the routines generating SQL code used to obtain database-related information. A separate supporting module *SQLiteSQLDbIdxFK* is responsible for bulky code related to indices and foreign keys. SQL code focused on the engine-related information is provided by another supporting module, *SQLiteSQLEngineInfo*. The functionality of both supporting modules is exposed on the main subpackage class via proxies.
 
