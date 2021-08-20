@@ -30,7 +30,7 @@ Public Enum ErrNo
     InvalidCharacterErr = VBA.vbObjectError + 2014&
     AdoFeatureNotAvailableErr = ADODB.ErrorValueEnum.adErrFeatureNotAvailable
     AdoInTransactionErr = ADODB.ErrorValueEnum.adErrInTransaction
-    AdoNotInTransactionErr = ADODB.ErrorValueEnum.adErrInvalidTransaction
+    AdoInvalidTransactionErr = ADODB.ErrorValueEnum.adErrInvalidTransaction
     AdoConnectionStringErr = ADODB.ErrorValueEnum.adErrProviderNotFound
     AdoInvalidParameterTypeErr = VBA.vbObjectError + adErrInvalidParameterType
 End Enum

@@ -302,6 +302,26 @@ Attribute FileNotExist.VB_Description = "Raises a run-time error if the specifie
 End Sub
 
 
+'@Description("Raises a run-time error if transaction is requested but not supported. (Trapped on True)")
+Public Sub InvalidTransaction(ByVal TransactoinsDisabled As Boolean)
+Attribute InvalidTransaction.VB_Description = "Raises a run-time error if transaction is requested but not supported. (Trapped on True)"
+    Debug.Assert VarType(TransactoinsDisabled) = vbBoolean
+    
+    Dim errorDetails As TError
+    With errorDetails
+        .Trapped = TransactoinsDisabled
+        If .Trapped Then
+            .Name = "NotInTransaction"
+            .Number = ErrNo.AdoInvalidTransactionErr
+            .Source = vbNullString
+            .Message = "Current database does not support transaction"
+            .Description = "Attempted operation not permmited when transactions are not supported."
+            RaiseError errorDetails
+        End If
+    End With
+End Sub
+
+
 '@Description("Raises a run-time error if the specified connection has active transaction. (Trapped on True)")
 Public Sub InTransaction(ByVal HasActiveTransaction As Boolean)
 Attribute InTransaction.VB_Description = "Raises a run-time error if the specified connection has active transaction. (Trapped on True)"
@@ -332,7 +352,7 @@ Attribute NotInTransaction.VB_Description = "Raises a run-time error if the spec
         .Trapped = Not HasActiveTransaction
         If .Trapped Then
             .Name = "NotInTransaction"
-            .Number = ErrNo.AdoNotInTransactionErr
+            .Number = ErrNo.AdoInvalidTransactionErr
             .Source = vbNullString
             .Message = "Current database connection is not in transaction"
             .Description = "Attempted operation not permmited when no  active transaction in progress (e.g. commit or rollback)."
