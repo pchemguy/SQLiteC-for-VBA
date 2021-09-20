@@ -12,7 +12,7 @@ Attribute VB_Description = "SQL queries for retrieving SQLite database metadata.
 '@ModuleDescription "SQL queries for retrieving SQLite database metadata."
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule DefaultMemberRequired, DefaultMemberRequired, ProcedureNotUsed
 Option Explicit
 
 Private Type TSQLiteSQLDbInfo

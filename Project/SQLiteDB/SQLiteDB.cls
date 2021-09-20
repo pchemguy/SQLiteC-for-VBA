@@ -17,7 +17,6 @@ Attribute VB_Description = "Provides SQLite specific functionality"
 '@IgnoreModule ValueRequired, ProcedureNotUsed
 Option Explicit
 
-
 Private Type TSQLiteDB
     MainDB As String '''' Absolute file pathname to the main database.
     AdoConnection As ADODB.Connection
@@ -58,10 +57,10 @@ End Function
 ''''   the third argument is True.
 ''''
 '@Description "Default constructor"
-Public Sub Init(ByVal Database As String, _
+Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Boolean = False)
 Attribute Init.VB_Description = "Default constructor"
-    Set this.SQLInfo = SQLiteSQLDbInfo.Create
+    Set this.SQLInfo = SQLiteSQLDbInfo.Create()
     If Database = ":memory:" Then
         this.MainDB = Database
     ElseIf AllowNonExistent Then
@@ -111,6 +110,7 @@ End Property
 '@Description "Constructs default SQLiteODBC connection string"
 Public Function ConnectionString( _
             Optional ByVal DatabaseName As String = vbNullString) As String
+Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
 
@@ -445,6 +445,7 @@ End Sub
 '@Description "'Debug.Print' for an SQL query"
 Public Sub DebugPrintRecordset(ByVal SQLQuery As String, _
                       Optional ByVal OutputRange As Excel.Range = Nothing)
+Attribute DebugPrintRecordset.VB_Description = "'Debug.Print' for an SQL query"
     Guard.EmptyString SQLQuery
     
     Dim AdoRecordset As ADODB.Recordset
@@ -491,6 +492,7 @@ End Sub
 
 '@Description "Runs SQLite database access checks."
 Public Function CheckAccess() As Boolean
+Attribute CheckAccess.VB_Description = "Runs SQLite database access checks."
 
 End Function
 
@@ -522,6 +524,7 @@ End Function
 ''''
 '@Description "Runs SQLite database integrity checks."
 Public Function CheckIntegrity() As Boolean
+Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks."
     Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
     
     Dim SQLQuery As String
@@ -530,9 +533,8 @@ Public Function CheckIntegrity() As Boolean
 
     '''' 1) Verify that existing file is a database and only one db is atttached
     SQLQuery = this.SQLInfo.Databases
-    Dim AttachedDbCount
+    Dim AttachedDbCount As Long
     Dim ErrNumber As Long
-    ErrNumber = 0
     Dim ErrSource As String
     Dim ErrDescription As String
     

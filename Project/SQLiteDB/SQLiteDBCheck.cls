@@ -1,87 +1,51 @@
-Attribute VB_Name = "SQLiteDBExamples"
-'@Folder "SQLiteDB.Examples"
-'@IgnoreModule ProcedureNotUsed, VariableNotUsed, IndexedDefaultMemberAccess
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "SQLiteDBCheck"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_Description = "Provides access and integrity check functionality"
+'@Folder "SQLiteDB"
+'@ModuleDescription "Provides access and integrity check functionality"
+'@PredeclaredId
+'@IgnoreModule IndexedDefaultMemberAccess, ImplicitDefaultMemberAccess
+'@IgnoreModule ValueRequired
 Option Explicit
-Option Private Module
-Option Compare Text
 
-Private Const LIB_NAME As String = "SQLiteDBVBA"
-Private Const PATH_SEP As String = "\"
-Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
-
-
-Private Sub CloneDb()
-    Dim SourceDb As String
-    SourceDb = REL_PREFIX & "SQLiteDBVBA.db"
-    Dim TargetDb As String
-    TargetDb = REL_PREFIX & "Dest.db"
-
-    '@Ignore FunctionReturnValueDiscarded
-    SQLiteDB.CloneDb TargetDb, SourceDb
-End Sub
+Private Type TSQLiteDBCheck
+    MainDB As String '''' Absolute file pathname to the main database.
+End Type
+Private this As TSQLiteDBCheck
 
 
-Private Sub SetJournalMode()
-    Dim FileName As String
-    FileName = REL_PREFIX & "TestA.db"
-    
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB(FileName)
-    DbManager.AttachDatabase REL_PREFIX & "TestB.db"
-    DbManager.AttachDatabase REL_PREFIX & "TestC.db"
-    
-    DbManager.JournalModeSet "WAL", "ALL"
-End Sub
-
-
-Private Sub PrintTable()
-    Dim OutputWS As Excel.Worksheet
-    Set OutputWS = Buffer
-        
-    Dim FileName As String
-    FileName = REL_PREFIX & LIB_NAME & ".db"
-    
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB(FileName)
-    
-    Dim SQLTool As SQLlib
-    Set SQLTool = SQLlib("contacts")
-    SQLTool.Limit = 1000
-    DbManager.DebugPrintRecordset SQLTool.SelectAll, OutputWS.Range("A1")
-End Sub
-
-
-Private Function GetFileBytes(ByVal FilePathName As String) As Byte()
-    Dim FileHandle As Long
-    Dim ReadBuffer(0 To 15) As Byte
-    FileHandle = FreeFile
-    Open FilePathName For Binary Access Read Write As FileHandle
-    Get FileHandle, , ReadBuffer
-    Close FileHandle
-    GetFileBytes = ReadBuffer
+'@DefaultMember
+Public Function Create(ByVal Database As String) As SQLiteDBCheck
+Attribute Create.VB_UserMemId = 0
+    Dim Instance As SQLiteDBCheck
+    Set Instance = New SQLiteDBCheck
+    Instance.Init Database
+    Set Create = Instance
 End Function
 
 
-Public Sub TestGetFileBytes()
-    Dim FilePathName As String
-    FilePathName = ThisWorkbook.Path & "\Library\SQLiteDBVBA\TestC.db"
-    Dim ByteBuffer() As Byte
-    ByteBuffer = GetFileBytes(FilePathName)
-    Dim TextBuffer As String
-    TextBuffer = StrConv(ByteBuffer, vbUnicode)
-    Dim SQLiteDbSignature As String
-    SQLiteDbSignature = "SQLite format 3" & vbNullChar
-    Debug.Print SQLiteDbSignature = TextBuffer
+Friend Sub Init(ByVal Database As String)
+    If Database = ":memory:" Then
+        this.MainDB = Database
+    Else
+        this.MainDB = VerifyOrGetDefaultPath(Database, Array("db", "sqlite"))
+    End If
 End Sub
 
 
+'''' File access tests and basic integrity validation via FS OS functions.
+'@Description "Runs SQLite database access and basic integrity checks via OS."
 Public Function CheckAccessAndBasicIntegrity() As Boolean
+Attribute CheckAccessAndBasicIntegrity.VB_Description = "Runs SQLite database access and basic integrity checks via OS."
     Dim FilePathName As String
-    FilePathName = ThisWorkbook.Path & "\Library\SQLiteDBVBA\TestC.db"
-    FilePathName = ThisWorkbook.Path & "\SQLiteDBVBA.db"
-    FilePathName = ThisWorkbook.Path & "\Library\SQLiteDBVBA\TestC ACL.db"
-    FilePathName = ThisWorkbook.Path & "\Library\SQLiteDBVBA\SQLiteDBVBA.db"
-    
+    FilePathName = this.MainDB
     Dim fso As Scripting.FileSystemObject
     Set fso = New Scripting.FileSystemObject
     
@@ -122,6 +86,7 @@ Public Function CheckAccessAndBasicIntegrity() As Boolean
     '''' Path is OK.
     '''' Verify that folder is accessible - get file/subfolder count.
     On Error Resume Next
+    '@Ignore VariableNotUsed: .Count property is accessed to test DbFolder access
     Dim SubFolderCount As Long
     SubFolderCount = DbFolder.SubFolders.Count
     With Err
@@ -211,32 +176,97 @@ Public Function CheckAccessAndBasicIntegrity() As Boolean
         Err.Raise ErrNo.AdoInvalidFileFormatErr, "SQLiteDB", "Database " & _
                   "file is damaged: the magic string did not match."
     End If
+    
+    CheckAccessAndBasicIntegrity = True
 End Function
 
 
+'''' Integrity tests executed by the SQLite engine initiated via ADODB/SQL.
+''''
+'''' The database to be checked should be attached as the "main" and only
+'''' database. While integrity/FK check should run against the specified schema,
+'''' if provided, I had issues with getting expected behavior. Prefer to run
+'''' checks when a single database being checked is attached as "main".
+'''' 1) Verify that existing file is a database and exactly one db is attached.
+'''' 2) Run integrity check and verify that it returns "ok"
+'''' 3) Run foreign key check and verify that nothing is returned.
+''''
+'''' Examples:
+''''   >>> ?SQLiteDBCheck("Library\SQLiteDBVBA\SQLiteDBVBA.db").CheckIntegrity
+''''   -- Integrity check passed for: '<Path>\SQLiteDBVBA.db'
+''''   True
+''''
+''''   >>> ?SQLiteDBCheck("Library\SQLiteDBVBA\ICfailFKCfail.db").CheckIntegrity
+''''   Error:
+''''       message: Integrity check failed
+''''
+''''   >>> ?SQLiteDBCheck("Library\SQLiteDBVBA\ICokFKCfail.db").CheckIntegrity
+''''   Error:
+''''       message: Foreign key check failed
+''''
+'@Description "Runs SQLite database integrity checks via ADODB/SQL."
+Public Function CheckIntegrity() As Boolean
+Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks via ADODB/SQL."
+    Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
     
-'   Set DbTextStream = fso.GetFile(FilePathName & "-shm").OpenAsTextStream(ForReading, TRISTATE_OPEN_AS_ASCII)
-'   Dim Buffer As String
-'   Buffer = DbTextStream.Read(4)
-'
-'    Debug.Print fso.FolderExists("F:\Archive\Business\FID\PolMaFID\Drafts\Knowledge Management System\VBA\SQLiteDB VBA Library\Library\SQLiteDBVBA\")
-'
-'    Debug.Print FileLen("F:\Archive\Business\FID\PolMaFID\Drafts\Knowledge Management System\VBA\SQLiteDB VBA Library\Library\SQLiteDBVBA\QQ")
+    Dim SQLQuery As String
+    Dim CheckResult As Boolean
+    Dim AdoRecordset As ADODB.Recordset
     
-    '''' Split FilePathName
-'    Dim SplitPosition As Long
-'    SplitPosition = InStrRev(FilePathName, Application.PathSeparator)
-'    Dim FileName As String
-'    FileName = Mid$(FilePathName, SplitPosition + 1)
-'
-'    Const MagicHeaderString As String = "SQLite format 3" & vbNullChar
-'    Dim FileHandle As Long
-'    Dim ReadBuffer(0 To Len(MagicHeaderString) - 1) As Byte
-'
-'    FileHandle = FreeFile
-'    Open FilePathName For Binary Access Read Write As FileHandle
-'    Get FileHandle, , ReadBuffer
-'    Close FileHandle
-'    VerifyMagicHeader = (MagicHeaderString = StrConv(ReadBuffer, vbUnicode))
+    Dim ADOTool As MinADO
+    Set ADOTool = MinADO(this.MainDB)
+    Dim SQLInfo As SQLiteSQLDbInfo
+    '@Ignore DefaultMemberRequired: false positive
+    Set SQLInfo = SQLiteSQLDbInfo()
 
+    '''' 1) Verify that existing file is a database and only one db is atttached
+    SQLQuery = SQLInfo.Databases
+    Dim AttachedDbCount As Long
+    Dim ErrNumber As Long
+    Dim ErrSource As String
+    Dim ErrDescription As String
+    
+    On Error Resume Next
+    AttachedDbCount = ADOTool.GetAdoRecordset(SQLQuery).RecordCount
+    With Err
+        If .Number <> 0 Then
+            ErrNumber = .Number
+            ErrSource = .Source
+            ErrDescription = .Description
+        End If
+    End With
+    On Error GoTo 0
+    
+    If ErrNumber <> 0 Then
+        If (ErrNumber = ErrNo.AdoInvalidFileFormatErr) _
+                And (ErrDescription = SQLITE_NOTADB_MESSAGE) Then
+            Err.Raise ErrNo.AdoInvalidFileFormatErr, "SQLiteDB", _
+                      "File is not a database"
+        Else
+            With Err
+                .Raise ErrNumber, ErrSource, ErrDescription
+            End With
+        End If
+    End If
+    If AttachedDbCount <> 1 Then
+        Err.Raise ErrNo.CustomErr, "SQLiteDB", _
+                  "Please have exactly one database attached before the check."
+    End If
+    
+    '''' 2) "PRAGMA integrity_check"
+    SQLQuery = SQLInfo.CheckIntegrity
+    Set AdoRecordset = ADOTool.GetAdoRecordset(SQLQuery)
+    CheckResult = (AdoRecordset.Fields("integrity_check") = "ok")
+    Guard.ExpressionErr CheckResult, ErrNo.IntegrityCheckErr, _
+                        "SQLiteDB", "Integrity check failed"
+    
+    '''' 3) "PRAGMA foreign_key_check"
+    SQLQuery = SQLInfo.CheckFKs
+    Set AdoRecordset = ADOTool.GetAdoRecordset(SQLQuery)
+    CheckResult = (AdoRecordset.RecordCount = 0)
+    Guard.ExpressionErr CheckResult, ErrNo.ConsistencyCheckErr, _
+                        "SQLiteDB", "Foreign key check failed"
 
+    Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
+    CheckIntegrity = True
+End Function

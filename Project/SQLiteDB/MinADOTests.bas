@@ -1,4 +1,4 @@
-Attribute VB_Name = "SQLiteDBTests"
+Attribute VB_Name = "MinADOTests"
 '@Folder "SQLiteDB"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
@@ -48,22 +48,21 @@ End Sub
 '===================================================='
 
 
-Private Function zfxDefaultDbManager() As SQLiteDB
+Private Function zfxDefaultDbManager() As MinADO
     Dim FilePathName As String
     FilePathName = REL_PREFIX & LIB_NAME & ".db"
     
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(FilePathName)
+    Dim dbm As MinADO
+    Set dbm = MinADO.Create(FilePathName)
     Set zfxDefaultDbManager = dbm
 End Function
 
 
-Private Function zfxMemoryDbManager() As SQLiteDB
-    Set zfxMemoryDbManager = SQLiteDB.Create(":memory:")
+Private Function zfxMemoryDbManager() As MinADO
+    Set zfxMemoryDbManager = MinADO.Create(":memory:")
 End Function
 
 
-'@EntryPoint
 Private Function zfxDefaultDbPath() As String
     zfxDefaultDbPath = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
 End Function
@@ -73,6 +72,7 @@ End Function
 '==================== TEST CASES ===================='
 '===================================================='
 
+
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesExistingDatabasePath()
     On Error GoTo TestFail
@@ -81,7 +81,7 @@ Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
 Act:
-    Dim dbm As SQLiteDB
+    Dim dbm As MinADO
     Set dbm = zfxDefaultDbManager()
     Dim Actual As String
     Actual = dbm.MainDB
@@ -103,7 +103,7 @@ Arrange:
     Dim Expected As String
     Expected = ":memory:"
 Act:
-    Dim dbm As SQLiteDB
+    Dim dbm As MinADO
     Set dbm = zfxMemoryDbManager()
     Dim Actual As String
     Actual = dbm.MainDB
@@ -127,8 +127,8 @@ Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
 Act:
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(RelativePathName, AllowNonExistent:=True)
+    Dim dbm As MinADO
+    Set dbm = MinADO.Create(RelativePathName, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
@@ -149,8 +149,8 @@ Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & "NewDB.sqlite"
 Act:
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(Expected, AllowNonExistent:=True)
+    Dim dbm As MinADO
+    Set dbm = MinADO.Create(Expected, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
@@ -163,14 +163,51 @@ TestFail:
 End Sub
 
 
-''@TestMethod("Factory")
-'Private Sub ztcDbManagerFactoryGuard_ThrowsOnInvalidDbFile()
-'    On Error Resume Next
-'    Dim dbm As SQLiteDB
-'    Set dbm = SQLiteDB.Create(vbNullString)
-'    Dim SQLQuery As String
-'    SQLQuery = "SELECT name, file FROM pragma_database_list"
-'    Dim Result As String
-'    Result = dbm.GetAdoRecordset(SQLQuery).GetString
-'    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidTransactionErr
-'End Sub
+'@TestMethod("Factory")
+Private Sub ztcCreate_ValidatesDefaultConnectionString()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim Expected As String
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+               ";SyncPragma=NORMAL;FKSupport=True;"
+Act:
+    Dim dbm As MinADO
+    Set dbm = zfxDefaultDbManager()
+    Dim Actual As String
+    Actual = dbm.ConnectionString
+Assert:
+    Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Recordset")
+Private Sub ztcCreate_ValidatesDefaultRecordset()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbm As MinADO
+    Set dbm = zfxDefaultDbManager()
+    Dim DefaultSQL As String
+    DefaultSQL = "SELECT sqlite_version() AS version"
+Act:
+    Dim AdoRecordset As ADODB.Recordset
+    Set AdoRecordset = dbm.GetAdoRecordset
+Assert:
+    Assert.IsNotNothing dbm.AdoCommand, "AdoCommand is not set"
+    Assert.IsNotNothing dbm.AdoConnection, "AdoConnection is not set"
+    Assert.AreEqual DefaultSQL, dbm.AdoCommand.CommandText, "SQL mismatch"
+    Assert.IsNotNothing AdoRecordset, "AdoRecordset is not set"
+    Assert.IsNothing AdoRecordset.ActiveConnection, "AdoRecordset is not disconnected"
+    Assert.AreEqual 1, AdoRecordset.RecordCount, "Expected record count mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
