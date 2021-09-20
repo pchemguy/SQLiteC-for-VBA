@@ -49,7 +49,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithSpace()
     On Error Resume Next
     Debug.Assert Not IndexO("idx contacts_email", "contacts", "email") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -57,7 +57,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithQuote()
     On Error Resume Next
     Debug.Assert Not IndexO("idx'contacts_email", "contacts", "email") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -65,7 +65,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfTableNameWithDash()
     On Error Resume Next
     Debug.Assert Not IndexO("idx_contacts_email", "contacts-", "email") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 

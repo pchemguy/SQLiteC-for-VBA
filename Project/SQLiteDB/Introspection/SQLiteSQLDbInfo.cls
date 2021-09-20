@@ -22,17 +22,6 @@ End Type
 Private this As TSQLiteSQLDbInfo
 
 
-Private Sub Class_Initialize()
-    this.Schema = "main"
-    Set this.Engine = SQLiteSQLEngineInfo
-End Sub
-
-
-Private Sub Class_Terminate()
-    Set this.Engine = Nothing
-End Sub
-
-
 '''' @ClassMethodStrict
 '''' This method should only be used on the default instance
 ''''
@@ -48,8 +37,9 @@ Attribute Create.VB_UserMemId = 0
 End Function
 
 
-Public Sub Init(ByVal Schema As String)
+Public Sub Init(Optional ByVal Schema As String = "main")
     this.Schema = Schema
+    Set this.Engine = SQLiteSQLEngineInfo
 End Sub
 
 

@@ -49,7 +49,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithSpace()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(Array("id", "name"), "pk log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -57,7 +57,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithQuote()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(Array("id", "name"), "pk'log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -65,7 +65,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithDash()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(Array("id", "name"), "pk-log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -73,7 +73,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameWithDash()
     On Error Resume Next
     Debug.Assert Not ConstraintPK("i-d", "pk_log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -81,7 +81,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameWithDashInArray()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(Array("i-d"), "pk_log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -89,7 +89,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameNotStringOrArray()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(1, "pk_log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.CustomErr
+    Guard.AssertExpectedError Assert, ErrNo.CustomErr
 End Sub
 
 
@@ -97,7 +97,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameNotArrayOfStrings()
     On Error Resume Next
     Debug.Assert Not ConstraintPK(Array("name", 1), "pk_log", True) Is Nothing
-    AssertExpectedError Assert, ErrNo.TypeMismatchErr
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
 End Sub
 
 

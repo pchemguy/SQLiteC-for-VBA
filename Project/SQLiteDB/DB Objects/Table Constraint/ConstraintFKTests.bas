@@ -49,7 +49,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithSpace()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "id", , , "fk actions_log_id_logs_id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -57,7 +57,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithQuote()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "id", , , "fk'actions_log_id_logs_id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -65,7 +65,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithDash()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "id", , , "fk-actions_log_id_logs_id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -73,7 +73,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfForeingTableNameWithSpace()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "log s", "id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -81,7 +81,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfForeingTableNameWithQuote()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "log's", "id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -89,7 +89,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfForeingTableNameWithDash()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "log-s", "id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -97,7 +97,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameWithDash()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_i-d", "logs", "id") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -105,7 +105,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameWithDashInArray()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "i-d") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -113,7 +113,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameNotStringOrArray()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", 1) Is Nothing
-    AssertExpectedError Assert, ErrNo.CustomErr
+    Guard.AssertExpectedError Assert, ErrNo.CustomErr
 End Sub
 
 
@@ -121,7 +121,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfNameNotArrayOfStrings()
     On Error Resume Next
     Debug.Assert Not ConstraintFK(Array("name", 1), "logs", "id") Is Nothing
-    AssertExpectedError Assert, ErrNo.TypeMismatchErr
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
 End Sub
 
 
@@ -129,7 +129,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfInvalidOnDelete()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "id", "SET 5") Is Nothing
-    AssertExpectedError Assert, ErrNo.ActionNotSupportedErr
+    Guard.AssertExpectedError Assert, ErrNo.ActionNotSupportedErr
 End Sub
 
 
@@ -137,7 +137,7 @@ End Sub
 Private Sub ztcCheckFieldNames_ThrowsIfInvalidOnUpdate()
     On Error Resume Next
     Debug.Assert Not ConstraintFK("log_id", "logs", "id", , "SET 5") Is Nothing
-    AssertExpectedError Assert, ErrNo.ActionNotSupportedErr
+    Guard.AssertExpectedError Assert, ErrNo.ActionNotSupportedErr
 End Sub
 
 

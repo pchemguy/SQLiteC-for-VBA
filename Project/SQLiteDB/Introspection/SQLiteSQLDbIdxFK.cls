@@ -90,6 +90,7 @@ End Function
 ''''   WHERE type = 'view'
 ''''   ORDER BY ROWID ASC
 ''''
+'@Ignore ProcedureNotUsed
 '@Description "Generates a query returning database views."
 Public Function Views(Optional ByVal Schema As String = "main") As String
 Attribute Views.VB_Description = "Generates a query returning database views."

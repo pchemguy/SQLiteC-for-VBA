@@ -109,7 +109,7 @@ End Sub
 Private Sub ztcCheckDefault_ThrowsIfTextWithQuote()
     On Error Resume Next
     Debug.Assert Not FieldO("id").CheckDefault("can't") Is Nothing
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -117,7 +117,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameEmpty()
     On Error Resume Next
     Dim Field As FieldO: Set Field = FieldO(vbNullString)
-    AssertExpectedError Assert, ErrNo.EmptyStringErr
+    Guard.AssertExpectedError Assert, ErrNo.EmptyStringErr
 End Sub
 
 
@@ -125,7 +125,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithSpace()
     On Error Resume Next
     Dim Field As FieldO: Set Field = FieldO("i d")
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -133,7 +133,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithQuote()
     On Error Resume Next
     Dim Field As FieldO: Set Field = FieldO("i'd")
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
@@ -141,7 +141,7 @@ End Sub
 Private Sub ztcCheckName_ThrowsIfNameWithDash()
     On Error Resume Next
     Dim Field As FieldO: Set Field = FieldO("i-d")
-    AssertExpectedError Assert, ErrNo.InvalidCharacterErr
+    Guard.AssertExpectedError Assert, ErrNo.InvalidCharacterErr
 End Sub
 
 
