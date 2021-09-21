@@ -490,13 +490,6 @@ Attribute DeferForeignKeys.VB_Description = "Defer foreing keys"
 End Sub
 
 
-'@Description "Runs SQLite database access checks."
-Public Function CheckAccess() As Boolean
-Attribute CheckAccess.VB_Description = "Runs SQLite database access checks."
-
-End Function
-
-
 '''' The database to be checked should be attached as the "main" and only
 '''' database via the SQLiteDB factory. While integrity/FK check should run
 '''' against the specified schema, if provided, I had issues with getting

@@ -1,0 +1,2 @@
+Must run "acl-restrict.bat" for access checking tests to work properly.
+Must run "acl-restore.bat" for git client to work properly.

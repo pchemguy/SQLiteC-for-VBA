@@ -425,16 +425,14 @@ Attribute NotArray.VB_Description = "Raises a run-time error if the specified re
 End Sub
 
 
-Friend Sub AssertExpectedError(ByVal Assert As Rubberduck.PermissiveAssertClass, Optional ByVal ExpectedErrorNo As ErrNo = ErrNo.PassedNoErr)
+Friend Sub AssertExpectedError(ByVal Assert As Rubberduck.PermissiveAssertClass, _
+                      Optional ByVal ExpectedErrorNo As ErrNo = ErrNo.PassedNoErr)
     Debug.Assert TypeOf Assert Is Rubberduck.PermissiveAssertClass
     
-    Dim ActualErrNo As Long
-    ActualErrNo = VBA.Err.Number
     Dim errorDetails As String
-    errorDetails = " Error: #" & ActualErrNo & " - " & VBA.Err.Description
-    VBA.Err.Clear
+    errorDetails = " Error: #" & Err.Number & " - " & Err.Description
     
-    Select Case ActualErrNo
+    Select Case Err.Number
         Case ExpectedErrorNo
             Assert.Succeed
         Case ErrNo.PassedNoErr
@@ -442,4 +440,6 @@ Friend Sub AssertExpectedError(ByVal Assert As Rubberduck.PermissiveAssertClass,
         Case Else
             Assert.Fail MsgUnexpectedErrRaised & errorDetails
     End Select
+    
+    Err.Clear
 End Sub
