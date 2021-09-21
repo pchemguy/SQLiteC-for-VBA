@@ -35,7 +35,7 @@ Public Enum ErrNo
     ConsistencyCheckErr = VBA.vbObjectError + 2024&
     IntegrityCheckErr = VBA.vbObjectError + 2034&
     TextStreamReadErr = &H80070021
-    AdoInvalidFileFormatErr = &H80004005
+    OLE_DB_ODBC_Err = &H80004005
     AdoFeatureNotAvailableErr = ADODB.ErrorValueEnum.adErrFeatureNotAvailable
     AdoInTransactionErr = ADODB.ErrorValueEnum.adErrInTransaction
     AdoInvalidTransactionErr = ADODB.ErrorValueEnum.adErrInvalidTransaction

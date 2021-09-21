@@ -16,6 +16,9 @@ Attribute VB_Description = "Provides access and integrity check functionality"
 '@IgnoreModule SelfAssignedDeclaration: ignore for FileSystemObject
 Option Explicit
 
+Private Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
+Private Const SQLITE_IOERR_MESSAGE As String = "disk I/O error (10)"
+
 Private Type TLiteCheck
     MainDB As String '''' Absolute file pathname to the main database.
 End Type
@@ -108,7 +111,7 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
     Dim DbFile As Scripting.File
     Set DbFile = fso.GetFile(FilePathName)
     If DbFile.Size < 100 Then
-        Err.Raise ErrNo.AdoInvalidFileFormatErr, "LiteCheck", "File is not " & _
+        Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteCheck", "File is not " & _
                   "a database. SQLite header size is 100 bytes."
     End If
     
@@ -133,7 +136,7 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
     '''' Reading is successful.
     '''' Verify magic string.
     If Not FileSignature = MagicHeaderString Then
-        Err.Raise ErrNo.AdoInvalidFileFormatErr, "LiteCheck", "Database " & _
+        Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteCheck", "Database " & _
                   "file is damaged: the magic string did not match."
     End If
     
@@ -201,12 +204,12 @@ Public Function IntegrityADODB() As Boolean
 Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks via ADODB/SQL."
     Dim ADOTool As ILiteADO
     Set ADOTool = LiteADO(this.MainDB)
-    Dim SQLInfo As SQLiteSQLDbInfo
+    Dim SQLInfo As LiteMetaSQL
     '@Ignore DefaultMemberRequired: false positive
-    Set SQLInfo = SQLiteSQLDbInfo()
+    Set SQLInfo = LiteMetaSQL()
 
     '''' 1) Verify that existing file is a database and only one db is atttached
-    '''' Expected error: AdoInvalidFileFormatErr due to damaged database file.
+    '''' Expected error: OLE_DB_ODBC_Err due to damaged database file.
     '''' Database file damage may not be detected until the first query.
     On Error GoTo INTEGRITY_ERROR
     Dim AttachedDbCount As Long
@@ -240,10 +243,9 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     Exit Function
     
 INTEGRITY_ERROR:
-    Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
-    If (Err.Number = ErrNo.AdoInvalidFileFormatErr) _
+    If (Err.Number = ErrNo.OLE_DB_ODBC_Err) _
             And (Err.Description = SQLITE_NOTADB_MESSAGE) Then
-        Err.Raise ErrNo.AdoInvalidFileFormatErr, "LiteCheck", _
+        Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteCheck", _
                   "File is not a database"
     Else
         Err.Raise Err.Number, Err.Source, Err.Description & vbNewLine & _

@@ -21,7 +21,7 @@ Private Type TSQLiteDB
     MainDB As String '''' Absolute file pathname to the main database.
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
-    SQLInfo As SQLiteSQLDbInfo
+    SQLInfo As LiteMetaSQL
 End Type
 Private this As TSQLiteDB
 
@@ -60,7 +60,7 @@ End Function
 Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Boolean = False)
 Attribute Init.VB_Description = "Default constructor"
-    Set this.SQLInfo = SQLiteSQLDbInfo.Create()
+    Set this.SQLInfo = LiteMetaSQL.Create()
     If Database = ":memory:" Then
         this.MainDB = Database
     ElseIf AllowNonExistent Then
@@ -95,7 +95,7 @@ Public Property Get AdoCommand() As ADODB.Command
 End Property
 
 
-Public Property Get SQLInfo() As SQLiteSQLDbInfo
+Public Property Get SQLInfo() As LiteMetaSQL
     Set SQLInfo = this.SQLInfo
 End Property
 
@@ -543,9 +543,9 @@ Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks
     On Error GoTo 0
     
     If ErrNumber <> 0 Then
-        If (ErrNumber = ErrNo.AdoInvalidFileFormatErr) _
+        If (ErrNumber = ErrNo.OLE_DB_ODBC_Err) _
                 And (ErrDescription = SQLITE_NOTADB_MESSAGE) Then
-            Err.Raise ErrNo.AdoInvalidFileFormatErr, "SQLiteDB", _
+            Err.Raise ErrNo.OLE_DB_ODBC_Err, "SQLiteDB", _
                       "File is not a database"
         Else
             With Err

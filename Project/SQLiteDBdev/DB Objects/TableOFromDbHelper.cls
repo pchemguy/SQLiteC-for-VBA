@@ -134,7 +134,7 @@ Attribute GetConstraints.VB_Description = "Parses table schema from the database
     '''' Constraints nees to be parsed from the schema
     Dim TableSQL As String
     '@Ignore ImplicitDefaultMemberAccess, IndexedRecursiveDefaultMemberAccess
-    TableSQL = DbManager.GetAdoRecordset(SQLiteSQLDbInfo.TableSQL(TableName))("sql")
+    TableSQL = DbManager.GetAdoRecordset(LiteMetaSQL.TableSQL(TableName))("sql")
     ' Debug.Print TableSQL
     Dim CreateTableLines As Variant
     '''' The last schema line <vbLf & ")"> is chopped off

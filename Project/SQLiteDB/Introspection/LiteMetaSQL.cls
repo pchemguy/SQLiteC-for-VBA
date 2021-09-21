@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteSQLDbInfo"
+Attribute VB_Name = "LiteMetaSQL"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -12,14 +12,14 @@ Attribute VB_Description = "SQL queries for retrieving SQLite database metadata.
 '@ModuleDescription "SQL queries for retrieving SQLite database metadata."
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule DefaultMemberRequired, DefaultMemberRequired, ProcedureNotUsed
+'@IgnoreModule DefaultMemberRequired, DefaultMemberRequired, DefaultMemberRequired, ProcedureNotUsed
 Option Explicit
 
-Private Type TSQLiteSQLDbInfo
+Private Type TLiteMetaSQL
     Schema As String
-    Engine As SQLiteSQLEngineInfo
+    Engine As LiteMetaSQLEngine
 End Type
-Private this As TSQLiteSQLDbInfo
+Private this As TLiteMetaSQL
 
 
 '''' @ClassMethodStrict
@@ -27,11 +27,11 @@ Private this As TSQLiteSQLDbInfo
 ''''
 '@DefaultMember
 '@Description "Default factory"
-Public Function Create(Optional ByVal Schema As String = "main") As SQLiteSQLDbInfo
+Public Function Create(Optional ByVal Schema As String = "main") As LiteMetaSQL
 Attribute Create.VB_Description = "Default factory"
 Attribute Create.VB_UserMemId = 0
-    Dim Instance As SQLiteSQLDbInfo
-    Set Instance = New SQLiteSQLDbInfo
+    Dim Instance As LiteMetaSQL
+    Set Instance = New LiteMetaSQL
     Instance.Init Schema
     Set Create = Instance
 End Function
@@ -39,12 +39,22 @@ End Function
 
 Public Sub Init(Optional ByVal Schema As String = "main")
     this.Schema = Schema
-    Set this.Engine = SQLiteSQLEngineInfo
+    Set this.Engine = LiteMetaSQLEngine
 End Sub
 
 
+Public Property Get Schema() As String
+    Schema = this.Schema
+End Property
+
+
+Public Property Let Schema(ByVal Value As String)
+    this.Schema = Value
+End Property
+
+
 '@Description "Exposes SQLiteSQLEngineInfo introspection queries"
-Public Property Get Engine() As SQLiteSQLEngineInfo
+Public Property Get Engine() As LiteMetaSQLEngine
 Attribute Engine.VB_Description = "Exposes SQLiteSQLEngineInfo introspection queries"
     Set Engine = this.Engine
 End Property
@@ -61,7 +71,7 @@ End Property
 '@Description "Generates a query returning all non-system database objects."
 Public Function GetDbSchema(Optional ByVal Schema As String = vbNullString) As String
 Attribute GetDbSchema.VB_Description = "Generates a query returning all non-system database objects."
-    GetDbSchema = SQLiteSQLDbIdxFK.DbSchema(IIf(Len(Schema) > 0, Schema, this.Schema))
+    GetDbSchema = LiteMetaSQLIdxFK.DbSchema(IIf(Len(Schema) > 0, Schema, this.Schema))
 End Function
 
 
@@ -69,7 +79,7 @@ End Function
 '@Description "Generates a query returning all non-system database objects, but triggers"
 Public Function DbSchemaNoTriggers(Optional ByVal Schema As String = vbNullString) As String
 Attribute DbSchemaNoTriggers.VB_Description = "Generates a query returning all non-system database objects, but triggers"
-    DbSchemaNoTriggers = SQLiteSQLDbIdxFK.DbSchemaNoTriggers(IIf(Len(Schema) > 0, Schema, this.Schema))
+    DbSchemaNoTriggers = LiteMetaSQLIdxFK.DbSchemaNoTriggers(IIf(Len(Schema) > 0, Schema, this.Schema))
 End Function
 
 
@@ -77,7 +87,7 @@ End Function
 '@Description "Generates a query returning triggers"
 Public Function Triggers(Optional ByVal Schema As String = vbNullString) As String
 Attribute Triggers.VB_Description = "Generates a query returning triggers"
-    Triggers = SQLiteSQLDbIdxFK.Triggers(IIf(Len(Schema) > 0, Schema, this.Schema))
+    Triggers = LiteMetaSQLIdxFK.Triggers(IIf(Len(Schema) > 0, Schema, this.Schema))
 End Function
 
 
@@ -107,7 +117,7 @@ End Property
 '@Description "Generates a query returning database tables."
 Public Function Tables(Optional ByVal Schema As String = vbNullString) As String
 Attribute Tables.VB_Description = "Generates a query returning database tables."
-    Tables = SQLiteSQLDbIdxFK.Tables(IIf(Len(Schema) > 0, Schema, this.Schema))
+    Tables = LiteMetaSQLIdxFK.Tables(IIf(Len(Schema) > 0, Schema, this.Schema))
 End Function
 
 
@@ -115,7 +125,7 @@ End Function
 '@Description "Generates a query returning all foreing keys in the SQLite database"
 Public Property Get ForeingKeys() As String
 Attribute ForeingKeys.VB_Description = "Generates a query returning all foreing keys in the SQLite database"
-    ForeingKeys = SQLiteSQLDbIdxFK.ForeingKeys(this.Schema)
+    ForeingKeys = LiteMetaSQLIdxFK.ForeingKeys(this.Schema)
 End Property
 
 
@@ -123,7 +133,7 @@ End Property
 '@Description "Generates a query returning all indices in the SQLite database"
 Public Function Indices(Optional ByVal NonSys As Boolean = True) As String
 Attribute Indices.VB_Description = "Generates a query returning all indices in the SQLite database"
-    Indices = SQLiteSQLDbIdxFK.Indices(this.Schema, NonSys)
+    Indices = LiteMetaSQLIdxFK.Indices(this.Schema, NonSys)
 End Function
 
 
@@ -132,7 +142,7 @@ End Function
 '@Description "Generates a query returning child columns for all foreing keys and corresponding indices."
 Public Property Get FKChildIndices() As String
 Attribute FKChildIndices.VB_Description = "Generates a query returning child columns for all foreing keys and corresponding indices."
-    FKChildIndices = SQLiteSQLDbIdxFK.FKChildIndices(this.Schema)
+    FKChildIndices = LiteMetaSQLIdxFK.FKChildIndices(this.Schema)
 End Property
 
 
@@ -141,7 +151,7 @@ End Property
 '@Description "Generates a query returning similar indices."
 Public Property Get SimilarIndices() As String
 Attribute SimilarIndices.VB_Description = "Generates a query returning similar indices."
-    SimilarIndices = SQLiteSQLDbIdxFK.SimilarIndices(this.Schema)
+    SimilarIndices = LiteMetaSQLIdxFK.SimilarIndices(this.Schema)
 End Property
 
 

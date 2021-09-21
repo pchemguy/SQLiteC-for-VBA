@@ -101,7 +101,7 @@ End Sub
 Private Sub ztcIntegrityADODB_ThrowsOnFileNotDatabase()
     On Error Resume Next
     LiteCheck(ThisWorkbook.Name).IntegrityADODB
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
+    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
 
@@ -245,12 +245,12 @@ End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcFileAccessibleValid_ThrowsOnFileLT100()
+Private Sub ztcFileAccessibleValid_ThrowsOnLT100File()
     On Error Resume Next
     Dim FilePathName As String
     FilePathName = zfxFixturePrefix & "LT100.db"
     LiteCheck(FilePathName).FileAccessibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
+    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
 
@@ -270,7 +270,7 @@ Private Sub ztcFileAccessibleValid_ThrowsOnBadMagic()
     Dim FilePathName As String
     FilePathName = zfxFixturePrefix & "BadMagic.db"
     LiteCheck(FilePathName).FileAccessibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
+    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
 
@@ -289,12 +289,12 @@ End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnFileLT100()
+Private Sub ztcExistsAccesibleValid_ThrowsOnLT100File()
     On Error Resume Next
     Dim FilePathName As String
     FilePathName = zfxFixturePrefix & "LT100.db"
     LiteCheck(FilePathName).ExistsAccesibleValid
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
+    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
 
@@ -314,7 +314,7 @@ Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagic()
     Dim FilePathName As String
     FilePathName = zfxFixturePrefix & "BadMagic.db"
     LiteCheck(FilePathName).ExistsAccesibleValid
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
+    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
 
@@ -332,12 +332,19 @@ Private Sub ztcExistsAccesibleValid_ThrowsOnReadLockedFile()
 End Sub
 
 
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "TestCLEG.db"
-    LiteCheck(FilePathName).ExistsAccesibleValid
-    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidFileFormatErr
-End Sub
-
+'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
+'    Dim FilePathName As String
+'    FilePathName = zfxFixturePrefix & "TestCLEG.db"
+'    Dim dbm As ILiteADO
+'    Set dbm = LiteADO(FilePathName)
+'
+'    Dim AdoConnection As ADODB.Connection
+'    Set AdoConnection = dbm.AdoConnection
+'
+'    LiteCheck(FilePathName).ExistsAccesibleValid
+'    Dim Response As Variant
+'    Response = dbm.GetScalar("PRAGMA journal_mode")
+'    dbm.ExecuteNonQuery "PRAGMA journal_mode='DELETE'"
+'    Response = dbm.GetScalar("PRAGMA journal_mode")
+'
+'End Sub

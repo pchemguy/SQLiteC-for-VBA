@@ -96,6 +96,29 @@ End Sub
 
 
 '@TestMethod("Factory")
+Private Sub ztcFromConnection_ValidatesNewDbManager()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim FilePathName As String
+    FilePathName = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
+    Dim dbm As ILiteADO
+    Set dbm = LiteADO(FilePathName)
+Act:
+    Dim dbmClone As ILiteADO
+    Set dbmClone = LiteADO.FromConnection(dbm.AdoConnection)
+Assert:
+    Assert.AreEqual dbm.MainDB, dbmClone.MainDB, "Db path mismatch"
+    Assert.IsTrue dbm.AdoConnection Is dbmClone.AdoConnection, "Bad connection"
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesInMemoryDatabasePath()
     On Error GoTo TestFail
 

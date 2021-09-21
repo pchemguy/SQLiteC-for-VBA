@@ -14,11 +14,11 @@ Attribute Engine.VB_Description = "Collects SQLite engine information and ouputs
     SourceDb = ":memory:"
     Dim DbManager As SQLiteDB
     Set DbManager = SQLiteDB.Create(SourceDb)
-    DbManager.DebugPrintRecordset SQLiteSQLEngineInfo.Version, EngineInfo.Range("A1")
-    DbManager.DebugPrintRecordset SQLiteSQLEngineInfo.CompileOptions, EngineInfo.Range("B1")
-    DbManager.DebugPrintRecordset SQLiteSQLEngineInfo.Modules, EngineInfo.Range("C1")
-    DbManager.DebugPrintRecordset SQLiteSQLEngineInfo.Pragmas, EngineInfo.Range("D1")
-    DbManager.DebugPrintRecordset SQLiteSQLEngineInfo.Functions, EngineInfo.Range("E1")
+    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Version, EngineInfo.Range("A1")
+    DbManager.DebugPrintRecordset LiteMetaSQLEngine.CompileOptions, EngineInfo.Range("B1")
+    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Modules, EngineInfo.Range("C1")
+    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Pragmas, EngineInfo.Range("D1")
+    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Functions, EngineInfo.Range("E1")
 End Sub
 
 

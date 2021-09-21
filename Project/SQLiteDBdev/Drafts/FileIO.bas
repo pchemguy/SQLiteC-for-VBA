@@ -1,5 +1,6 @@
 Attribute VB_Name = "FileIO"
 '@Folder "SQLiteDBdev.Drafts"
+'@IgnoreModule: Drafts module
 Option Explicit
 Option Private Module
 Option Compare Text
@@ -7,8 +8,6 @@ Option Compare Text
 Private Const LIB_NAME As String = "SQLiteDBVBA"
 Private Const PATH_SEP As String = "\"
 Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
-
-
 
 
 Private Function GetFileBytes(ByVal FilePathName As String) As Byte()

@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteSQLDbIdxFK"
+Attribute VB_Name = "LiteMetaSQLIdxFK"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -39,13 +39,13 @@ Option Explicit
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.Tables
+''''   >>> ?LiteMetaSQLIdxFK.Tables
 ''''   SELECT name, sql
 ''''   FROM main.sqlite_master
 ''''   WHERE type = 'table' AND (name NOT LIKE 'sqlite_%')
 ''''   ORDER BY ROWID ASC
 ''''
-''''   >>> ?SQLiteSQLDbIdxFK.Tables(, True)
+''''   >>> ?LiteMetaSQLIdxFK.Tables(, True)
 ''''   t AS (
 ''''       SELECT name, sql
 ''''       FROM main.sqlite_master
@@ -84,7 +84,7 @@ End Function
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.Views
+''''   >>> ?LiteMetaSQLIdxFK.Views
 ''''   SELECT tbl_name, sql
 ''''   FROM main.sqlite_master
 ''''   WHERE type = 'view'
@@ -117,7 +117,7 @@ End Function
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.Triggers
+''''   >>> ?LiteMetaSQLIdxFK.Triggers
 ''''   SELECT tbl_name, sql
 ''''   FROM main.sqlite_master
 ''''   WHERE type = 'trigger'
@@ -150,7 +150,7 @@ End Function
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.DbSchema
+''''   >>> ?LiteMetaSQLIdxFK.DbSchema
 ''''   SELECT sql, (CASE type
 ''''       WHEN 'table' THEN 0
 ''''       WHEN 'index' THEN 1
@@ -193,7 +193,7 @@ End Function
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.DbSchemaNoTriggers
+''''   >>> ?LiteMetaSQLIdxFK.DbSchemaNoTriggers
 ''''   SELECT sql, (CASE type
 ''''       WHEN 'table' THEN 0
 ''''       WHEN 'index' THEN 1
@@ -235,13 +235,13 @@ End Function
 ''''   String, containing the query
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.IndexBase
+''''   >>> ?LiteMetaSQLIdxFK.IndexBase
 ''''   SELECT ROWID AS id, name AS idx_name, tbl_name, sql
 ''''   FROM main.sqlite_master
 ''''   WHERE type='index'
 ''''   ORDER BY ROWID ASC
 ''''
-''''   >>> ?SQLiteSQLDbIdxFK.IndexBase(, True)
+''''   >>> ?LiteMetaSQLIdxFK.IndexBase(, True)
 ''''   ib AS (
 ''''       SELECT ROWID AS id, name AS idx_name, tbl_name, sql
 ''''       FROM main.sqlite_master
@@ -279,7 +279,7 @@ End Function
 ''''   String, containing the CTE WITH term
 ''''
 '''' Examples:
-''''   >>> ?SQLiteSQLDbIdxFK.pForeignKeyList
+''''   >>> ?LiteMetaSQLIdxFK.pForeignKeyList
 ''''   fkl AS (
 ''''       SELECT tbl_name AS child_table, [from] AS child_col0,
 ''''              [table] AS parent_table, [to] AS parent_col0,

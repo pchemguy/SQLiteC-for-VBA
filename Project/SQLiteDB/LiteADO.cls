@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Attribute VB_Description = "Simplified ADODB routines used by SQLiteDB"
+Attribute VB_Description = "Minimalistic ADODB wrapper used by SQLiteDB"
 '@Folder "SQLiteDB"
 '@ModuleDescription "Minimalistic ADODB wrapper used by SQLiteDB"
 '@PredeclaredId
@@ -61,12 +61,39 @@ Friend Sub Init(ByVal Database As String, _
     Set this.AdoCommand = New ADODB.Command
     With this.AdoCommand
         .CommandType = adCmdText
-        .CommandText = SQLiteSQLDbInfo.Create.Engine.Version
+        .CommandText = LiteMetaSQL.Create.Engine.Version
         .Prepared = True
         .ActiveConnection = ConnectionString()
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
+End Sub
+
+
+'@Description "Generate ILiteADO instance from and existing ADODB.Connection."
+Public Function FromConnection(ByVal db As ADODB.Connection) As ILiteADO
+Attribute FromConnection.VB_Description = "Generate ILiteADO instance from and existing ADODB.Connection."
+    Dim Instance As LiteADO
+    Set Instance = New LiteADO
+    Instance.InitFromConnection db
+    Set FromConnection = Instance
+End Function
+
+
+'@Description "Generate ILiteADO instance from and existing ADODB.Connection."
+Friend Sub InitFromConnection(ByVal db As ADODB.Connection)
+Attribute InitFromConnection.VB_Description = "Generate ILiteADO instance from and existing ADODB.Connection."
+    Guard.NullReference db
+    
+    Set this.AdoConnection = db
+    Set this.AdoCommand = New ADODB.Command
+    With this.AdoCommand
+        .CommandType = adCmdText
+        .Prepared = True
+        Set .ActiveConnection = db
+    End With
+    this.MainDB = GetScalar("SELECT file FROM pragma_database_list WHERE name='main'")
+    this.AdoCommand.CommandText = LiteMetaSQL.Create.Engine.Version
 End Sub
 
 
@@ -125,6 +152,7 @@ End Function
 
 '@Description "Returns disconnected Recordset"
 Private Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
+Attribute GetScalar.VB_Description = "Returns disconnected Recordset"
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = New ADODB.Recordset
     If Len(SQLQuery) > 0 Then this.AdoCommand.CommandText = SQLQuery
@@ -138,9 +166,11 @@ Private Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As 
         Set .ActiveConnection = Nothing
     End With
     
+    '@Ignore ValueRequired: false positive
     If AdoRecordset.RecordCount = 0 Then
         GetScalar = Empty
     Else
+        '@Ignore IndexedDefaultMemberAccess
         GetScalar = AdoRecordset.Fields(0).Value
     End If
 End Function
@@ -149,7 +179,7 @@ End Function
 '@Description "Executes database modifying statement (UPDATE, DELETE, INSERT)"
 Private Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
 Attribute ExecuteNonQuery.VB_Description = "Executes database modifying statement (UPDATE, DELETE, INSERT)"
-    Dim RecordsAffected As Long
+    Dim RecordsAffected As Long: RecordsAffected = 0 '''' RD Workaround
     With this.AdoCommand
         .CommandText = SQLQuery
         .Execute RecordsAffected, Options:=adExecuteNoRecords
