@@ -14,6 +14,42 @@ Attribute VB_Description = "Provides access and integrity check functionality"
 '@IgnoreModule IndexedDefaultMemberAccess, ImplicitDefaultMemberAccess
 '@IgnoreModule ValueRequired: false positive with ADODB memebers
 '@IgnoreModule SelfAssignedDeclaration: ignore for FileSystemObject
+''''
+'''' This module incorporates OS based access and basic integrity checks of
+'''' the database file. This module also provides extended integrity checks
+'''' via the SQLite engine. The latter checks should be performed using a
+'''' dedicated ADODB Connection object with the target database being the
+'''' attached as the "main" and only database. (While those checks should
+'''' should run on specific alias, I could not get it to work properly.)
+'''' All these tests can be run on a transaction locked database, and they
+'''' should introduce any locks.
+''''
+'''' OS-based checks verify that the provided database path is valid and points
+'''' to an existing file. ACL access rights are also verified (both the parent
+'''' folder and the database file ACL permissions are checked). Read access to
+'''' the database file and its size (must be no smalller that the size of the
+'''' SQLite header) are verified. Finally the SQLite magic string is verified.
+''''
+'''' OS-based checks are performed by three routines, ExistsAccesibleValid (the
+'''' main entry), PathExistsAccessible, and FileAccessibleValid.
+'''' PathExistsAccessible verifies that the file path is valid and that the
+'''' parent folder is accessible. Its result is "the path is usable".
+'''' FileAccessibleValid performs remaining OS-based file checks.
+'''' ExistsAccesibleValid manages this part of tests. After a special case
+'''' check, it probes "FileExists" test on the given path. If successful,
+'''' PathExistsAccessible can be skipped. Otherwise, PathExistsAccessible
+'''' will fail and is executed to narrow down the cause of the issue.
+''''
+'''' Engine-based checks are performed by IntegrityADODB. SQLite provides two
+'''' pragmas for consistency checks, one performs a series of checks, except
+'''' for the foreign key constraints checks, and the other one covers foreing
+'''' keys.
+''''
+'''' Transaction-related lock checks should be performed before starting a
+'''' a transaction or attempting a modification with auto transaction. These
+'''' should use the primary Connection object and for this reason should not
+'''' be a part of this module.
+''''
 Option Explicit
 
 Private Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
@@ -21,6 +57,7 @@ Private Const SQLITE_IOERR_MESSAGE As String = "disk I/O error (10)"
 
 Private Type TLiteCheck
     MainDB As String '''' Absolute file pathname to the main database.
+    Database As String
 End Type
 Private this As TLiteCheck
 
@@ -34,9 +71,14 @@ Public Function Create(ByVal Database As String) As LiteCheck
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteCheck
     Set Instance = New LiteCheck
-    Instance.MainDB = Database
+    Instance.Init Database
     Set Create = Instance
 End Function
+
+
+Friend Sub Init(ByVal Database As String)
+    this.Database = Database
+End Sub
 
 
 Public Property Get MainDB() As String
@@ -162,16 +204,16 @@ End Function
 '@Description "Runs SQLite database access and basic integrity checks via OS."
 Public Function ExistsAccesibleValid() As Boolean
 Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and basic integrity checks via OS."
-    If this.MainDB = ":memory:" Then
+    If this.Database = ":memory:" Then
         ExistsAccesibleValid = True
         Exit Function
     End If
     
     Dim fso As New Scripting.FileSystemObject
-    If fso.FileExists(this.MainDB) Then
-        ExistsAccesibleValid = FileAccessibleValid(this.MainDB)
+    If fso.FileExists(this.Database) Then
+        ExistsAccesibleValid = FileAccessibleValid(this.Database)
     Else
-        ExistsAccesibleValid = PathExistsAccessible(this.MainDB)
+        ExistsAccesibleValid = PathExistsAccessible(this.Database)
     End If
 End Function
 
@@ -203,7 +245,7 @@ End Function
 Public Function IntegrityADODB() As Boolean
 Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks via ADODB/SQL."
     Dim ADOTool As ILiteADO
-    Set ADOTool = LiteADO(this.MainDB)
+    Set ADOTool = LiteADO(this.Database)
     Dim SQLInfo As LiteMetaSQL
     '@Ignore DefaultMemberRequired: false positive
     Set SQLInfo = LiteMetaSQL()
@@ -238,7 +280,7 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
         Err.Raise ErrNo.ConsistencyCheckErr, "LiteCheck", "Foreign key check failed"
     End If
 
-    Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
+    Debug.Print "-- Integrity check passed for: '" & this.Database & "'"
     IntegrityADODB = True
     Exit Function
     

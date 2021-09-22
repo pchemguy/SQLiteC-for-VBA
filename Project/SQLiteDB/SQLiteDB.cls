@@ -577,6 +577,7 @@ Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks
 End Function
 
 
+'''' N.B.: missing indices?
 '''' The database to be checked should be attached as the "main" and only
 '''' database via the SQLiteDB factory. While integrity/FK check should run
 '''' against the specified schema, if provided, I had issues with getting
