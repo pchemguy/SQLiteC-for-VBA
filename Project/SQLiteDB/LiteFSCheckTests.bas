@@ -91,7 +91,6 @@ Assert:
         Assert.AreEqual 0, Len(.ErrDescription), "ErrDescription should be blank"
         Assert.AreEqual 0, Len(.ErrStack), "ErrStack should be blank"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -118,7 +117,8 @@ Arrange:
     FilePathName = zfxFixturePrefix & "ACLLocked\LockedDb.db" '''' FailsOnFileACLLock
     ErrNumber = ErrNo.PermissionDeniedErr
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Access is denied to the database file. " & _
+    ErrDescription = "Permission denied" & vbNewLine & _
+                     "Access is denied to the database file. " & _
                      "Check ACL permissions and file locks." & _
                      vbNewLine & "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
@@ -133,7 +133,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -150,8 +149,9 @@ Arrange:
     FilePathName = ":Illegal Path<|>:"
     ErrNumber = ErrNo.PathNotFoundErr
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Path is not found. Check that path is " & _
-                     "legal, existent, and accessible (ACL)." & _
+    ErrDescription = "Database path (folder) is not found. Expected " & _
+                     "absolute path. Check ACL settings. Enable path " & _
+                     "resolution feature, if necessary." & _
                      vbNewLine & "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
                "PathExistsAccessible" & vbNewLine
@@ -165,7 +165,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -182,8 +181,9 @@ Arrange:
     FilePathName = zfxFixturePrefix & "Dummy" & PATH_SEP & "Dummy.db"
     ErrNumber = ErrNo.PathNotFoundErr
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Path is not found. Check that path is " & _
-                     "legal, existent, and accessible (ACL)." & _
+    ErrDescription = "Database path (folder) is not found. Expected " & _
+                     "absolute path. Check ACL settings. Enable path " & _
+                     "resolution feature, if necessary." & _
                      vbNewLine & "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
                "PathExistsAccessible" & vbNewLine
@@ -197,7 +197,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -228,7 +227,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -259,7 +257,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -276,7 +273,7 @@ Arrange:
     FilePathName = zfxFixturePrefix & "BadMagic.db"
     ErrNumber = ErrNo.OLE_DB_ODBC_Err
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Database file is damaged: the magic string did not match." & _
+    ErrDescription = "Database file is damaged. The magic string did not match." & _
                      vbNewLine & "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
                "FileAccessibleValid" & vbNewLine
@@ -290,7 +287,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub
@@ -307,7 +303,8 @@ Arrange:
     FilePathName = zfxFixturePrefix & "TestC.db"
     ErrNumber = ErrNo.TextStreamReadErr
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Cannot read from the database file. " & _
+    ErrDescription = "Method 'Read' of object 'ITextStream' failed" & vbNewLine & _
+                     "Cannot read from the database file. " & _
                      "The file might be locked by another app." & _
                      vbNewLine & "Source: " & FilePathName & "-shm"
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
@@ -327,7 +324,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-    Assert.Succeed
 
 CleanExit:
     Exit Sub

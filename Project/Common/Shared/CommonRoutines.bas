@@ -197,11 +197,10 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     Dim PROJuNAME As String
     PROJuNAME = ThisWorkbook.VBProject.Name
     
+    '@Ignore SelfAssignedDeclaration
     Dim fso As New Scripting.FileSystemObject
-    
-    Dim FileExist As Variant
     Dim PathNameCandidate As String
-        
+    
     '''' === (1) === Check if FilePathName is a valid path to an existing file.
     If fso.FileExists(FilePathName) Then
         VerifyOrGetDefaultPath = FilePathName

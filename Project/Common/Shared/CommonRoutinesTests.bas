@@ -349,7 +349,7 @@ End Sub
 
 
 '@TestMethod("PathCheck")
-Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfAbsolutePathSupplied()
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfNoFileNameSupplied()
     On Error Resume Next
     Dim FilePathName As String
     FilePathName = VerifyOrGetDefaultPath(Environ$("SystemRoot"), vbNullString)

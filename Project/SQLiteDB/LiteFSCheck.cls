@@ -53,7 +53,7 @@ Attribute VB_Description = "Provides access and integrity check functionality"
 Option Explicit
 
 Private Type TLiteFSCheck
-    Database As String '''' Absolute file pathname to the main database.
+    DbPathName As String '''' Absolute file pathname to the main database.
     ErrNumber As Long
     ErrSource As String
     ErrDescription As String
@@ -66,21 +66,22 @@ Private this As TLiteFSCheck
 ''''   Database (string):
 ''''     Absolute path name to the database.
 '@DefaultMember
-Public Function Create(ByVal Database As String) As LiteFSCheck
+Public Function Create(ByVal DbPathName As String, _
+              Optional ByVal AllowNonExistent As Variant = Empty) As LiteFSCheck
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteFSCheck
     Set Instance = New LiteFSCheck
-    Instance.Init Database
+    Instance.Init DbPathName, AllowNonExistent
     Set Create = Instance
 End Function
 
-Friend Sub Init(ByVal Database As String)
-    Guard.EmptyString Database
-    If ExistsAccesibleValid(Database) Then this.Database = Database
+Friend Sub Init(ByVal DbPathName As String, _
+       Optional ByVal AllowNonExistent As Variant = Empty)
+    this.DbPathName = ExistsAccesibleValid(DbPathName, AllowNonExistent)
 End Sub
 
 Public Property Get Database() As String
-    Database = this.Database
+    Database = this.DbPathName
 End Property
 
 Public Property Get ErrNumber() As Long
@@ -110,15 +111,13 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
         '''' Get parent folder and verify it exists.
         Dim DbFilePath As String
         DbFilePath = fso.GetParentFolderName(FilePathName)
-        '''' Expected error: PathNotFound - Path is not absolute
-        If Len(DbFilePath) = 0 Then
-            Err.Raise ErrNo.PathNotFoundErr
+        If Not fso.FolderExists(DbFilePath) Then
+            '''' Expected error: PathNotFound - Path is not absolute
+            this.ErrDescription = "Database path (folder) is not found. " & _
+                                  "Expected absolute path. Check ACL settings. " & _
+                                  "Enable path resolution feature, if necessary."
+            Err.Raise ErrNo.PathNotFoundErr, "LiteFSCheck", this.ErrDescription
         End If
-        
-        '''' Expected error: PathNotFound. Possible reasons:
-        ''''   - path format is illegal;
-        ''''   - any path component does not exists;
-        ''''   - any folder is not accessible due to ACL permission settings.
         Dim DbFolder As Scripting.Folder
         Set DbFolder = fso.GetFolder(DbFilePath)
         
@@ -133,8 +132,8 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
         '''' Parent folder is OK.
         '''' Verify that the file exists.
         If Not fso.FileExists(FilePathName) Then
-            Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", _
-                      "Databse file is not found in the specified folder."
+            this.ErrDescription = "Databse file is not found in the specified folder."
+            Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
         End If
     On Error GoTo 0
     
@@ -144,12 +143,12 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
 PATH_ERROR:
     Select Case Err.Number
         Case ErrNo.PathNotFoundErr
-            this.ErrDescription = "Path is not found. Check that path is " & _
-                                  "legal, existent, and accessible (ACL)."
+            this.ErrDescription = Err.Description
         Case ErrNo.FileNotFoundErr
             this.ErrDescription = Err.Description
         Case ErrNo.PermissionDeniedErr
-            this.ErrDescription = "Access is denied to the folder containing " & _
+            this.ErrDescription = Err.Description & vbNewLine & _
+                                  "Access is denied to the folder containing " & _
                                   "the database file. Check ACL permissions."
         Case Else
             this.ErrDescription = Err.Description & vbNewLine & "Unexpected error."
@@ -162,7 +161,7 @@ End Function
 
 
 '@Description "Verifies that the database file is accessible and valid."
-Public Function FileAccessibleValid(ByVal FilePathName As String) As Boolean
+Public Function FileAccessibleValid(ByVal FilePathName As String) As String
 Attribute FileAccessibleValid.VB_Description = "Verifies that the database file is accessible and valid."
     Const ThisProcName As String = "FileAccessibleValid"
     Dim fso As New Scripting.FileSystemObject
@@ -173,8 +172,9 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
         Set DbFile = fso.GetFile(FilePathName)
         '''' Expected error: PermissionDenied due to ACL.
         If DbFile.Size < 100 Then
-            Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", "File is not " & _
-                      "a database. SQLite header size is 100 bytes."
+            this.ErrDescription = "File is not a database. " & _
+                                  "SQLite header size is 100 bytes."
+            Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", this.ErrDescription
         End If
             
         '''' File size is OK.
@@ -196,21 +196,24 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
         '''' Reading is successful.
         '''' Verify magic string.
         If Not FileSignature = MagicHeaderString Then
-            Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", "Database " & _
-                      "file is damaged: the magic string did not match."
+            this.ErrDescription = "Database file is damaged. " & _
+                                  "The magic string did not match."
+            Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", this.ErrDescription
         End If
     On Error GoTo 0
             
-    FileAccessibleValid = True
+    FileAccessibleValid = FilePathName
     Exit Function
     
 FILE_ERROR:
     Select Case Err.Number
         Case ErrNo.PermissionDeniedErr
-            this.ErrDescription = "Access is denied to the database file. " & _
+            this.ErrDescription = Err.Description & vbNewLine & _
+                                  "Access is denied to the database file. " & _
                                   "Check ACL permissions and file locks."
         Case ErrNo.TextStreamReadErr
-            this.ErrDescription = "Cannot read from the database file. " & _
+            this.ErrDescription = Err.Description & vbNewLine & _
+                                  "Cannot read from the database file. " & _
                                   "The file might be locked by another app."
         Case ErrNo.OLE_DB_ODBC_Err
             this.ErrDescription = Err.Description
@@ -224,26 +227,34 @@ FILE_ERROR:
 End Function
 
 
-'''' File access tests and basic integrity validation via FS OS functions.
+'''' File access tests and basic integrity validation via FS/OS functions.
 '@Description "Runs SQLite database access and basic integrity checks via OS."
-Friend Function ExistsAccesibleValid( _
-            Optional ByVal FilePathNameArg As String = vbNullString) As Boolean
+Friend Function ExistsAccesibleValid(ByVal DbPathName As String, _
+            Optional ByVal AllowNonExistent As Variant = Empty) As String
 Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and basic integrity checks via OS."
     Const ThisProcName As String = "ExistsAccesibleValid"
-    Dim FilePathName As String
-    FilePathName = IIf(Len(FilePathNameArg) > 0, FilePathNameArg, this.Database)
     
-    If FilePathName = ":memory:" Then
-        ExistsAccesibleValid = True
+    If DbPathName = ":memory:" Then
+        ExistsAccesibleValid = DbPathName
         Exit Function
     End If
     
+    Dim FilePathName As String
+    If Not IsEmpty(AllowNonExistent) And VarType(AllowNonExistent) = vbBoolean Then
+        FilePathName = VerifyOrGetDefaultPath( _
+                           DbPathName, Array("db", "sqlite"), AllowNonExistent)
+    Else
+        FilePathName = DbPathName
+    End If
+        
     On Error GoTo FILEPATH_ERROR
+        Dim DbPathNameOK As Boolean
         Dim fso As New Scripting.FileSystemObject
         If fso.FileExists(FilePathName) Then
             ExistsAccesibleValid = FileAccessibleValid(FilePathName)
         Else
-            ExistsAccesibleValid = PathExistsAccessible(FilePathName)
+            DbPathNameOK = PathExistsAccessible(FilePathName)
+            ExistsAccesibleValid = vbNullString
         End If
     On Error GoTo 0
     
@@ -256,5 +267,5 @@ FILEPATH_ERROR:
         .ErrSource = Err.Source
         .ErrDescription = Err.Description
     End With
-    ExistsAccesibleValid = False
+    ExistsAccesibleValid = vbNullString
 End Function
