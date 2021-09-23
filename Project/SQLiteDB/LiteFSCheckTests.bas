@@ -17,6 +17,13 @@ Private Const LIB_NAME As String = "SQLiteDBVBA"
 Private Const PATH_SEP As String = "\"
 Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
 
+Private FilePathName As String
+Private PathCheck As LiteFSCheck
+Private ErrNumber As Long
+Private ErrSource As String
+Private ErrDescription As String
+Private ErrStack As String
+
 
 'This method runs once per module.
 '@ModuleInitialize
@@ -58,17 +65,6 @@ End Sub
 '''' ##########################################################################
 
 
-Private Function zfxDefaultDbManager() As LiteFSCheck
-    Dim FilePathName As String
-    FilePathName = REL_PREFIX & LIB_NAME & ".db"
-    
-    Dim dbm As LiteFSCheck
-    Set dbm = LiteFSCheck.Create(FilePathName)
-    
-    Set zfxDefaultDbManager = dbm
-End Function
-
-
 Private Function zfxFixturePrefix() As String
     zfxFixturePrefix = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & "Fixtures" & PATH_SEP
 End Function
@@ -80,87 +76,63 @@ End Function
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcPathExistsAccessible_ThrowsOnLastFolderACLLock()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_TraversesLockedFolder()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\SubFolder\TestC.db"
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual FilePathName, .Database, "Database should be set"
+        Assert.AreEqual 0, .ErrNumber, "ErrNumber should be 0"
+        Assert.AreEqual 0, Len(.ErrSource), "ErrSource should be blank"
+        Assert.AreEqual 0, Len(.ErrDescription), "ErrDescription should be blank"
+        Assert.AreEqual 0, Len(.ErrStack), "ErrStack should be blank"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'''' ##########################################################################
+''''
+'''' Must run "Library\SQLiteDBVBA\Fixtures\acl-restrict.bat" for access
+''''   checking tests to work properly.
+'''' Must run "Library\SQLiteDBVBA\Fixtures\acl-restore.bat" for git client to
+''''   work properly.
+''''
+'''' ##########################################################################
+'@TestMethod("Integrity checking")
+Private Sub ztcCreate_FailsOnLastFolderACLLock()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & _
                    "Fixtures\ACLLocked\LockedFolder\LT100.db"
-    LiteFSCheck(FilePathName).PathExistsAccessible FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.PermissionDeniedErr
-End Sub
-
-    
-'@TestMethod("Integrity checking")
-Private Sub ztcPathExistsAccessible_TraversesLockedFolder()
-    On Error GoTo TestFail
-
-Arrange:
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\SubFolder\TestC.db"
+    FilePathName = zfxFixturePrefix & "ACLLocked\LockedDb.db" '''' FailsOnFileACLLock
+    ErrNumber = ErrNo.PermissionDeniedErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Access is denied to the database file. " & _
+                     "Check ACL permissions and file locks." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "FileAccessibleValid" & vbNewLine
 Act:
-    LiteFSCheck(FilePathName).PathExistsAccessible FilePathName
+    Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
-    Assert.Succeed
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-    
-
-'@TestMethod("Integrity checking")
-Private Sub ztcPathExistsAccessible_ThrowsOnIllegalPath()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = ":Illegal Path<|>:"
-    LiteFSCheck(FilePathName).PathExistsAccessible FilePathName
-    Assert.IsTrue Err.Description = "Path is not absolute."
-    Guard.AssertExpectedError Assert, ErrNo.PathNotFoundErr
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcPathExistsAccessible_ThrowsOnNonExistentPath()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "Dummy" & PATH_SEP & "Dummy.db"
-    LiteFSCheck(FilePathName).PathExistsAccessible FilePathName
-    Assert.IsTrue Err.Description <> "Path is not absolute."
-    Guard.AssertExpectedError Assert, ErrNo.PathNotFoundErr
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcPathExistsAccessible_ThrowsOnNonExistentFile()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "Dummy.db"
-    LiteFSCheck(FilePathName).PathExistsAccessible FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnLastFolderACLLock()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\LT100.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.PermissionDeniedErr
-End Sub
-
-    
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_TraversesLockedFolder()
-    On Error GoTo TestFail
-
-Arrange:
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\SubFolder\TestC.db"
-Act:
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
     Assert.Succeed
 
 CleanExit:
@@ -171,122 +143,196 @@ End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnIllegalPath()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_FailsOnIllegalPath()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = ":Illegal Path<|>:"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Assert.IsTrue Err.Description = "Path is not absolute."
-    Guard.AssertExpectedError Assert, ErrNo.PathNotFoundErr
+    ErrNumber = ErrNo.PathNotFoundErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Path is not found. Check that path is " & _
+                     "legal, existent, and accessible (ACL)." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "PathExistsAccessible" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnNonExistentPath()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_FailsOnNonExistentPath()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = zfxFixturePrefix & "Dummy" & PATH_SEP & "Dummy.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Assert.IsTrue Err.Description <> "Path is not absolute."
-    Guard.AssertExpectedError Assert, ErrNo.PathNotFoundErr
+    ErrNumber = ErrNo.PathNotFoundErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Path is not found. Check that path is " & _
+                     "legal, existent, and accessible (ACL)." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "PathExistsAccessible" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnNonExistentFile()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_FailsOnNonExistentFile()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = zfxFixturePrefix & "Dummy.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+    ErrNumber = ErrNo.FileNotFoundErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Databse file is not found in the specified folder." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "PathExistsAccessible" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcFileAccessibleValid_ThrowsOnLT100File()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_FailsOnLT100File()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = zfxFixturePrefix & "LT100.db"
-    LiteFSCheck(FilePathName).FileAccessibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
+    ErrNumber = ErrNo.OLE_DB_ODBC_Err
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "File is not a database. SQLite header size is 100 bytes." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "FileAccessibleValid" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcFileAccessibleValid_ThrowsOnFileACLLock()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedDb.db"
-    LiteFSCheck(FilePathName).FileAccessibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.PermissionDeniedErr
-End Sub
+Private Sub ztcCreate_FailsOnBadMagic()
+    On Error GoTo TestFail
 
-
-'@TestMethod("Integrity checking")
-Private Sub ztcFileAccessibleValid_ThrowsOnBadMagic()
-    On Error Resume Next
-    Dim FilePathName As String
+Arrange:
     FilePathName = zfxFixturePrefix & "BadMagic.db"
-    LiteFSCheck(FilePathName).FileAccessibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
+    ErrNumber = ErrNo.OLE_DB_ODBC_Err
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Database file is damaged: the magic string did not match." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "FileAccessibleValid" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
 '@TestMethod("Integrity checking")
-Private Sub ztcFileAccessibleValid_ThrowsOnReadLockedFile()
-    On Error Resume Next
-    Dim FilePathName As String
+Private Sub ztcCreate_FailsOnReadLockedFile()
+    On Error GoTo TestFail
+
+Arrange:
     FilePathName = zfxFixturePrefix & "TestC.db"
+    ErrNumber = ErrNo.TextStreamReadErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Cannot read from the database file. Most likely, " & _
+                     "the file is locked by another app." & _
+                     vbNewLine & "Source: " & FilePathName & "-shm"
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "FileAccessibleValid" & vbNewLine
+Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO(FilePathName)
+    FilePathName = FilePathName & "-shm"
     dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
-    LiteFSCheck(FilePathName & "-shm").FileAccessibleValid FilePathName & "-shm"
+    Set PathCheck = LiteFSCheck(FilePathName)
     dbm.ExecuteNonQuery "ROLLBACK"
-    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
-End Sub
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+    Assert.Succeed
 
-
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnLT100File()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "LT100.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnFileACLLock()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedDb.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.PermissionDeniedErr
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagic()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "BadMagic.db"
-    LiteFSCheck(FilePathName).ExistsAccesibleValid FilePathName
-    Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
-End Sub
-
-
-'@TestMethod("Integrity checking")
-Private Sub ztcExistsAccesibleValid_ThrowsOnReadLockedFile()
-    On Error Resume Next
-    Dim FilePathName As String
-    FilePathName = zfxFixturePrefix & "TestC.db"
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FilePathName)
-    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
-    LiteFSCheck(FilePathName & "-shm").ExistsAccesibleValid FilePathName & "-shm"
-    dbm.ExecuteNonQuery "ROLLBACK"
-    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
 
@@ -313,5 +359,3 @@ End Sub
 '    dbm.ExecuteNonQuery "ROLLBACK"
 '    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
 'End Sub
-
-

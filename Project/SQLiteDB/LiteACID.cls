@@ -11,6 +11,7 @@ Attribute VB_Description = "This module provides ACID related functionality"
 '@Folder "SQLiteDB"
 '@ModuleDescription "This module provides ACID related functionality"
 '@PredeclaredId
+'@IgnoreModule ValueRequired: false positive with ADODB
 Option Explicit
 
 Private Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
@@ -38,7 +39,7 @@ Friend Sub Init(ByVal ADOTool As ILiteADO)
     Guard.EmptyString ADOTool.MainDB
     
     Set this.ADOTool = ADOTool
-    Set this.SQLInfo = LiteMetaSQL()
+    Set this.SQLInfo = LiteMetaSQL.Create()
 End Sub
 
 
@@ -67,6 +68,7 @@ End Sub
 ''''
 '@Description "Runs SQLite database integrity checks via ADODB/SQL."
 Friend Function IntegrityADODB() As Boolean
+Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks via ADODB/SQL."
     Dim ADOTool As ILiteADO
     Set ADOTool = this.ADOTool
     Dim SQLInfo As LiteMetaSQL
@@ -81,7 +83,7 @@ Friend Function IntegrityADODB() As Boolean
     On Error GoTo 0
     
     If AttachedDbCount <> 1 Then
-        Err.Raise ErrNo.CustomErr, "LiteCheck", _
+        Err.Raise ErrNo.CustomErr, "LiteACID", _
                   "Please have exactly one database attached before the check."
     End If
     
@@ -90,8 +92,9 @@ Friend Function IntegrityADODB() As Boolean
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = ADOTool.GetAdoRecordset(SQLInfo.CheckIntegrity)
     On Error GoTo 0
+    '@Ignore ImplicitDefaultMemberAccess, IndexedDefaultMemberAccess
     If Not AdoRecordset.Fields("integrity_check") = "ok" Then
-        Err.Raise ErrNo.IntegrityCheckErr, "LiteCheck", "Integrity check failed"
+        Err.Raise ErrNo.IntegrityCheckErr, "LiteACID", "Integrity check failed"
     End If
     
     '''' 3) "PRAGMA foreign_key_check"
@@ -99,7 +102,7 @@ Friend Function IntegrityADODB() As Boolean
     Set AdoRecordset = ADOTool.GetAdoRecordset(SQLInfo.CheckFKs)
     On Error GoTo 0
     If Not AdoRecordset.RecordCount = 0 Then
-        Err.Raise ErrNo.ConsistencyCheckErr, "LiteCheck", "Foreign key check failed"
+        Err.Raise ErrNo.ConsistencyCheckErr, "LiteACID", "Foreign key check failed"
     End If
 
     Debug.Print "-- Integrity check passed for: '" & ADOTool.MainDB & "'"
@@ -109,7 +112,7 @@ Friend Function IntegrityADODB() As Boolean
 INTEGRITY_ERROR:
     If (Err.Number = ErrNo.OLE_DB_ODBC_Err) _
             And (Err.Description = SQLITE_NOTADB_MESSAGE) Then
-        Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteCheck", _
+        Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteACID", _
                   "File is not a database"
     Else
         Err.Raise Err.Number, Err.Source, Err.Description & vbNewLine & _
