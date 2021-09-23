@@ -128,13 +128,6 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
         Dim SubFolderCount As Long
         '@Ignore AssignmentNotUsed: .Count property is accessed to test DbFolder access
         SubFolderCount = DbFolder.SubFolders.Count
-        
-        '''' Parent folder is OK.
-        '''' Verify that the file exists.
-        If Not fso.FileExists(FilePathName) Then
-            this.ErrDescription = "Databse file is not found in the specified folder."
-            Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
-        End If
     On Error GoTo 0
     
     PathExistsAccessible = True
@@ -143,8 +136,6 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
 PATH_ERROR:
     Select Case Err.Number
         Case ErrNo.PathNotFoundErr
-            this.ErrDescription = Err.Description
-        Case ErrNo.FileNotFoundErr
             this.ErrDescription = Err.Description
         Case ErrNo.PermissionDeniedErr
             this.ErrDescription = Err.Description & vbNewLine & _
@@ -167,6 +158,13 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
     Dim fso As New Scripting.FileSystemObject
     
     On Error GoTo FILE_ERROR
+        '''' Verify that the file exists.
+        If Not fso.FileExists(FilePathName) Then
+            this.ErrDescription = "Databse file is not found in the specified folder."
+            Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
+        End If
+        
+        '''' File exists
         '''' Verify that the file size is >=100 (SQLite header size is 100 bytes).
         Dim DbFile As Scripting.File
         Set DbFile = fso.GetFile(FilePathName)
@@ -207,6 +205,8 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
     
 FILE_ERROR:
     Select Case Err.Number
+        Case ErrNo.FileNotFoundErr
+            this.ErrDescription = Err.Description
         Case ErrNo.PermissionDeniedErr
             this.ErrDescription = Err.Description & vbNewLine & _
                                   "Access is denied to the database file. " & _
@@ -239,22 +239,44 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
         Exit Function
     End If
     
-    Dim FilePathName As String
-    If Not IsEmpty(AllowNonExistent) And VarType(AllowNonExistent) = vbBoolean Then
-        FilePathName = VerifyOrGetDefaultPath( _
-                           DbPathName, Array("db", "sqlite"), AllowNonExistent)
-    Else
-        FilePathName = DbPathName
-    End If
-        
+    Dim EnableResolve As Boolean
+    EnableResolve = (VarType(AllowNonExistent) = vbBoolean)
+    Dim EnableCreateDb As Boolean
+    EnableCreateDb = IIf(EnableResolve, AllowNonExistent, False)
+    
     On Error GoTo FILEPATH_ERROR
+        Dim FilePathName As String
+        If EnableResolve Then
+            '''' Expected error: FileNotFound
+            FilePathName = VerifyOrGetDefaultPath( _
+                               DbPathName, Array("db", "sqlite"), AllowNonExistent)
+        Else
+            FilePathName = DbPathName
+        End If
+        
         Dim DbPathNameOK As Boolean
         Dim fso As New Scripting.FileSystemObject
         If fso.FileExists(FilePathName) Then
             ExistsAccesibleValid = FileAccessibleValid(FilePathName)
         Else
             DbPathNameOK = PathExistsAccessible(FilePathName)
-            ExistsAccesibleValid = vbNullString
+            '''' If PathExistsAccessible does not raise an error, it returns True
+            If Not EnableCreateDb Then
+                '''' Expected error: FileNotFound
+                this.ErrDescription = _
+                    "Databse file is not found in the specified folder." & _
+                    vbNewLine & "Source: " & FilePathName
+                Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
+            End If
+            
+            '''' This code is executed if new db is requested
+            '''' Verify that a new file can be created
+            Dim TextFile As Scripting.TextStream
+            Set TextFile = fso.CreateTextFile(FilePathName)
+            TextFile.Close
+            fso.DeleteFile FilePathName, True
+            
+            ExistsAccesibleValid = FilePathName
         End If
     On Error GoTo 0
     

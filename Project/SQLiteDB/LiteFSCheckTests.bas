@@ -215,8 +215,7 @@ Arrange:
     ErrSource = "LiteFSCheck"
     ErrDescription = "Databse file is not found in the specified folder." & _
                      vbNewLine & "Source: " & FilePathName
-    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
-               "PathExistsAccessible" & vbNewLine
+    ErrStack = "ExistsAccesibleValid" & vbNewLine
 Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
@@ -331,6 +330,107 @@ TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
+
+'@TestMethod("Integrity checking")
+Private Sub ztcCreate_FailsOnEmptyPath()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = ""
+    ErrNumber = ErrNo.PathNotFoundErr
+    ErrSource = "LiteFSCheck"
+    ErrDescription = "Database path (folder) is not found. Expected " & _
+                     "absolute path. Check ACL settings. Enable path " & _
+                     "resolution feature, if necessary." & _
+                     vbNewLine & "Source: " & FilePathName
+    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
+               "PathExistsAccessible" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesRelativePath()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = REL_PREFIX & LIB_NAME & ".db"
+    Dim Expected As String
+    Expected = ThisWorkbook.Path & PATH_SEP & FilePathName
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, False)
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Expected, PathCheck.Database, "Resolved path mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesCreatableFailsWithEmptyPath()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = ""
+    ErrNumber = ErrNo.FileNotFoundErr
+    ErrSource = "CommonRoutines"
+    ErrDescription = "File <> not found!"
+    ErrStack = "ExistsAccesibleValid" & vbNewLine
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+Assert:
+    With PathCheck
+        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
+        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
+        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
+        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
+    End With
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesPath()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = "blabla"
+    Dim Expected As String
+    Expected = ThisWorkbook.Path & PATH_SEP & FilePathName
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Expected, PathCheck.Database, "Resolved path mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
 
 'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
 '    Dim FilePathName As String

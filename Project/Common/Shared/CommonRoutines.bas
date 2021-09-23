@@ -226,8 +226,8 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     '''' === (3a) === Array of prefixes
     Dim Prefixes As Variant
     Prefixes = Array( _
-        ThisWorkbook.Path & PATHuSEP, _
         ThisWorkbook.Path & PATHuSEP & "Library" & PATHuSEP & PROJuNAME & PATHuSEP, _
+        ThisWorkbook.Path & PATHuSEP, _
         Environ$("APPDATA") & PATHuSEP & PROJuNAME & PATHuSEP _
     )
     
