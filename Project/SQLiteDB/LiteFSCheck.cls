@@ -134,8 +134,7 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
         '''' Verify that the file exists.
         If Not fso.FileExists(FilePathName) Then
             Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", _
-                      "Databse file is not found in the specified folder." & _
-                      vbNewLine & "Source: " & FilePathName
+                      "Databse file is not found in the specified folder."
         End If
     On Error GoTo 0
     
@@ -143,23 +142,22 @@ Attribute PathExistsAccessible.VB_Description = "Checks that provided path exist
     Exit Function
     
 PATH_ERROR:
-    this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
     Select Case Err.Number
         Case ErrNo.PathNotFoundErr
-            Err.Raise Err.Number, "LiteFSCheck", "Path is not found. " & _
-                      "Check that path is legal, existent, and accessible (ACL)." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = "Path is not found. Check that path is " & _
+                                  "legal, existent, and accessible (ACL)."
         Case ErrNo.FileNotFoundErr
-            Err.Raise Err.Number, Err.Source, Err.Description
+            this.ErrDescription = Err.Description
         Case ErrNo.PermissionDeniedErr
-            Err.Raise Err.Number, "LiteFSCheck", "Access is denied to the folder" & _
-                      " containing the database file. Check ACL permissions." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = "Access is denied to the folder containing " & _
+                                  "the database file. Check ACL permissions."
         Case Else
-            Err.Raise Err.Number, Err.Source, Err.Description & vbNewLine & _
-                      "Unexpected error." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = Err.Description & vbNewLine & "Unexpected error."
     End Select
+
+    this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
+    Err.Raise Err.Number, "LiteFSCheck", _
+              this.ErrDescription & vbNewLine & "Source: " & FilePathName
 End Function
 
 
@@ -176,8 +174,7 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
         '''' Expected error: PermissionDenied due to ACL.
         If DbFile.Size < 100 Then
             Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", "File is not " & _
-                      "a database. SQLite header size is 100 bytes." & _
-                      vbNewLine & "Source: " & FilePathName
+                      "a database. SQLite header size is 100 bytes."
         End If
             
         '''' File size is OK.
@@ -200,8 +197,7 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
         '''' Verify magic string.
         If Not FileSignature = MagicHeaderString Then
             Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteFSCheck", "Database " & _
-                      "file is damaged: the magic string did not match." & _
-                      vbNewLine & "Source: " & FilePathName
+                      "file is damaged: the magic string did not match."
         End If
     On Error GoTo 0
             
@@ -209,23 +205,22 @@ Attribute FileAccessibleValid.VB_Description = "Verifies that the database file 
     Exit Function
     
 FILE_ERROR:
-    this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
     Select Case Err.Number
         Case ErrNo.PermissionDeniedErr
-            Err.Raise Err.Number, "LiteFSCheck", "Access is denied to the " & _
-                      "database file. Check ACL permissions and file locks." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = "Access is denied to the database file. " & _
+                                  "Check ACL permissions and file locks."
         Case ErrNo.TextStreamReadErr
-            Err.Raise Err.Number, "LiteFSCheck", "Cannot read from the database " & _
-                      "file. Most likely, the file is locked by another app." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = "Cannot read from the database file. " & _
+                                  "The file might be locked by another app."
         Case ErrNo.OLE_DB_ODBC_Err
-            Err.Raise Err.Number, Err.Source, Err.Description
+            this.ErrDescription = Err.Description
         Case Else
-            Err.Raise Err.Number, Err.Source, Err.Description & vbNewLine & _
-                      "Unexpected error." & _
-                      vbNewLine & "Source: " & FilePathName
+            this.ErrDescription = Err.Description & vbNewLine & "Unexpected error."
     End Select
+    
+    this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
+    Err.Raise Err.Number, "LiteFSCheck", _
+              this.ErrDescription & vbNewLine & "Source: " & FilePathName
 End Function
 
 
@@ -233,6 +228,7 @@ End Function
 '@Description "Runs SQLite database access and basic integrity checks via OS."
 Friend Function ExistsAccesibleValid( _
             Optional ByVal FilePathNameArg As String = vbNullString) As Boolean
+Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and basic integrity checks via OS."
     Const ThisProcName As String = "ExistsAccesibleValid"
     Dim FilePathName As String
     FilePathName = IIf(Len(FilePathNameArg) > 0, FilePathNameArg, this.Database)

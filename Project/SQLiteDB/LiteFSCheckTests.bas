@@ -307,8 +307,8 @@ Arrange:
     FilePathName = zfxFixturePrefix & "TestC.db"
     ErrNumber = ErrNo.TextStreamReadErr
     ErrSource = "LiteFSCheck"
-    ErrDescription = "Cannot read from the database file. Most likely, " & _
-                     "the file is locked by another app." & _
+    ErrDescription = "Cannot read from the database file. " & _
+                     "The file might be locked by another app." & _
                      vbNewLine & "Source: " & FilePathName & "-shm"
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
                "FileAccessibleValid" & vbNewLine

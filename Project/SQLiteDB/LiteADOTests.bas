@@ -48,9 +48,14 @@ End Sub
 '===================================================='
 
 
+Private Function zfxDefaultDbPath() As String
+    zfxDefaultDbPath = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
+End Function
+
+
 Private Function zfxDefaultDbManager() As ILiteADO
     Dim FilePathName As String
-    FilePathName = REL_PREFIX & LIB_NAME & ".db"
+    FilePathName = zfxDefaultDbPath
     
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(FilePathName)
@@ -60,11 +65,6 @@ End Function
 
 Private Function zfxMemoryDbManager() As ILiteADO
     Set zfxMemoryDbManager = LiteADO.Create(":memory:")
-End Function
-
-
-Private Function zfxDefaultDbPath() As String
-    zfxDefaultDbPath = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
 End Function
 
 
@@ -193,10 +193,56 @@ Private Sub ztcCreate_ValidatesDefaultConnectionString()
 Arrange:
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
-               ";SyncPragma=NORMAL;FKSupport=True;"
+               ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
 Act:
     Dim dbm As ILiteADO
     Set dbm = zfxDefaultDbManager()
+    Dim Actual As String
+    Actual = dbm.ConnectionString
+Assert:
+    Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Factory")
+Private Sub ztcCreate_ValidatesNoCreatConnectionString()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim Expected As String
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+               ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
+Act:
+    Dim dbm As ILiteADO
+    Set dbm = LiteADO(zfxDefaultDbPath, False)
+    Dim Actual As String
+    Actual = dbm.ConnectionString
+Assert:
+    Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Factory")
+Private Sub ztcCreate_ValidatesCreatConnectionString()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim Expected As String
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+               ";SyncPragma=NORMAL;FKSupport=True;"
+Act:
+    Dim dbm As ILiteADO
+    Set dbm = LiteADO(zfxDefaultDbPath, True)
     Dim Actual As String
     Actual = dbm.ConnectionString
 Assert:
@@ -234,5 +280,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-

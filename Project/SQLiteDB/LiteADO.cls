@@ -18,6 +18,7 @@ Implements ILiteADO
 
 Private Type TLiteADO
     MainDB As String '''' Absolute file pathname to the main database.
+    ConnectionString As String
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
 End Type
@@ -51,19 +52,12 @@ End Function
 ''''
 Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Boolean = False)
-    If Database = ":memory:" Then
-        this.MainDB = Database
-    ElseIf AllowNonExistent Then
-        this.MainDB = VerifyOrGetDefaultPath(Database, , AllowNonExistent)
-    Else
-        this.MainDB = VerifyOrGetDefaultPath(Database, Array("db", "sqlite"))
-    End If
     Set this.AdoCommand = New ADODB.Command
     With this.AdoCommand
         .CommandType = adCmdText
         .CommandText = LiteMetaSQL.Create.Engine.Version
         .Prepared = True
-        .ActiveConnection = ConnectionString()
+        .ActiveConnection = ConnectionString(Database, AllowNonExistent)
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
@@ -98,30 +92,35 @@ End Sub
 
 
 '''' Args:
-''''   DatabaseName (string, optional, vbNullString):
-''''     If provided, assume that it will be attached as an additional database.
-''''     Only exsistent databases are allowed to be attached. A new persistent or
-''''     in-memory database should be created as the "main" database via the
-''''     factory method.
+''''   DatabaseName (string):
+''''     File pathname of the main database
+''''   AllowNonExistent (boolean, optional, false):
+''''     If false, creation of new database will not be allowed.
 ''''
 '@Description "Constructs default SQLiteODBC connection string"
 Private Function ConnectionString( _
-            Optional ByVal DatabaseName As String = vbNullString) As String
+                     ByVal Database As String, _
+            Optional ByVal AllowNonExistent As Boolean = False) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
+    Dim FilePathName As String
+    If Database = ":memory:" Then
+        FilePathName = Database
+    ElseIf AllowNonExistent Then
+        FilePathName = VerifyOrGetDefaultPath(Database, , AllowNonExistent)
+    Else
+        FilePathName = VerifyOrGetDefaultPath(Database, Array("db", "sqlite"))
+    End If
+    this.MainDB = FilePathName
+    
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
 
-    Dim Database As String
-    If Len(DatabaseName) > 0 Then
-        Database = VerifyOrGetDefaultPath(DatabaseName, Array("db", "sqlite"))
-    Else
-        Database = this.MainDB
-    End If
-
     Dim Options As String
     Options = "SyncPragma=NORMAL;FKSupport=True;"
+    If Not AllowNonExistent Then Options = Options & "NoCreat=True;"
         
-    ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & Options
+    this.ConnectionString = "Driver=" & Driver & ";Database=" & FilePathName & ";" & Options
+    ConnectionString = this.ConnectionString
 End Function
 
 
@@ -198,7 +197,7 @@ Private Property Get ILiteADO_MainDB() As String
 End Property
 
 Private Property Get ILiteADO_ConnectionString() As String
-    ILiteADO_ConnectionString = ConnectionString(this.MainDB)
+    ILiteADO_ConnectionString = this.ConnectionString
 End Property
 
 Private Property Get ILiteADO_AdoConnection() As ADODB.Connection

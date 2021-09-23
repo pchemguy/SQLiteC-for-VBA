@@ -186,9 +186,6 @@ End Function
 ''''     >>> ?VerifyOrGetDefaultPath(Application.PathSeparator & "___.___", , True)
 ''''     Application.PathSeparator & "___.___"
 ''''
-'''' TODO: Switch to FileSystemObject from the Miscrosoft Scripting Runtime
-''''       library. Avoid using VBA file system functions, as they are not
-''''       particularly reliable with respect to accurate error reporting.
 '@Description "Resolves file pathname"
 Public Function VerifyOrGetDefaultPath( _
                     ByVal FilePathName As String, _
@@ -200,21 +197,15 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     Dim PROJuNAME As String
     PROJuNAME = ThisWorkbook.VBProject.Name
     
+    Dim fso As New Scripting.FileSystemObject
+    
     Dim FileExist As Variant
     Dim PathNameCandidate As String
         
     '''' === (1) === Check if FilePathName is a valid path to an existing file.
-    If Len(FilePathName) > 0 Then
-        '''' If matched, Dir returns Len(String) > 0;
-        '''' otherwise, returns vbNullString or raises an error
-        PathNameCandidate = FilePathName
-        On Error Resume Next
-        FileExist = FileLen(PathNameCandidate)
-        On Error GoTo 0
-        If FileExist > 0 Then
-            VerifyOrGetDefaultPath = PathNameCandidate
-            Exit Function
-        End If
+    If fso.FileExists(FilePathName) Then
+        VerifyOrGetDefaultPath = FilePathName
+        Exit Function
     End If
     
     '''' === (2) === Return FilePathName pointing to a non-existing file.
@@ -283,29 +274,21 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     '''' === (4) === Loop through pathnames
     Dim PrefixIndex As Long
     
-    On Error Resume Next
     For PrefixIndex = 0 To UBound(Prefixes)
         For FileNameIndex = 0 To UBound(FileNames)
             PathNameCandidate = Prefixes(PrefixIndex) & FileNames(FileNameIndex)
-            FileExist = FileLen(PathNameCandidate)
-            Err.Clear
-            If FileExist > 0 Then
+            If fso.FileExists(PathNameCandidate) Then
                 VerifyOrGetDefaultPath = Replace$(PathNameCandidate, _
                                                   PATHuSEP & PATHuSEP, PATHuSEP)
                 Exit Function
             End If
         Next FileNameIndex
     Next PrefixIndex
-    On Error GoTo 0
-    GoTo FILE_NOT_FOUND
-    
-    Exit Function
+    '''' If reached this point, proceed to FILE_NOT_FOUND
     
 FILE_NOT_FOUND:
-    VBA.Err.Raise _
-        Number:=ErrNo.FileNotFoundErr, _
-        Source:="CommonRoutines", _
-        Description:="File <" & FilePathName & "> not found!"
+    Err.Raise ErrNo.FileNotFoundErr, "CommonRoutines", _
+              "File <" & FilePathName & "> not found!"
 End Function
 
 
