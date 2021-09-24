@@ -58,6 +58,11 @@ Private Function zfxDefDBM( _
 End Function
 
 
+Private Function zfxFixturePrefix() As String
+    zfxFixturePrefix = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & "Fixtures" & PATH_SEP
+End Function
+
+
 '===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
@@ -103,3 +108,56 @@ Private Sub ztcIntegrityADODB_ThrowsOnFailedFKCheck()
     zfxDefDBM(REL_PREFIX & "ICokFKCfail.db").IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.ConsistencyCheckErr
 End Sub
+
+
+Private Sub ztcTest()
+    Dim FilePathName As String
+    FilePathName = REL_PREFIX & LIB_NAME & ".db"
+    
+    Dim dbm As ILiteADO
+    Set dbm = LiteADO(FilePathName)
+    
+    Dim ACIDTool As LiteACID
+    Set ACIDTool = LiteACID(dbm)
+    
+    
+    Do While True
+        Debug.Print ACIDTool.DbIsWriteLocked
+        Stop
+    Loop
+    
+    Debug.Print ACIDTool.JournalModeToggle
+    Debug.Print ACIDTool.JournalModeToggle
+    Debug.Print ACIDTool.JournalModeToggle
+
+End Sub
+
+
+
+'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
+'    Dim FilePathName As String
+'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
+'    Dim dbm As ILiteADO
+'    Set dbm = LiteADO(FilePathName)
+'
+'    Dim AdoConnection As ADODB.Connection
+'    Set AdoConnection = dbm.AdoConnection
+'
+'    LiteCheck(FilePathName).ExistsAccesibleValid
+'    Dim Response As Variant
+'    Response = dbm.GetScalar("PRAGMA journal_mode")
+'    dbm.ExecuteNonQuery "PRAGMA journal_mode='DELETE'"
+'    Response = dbm.GetScalar("PRAGMA journal_mode")
+'
+'    On Error Resume Next
+'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
+'    Set dbm = LiteADO(FilePathName)
+'    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
+'    LiteCheck(FilePathName & "-shm").ExistsAccesibleValid
+'    dbm.ExecuteNonQuery "ROLLBACK"
+'    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
+'End Sub
+
+
+
+

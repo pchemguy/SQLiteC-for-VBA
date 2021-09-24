@@ -512,30 +512,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-
-'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
-'    Dim FilePathName As String
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Dim dbm As ILiteADO
-'    Set dbm = LiteADO(FilePathName)
-'
-'    Dim AdoConnection As ADODB.Connection
-'    Set AdoConnection = dbm.AdoConnection
-'
-'    LiteCheck(FilePathName).ExistsAccesibleValid
-'    Dim Response As Variant
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'    dbm.ExecuteNonQuery "PRAGMA journal_mode='DELETE'"
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'
-'    On Error Resume Next
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Set dbm = LiteADO(FilePathName)
-'    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
-'    LiteCheck(FilePathName & "-shm").ExistsAccesibleValid
-'    dbm.ExecuteNonQuery "ROLLBACK"
-'    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
-'End Sub
-
-

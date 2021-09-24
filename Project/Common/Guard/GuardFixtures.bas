@@ -41,6 +41,7 @@ Public Enum ErrNo
     AdoInvalidTransactionErr = ADODB.ErrorValueEnum.adErrInvalidTransaction
     AdoConnectionStringErr = ADODB.ErrorValueEnum.adErrProviderNotFound
     AdoInvalidParamInfoErr = ADODB.ErrorValueEnum.adErrInvalidParamInfo
+    AdoProviderFailedErr = ADODB.ErrorValueEnum.adErrProviderFailed
 End Enum
 
 Public Type TError
