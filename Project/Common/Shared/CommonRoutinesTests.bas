@@ -286,6 +286,10 @@ Arrange:
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(vbNullString, Array("db", "sqlite"))
+    '''' Depending on search order, either Thisworkbook.Path or
+    '''' its Library\<PROJuNAME> subfolder is searched first.
+    '''' Ignore this matter for the purpose of this test.
+    Actual = Replace(Actual, "Library" & PATHuSEP & PROJuNAME & PATHuSEP, vbNullString)
 Assert:
     Assert.AreEqual Expected, Actual, "CheckPath failed with empty file pathname." _
                                     & "Expected: < " & Expected & " > "

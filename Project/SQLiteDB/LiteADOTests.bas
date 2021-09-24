@@ -149,11 +149,16 @@ Arrange:
     RelativePathName = REL_PREFIX & "NewDB.sqlite"
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
+    Dim fso As New Scripting.FileSystemObject
+    If fso.FileExists(Expected) Then fso.DeleteFile Expected
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(RelativePathName, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
+    
+    Set dbm = Nothing
+    If fso.FileExists(Expected) Then fso.DeleteFile (Expected)
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
     
@@ -167,15 +172,20 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesNewAbsoluteDatabasePath()
     On Error GoTo TestFail
-
+    
 Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & "NewDB.sqlite"
+    Dim fso As New Scripting.FileSystemObject
+    If fso.FileExists(Expected) Then fso.DeleteFile Expected
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
+
+    Set dbm = Nothing
+    If fso.FileExists(Expected) Then fso.DeleteFile (Expected)
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
     

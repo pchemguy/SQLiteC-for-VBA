@@ -128,6 +128,7 @@ End Function
 '''' 1) check if provided reference is a valid absolute file pathname, if not,
 '''' 2) if AllowNonExistent, return FilePathName, possibly prefixed with
 ''''      ThisWorkbook.Path
+''''    if absolute path is provided, fail resolution at this point.
 '''' 3) construct an array of possible file locations:
 ''''      - ThisWorkbook.Path & Application.PathSeparator
 ''''      - Environ("APPDATA") & Application.PathSeparator &
@@ -210,18 +211,21 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     '''' === (2) === Return FilePathName pointing to a non-existing file.
     If AllowNonExistent Then
         If Len(FilePathName) = 0 Then GoTo FILE_NOT_FOUND
-        Dim RelativeFilePathName As Boolean
-        RelativeFilePathName = Mid$(FilePathName, 1, 1) <> PATHuSEP And _
-                               Mid$(FilePathName, 2, 1) <> ":"
-        If RelativeFilePathName Then
-            PathNameCandidate = ThisWorkbook.Path & PATHuSEP & FilePathName
+        If Len(fso.GetDriveName(FilePathName)) = 0 Then
+            '''' Blank drive name - relative path
+            PathNameCandidate = fso.GetAbsolutePathName( _
+                                    ThisWorkbook.Path & PATHuSEP & FilePathName)
         Else
-            PathNameCandidate = FilePathName
+            PathNameCandidate = fso.GetAbsolutePathName(FilePathName)
+            If Not fso.FolderExists(fso.GetParentFolderName(PathNameCandidate)) Then
+                GoTo FILE_NOT_FOUND
+            End If
         End If
-        '''' TODO: Add code validating the prefix/path
         VerifyOrGetDefaultPath = PathNameCandidate
         Exit Function
     End If
+    
+    If Len(fso.GetDriveName(FilePathName)) > 0 Then GoTo FILE_NOT_FOUND
     
     '''' === (3a) === Array of prefixes
     Dim Prefixes As Variant
@@ -236,9 +240,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     NameCount = 0
     
     Dim UseFilePathName As Boolean
-    UseFilePathName = Len(FilePathName) > 1 And _
-                      Mid$(FilePathName, 1, 1) <> "\" And _
-                      Mid$(FilePathName, 2, 1) <> ":"
+    UseFilePathName = Len(FilePathName) > 1
     If UseFilePathName Then
         NameCount = NameCount + 1
     End If
@@ -248,6 +250,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
         NameCount = NameCount + UBound(DefaultExts, 1) - LBound(DefaultExts, 1) + 1
         Debug.Assert VarType(DefaultExts(0)) = vbString
     End If
+    
     If NameCount = 0 Then GoTo FILE_NOT_FOUND
     
     Dim FileNames() As String
@@ -273,16 +276,16 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     '''' === (4) === Loop through pathnames
     Dim PrefixIndex As Long
     
-    For PrefixIndex = 0 To UBound(Prefixes)
-        For FileNameIndex = 0 To UBound(FileNames)
+    For FileNameIndex = 0 To UBound(FileNames)
+        For PrefixIndex = 0 To UBound(Prefixes)
             PathNameCandidate = Prefixes(PrefixIndex) & FileNames(FileNameIndex)
             If fso.FileExists(PathNameCandidate) Then
                 VerifyOrGetDefaultPath = Replace$(PathNameCandidate, _
                                                   PATHuSEP & PATHuSEP, PATHuSEP)
                 Exit Function
             End If
-        Next FileNameIndex
-    Next PrefixIndex
+        Next PrefixIndex
+    Next FileNameIndex
     '''' If reached this point, proceed to FILE_NOT_FOUND
     
 FILE_NOT_FOUND:

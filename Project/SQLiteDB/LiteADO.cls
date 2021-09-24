@@ -27,7 +27,7 @@ Private this As TLiteADO
 
 '@DefaultMember
 Public Function Create(ByVal Database As String, _
-              Optional ByVal AllowNonExistent As Boolean = False) As ILiteADO
+              Optional ByVal AllowNonExistent As Variant = False) As ILiteADO
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteADO
     Set Instance = New LiteADO
@@ -40,9 +40,9 @@ End Function
 ''''   Database (string):
 ''''     Name of the database to be opened as the "main" SQLite database.
 ''''
-''''   AllowNonExistent (boolean, optional, False):
+''''   AllowNonExistent (Variant, optional, False):
 ''''     If True, Database may refer to a non-existent database, which will be
-''''     created.
+''''     created. If Empty, path resolution will be skipped.
 ''''
 '''' Note:
 ''''   VerifyOrGetDefaultPath should be called with two arguments max. If
@@ -51,7 +51,7 @@ End Function
 ''''   the third argument is True.
 ''''
 Friend Sub Init(ByVal Database As String, _
-       Optional ByVal AllowNonExistent As Boolean = False)
+       Optional ByVal AllowNonExistent As Variant = False)
     Set this.AdoCommand = New ADODB.Command
     With this.AdoCommand
         .CommandType = adCmdText
@@ -100,16 +100,15 @@ End Sub
 '@Description "Constructs default SQLiteODBC connection string"
 Private Function ConnectionString( _
                      ByVal Database As String, _
-            Optional ByVal AllowNonExistent As Boolean = False) As String
+            Optional ByVal AllowNonExistent As Variant = False) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
+    If PathCheck.ErrNumber <> 0 Then PathCheck.Raise
+    Debug.Assert Len(PathCheck.Database) > 0
+    
     Dim FilePathName As String
-    If Database = ":memory:" Then
-        FilePathName = Database
-    ElseIf AllowNonExistent Then
-        FilePathName = VerifyOrGetDefaultPath(Database, , AllowNonExistent)
-    Else
-        FilePathName = VerifyOrGetDefaultPath(Database, Array("db", "sqlite"))
-    End If
+    FilePathName = PathCheck.Database
     this.MainDB = FilePathName
     
     Dim Driver As String

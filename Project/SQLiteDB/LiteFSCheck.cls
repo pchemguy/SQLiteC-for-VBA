@@ -227,6 +227,17 @@ FILE_ERROR:
 End Function
 
 
+'''' Args:
+''''   DbPathName (string):
+''''     Target database file pathname
+''''
+''''   AllowNonExistent (variant, optional, Empty):
+''''     Controls additional path preprocessing and creatability
+''''       - Empty        - new db file and path resolution are disabled
+''''       - vbNullString - new db file only is enabled
+''''       - True/False   - new db file is based on the value
+''''                                    and path resolution is enabled
+''''
 '''' File access tests and basic integrity validation via FS/OS functions.
 '@Description "Runs SQLite database access and basic integrity checks via OS."
 Friend Function ExistsAccesibleValid(ByVal DbPathName As String, _
@@ -241,8 +252,6 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
     
     Dim EnableResolve As Boolean
     EnableResolve = (VarType(AllowNonExistent) = vbBoolean)
-    Dim EnableCreateDb As Boolean
-    EnableCreateDb = IIf(EnableResolve, AllowNonExistent, False)
     
     On Error GoTo FILEPATH_ERROR
         Dim FilePathName As String
@@ -254,14 +263,14 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
             FilePathName = DbPathName
         End If
         
-        Dim DbPathNameOK As Boolean
         Dim fso As New Scripting.FileSystemObject
         If fso.FileExists(FilePathName) Then
             ExistsAccesibleValid = FileAccessibleValid(FilePathName)
         Else
+            Dim DbPathNameOK As Boolean
             DbPathNameOK = PathExistsAccessible(FilePathName)
-            '''' If PathExistsAccessible does not raise an error, it returns True
-            If Not EnableCreateDb Then
+            '''' If PathExistsAccessible does not raise an error, Path is OK
+            If IsEmpty(AllowNonExistent) Then
                 '''' Expected error: FileNotFound
                 this.ErrDescription = _
                     "Databse file is not found in the specified folder." & _
@@ -269,10 +278,24 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
                 Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
             End If
             
-            '''' This code is executed if new db is requested
+            '''' Code below is executed if a new db is requested
+            
+            '''' Verify that a filename is provided
+            If fso.FolderExists(FilePathName) Then
+                '''' Expected error: FileNotFound
+                this.ErrDescription = _
+                    "Filename is not provided or provided name conflicts with " & _
+                    "existing folder." & vbNewLine & "Source: " & FilePathName
+                Err.Raise ErrNo.FileNotFoundErr, "LiteFSCheck", this.ErrDescription
+            End If
+            
             '''' Verify that a new file can be created
             Dim TextFile As Scripting.TextStream
+            this.ErrSource = " LiteFSCheck"
+            this.ErrDescription = vbNewLine & "Cannot create a new file."
             Set TextFile = fso.CreateTextFile(FilePathName)
+            this.ErrSource = vbNullString
+            this.ErrDescription = vbNullString
             TextFile.Close
             fso.DeleteFile FilePathName, True
             
@@ -286,8 +309,22 @@ FILEPATH_ERROR:
     this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
     With this
         .ErrNumber = Err.Number
-        .ErrSource = Err.Source
-        .ErrDescription = Err.Description
+        .ErrSource = Err.Source & .ErrSource
+        If InStr(Err.Description, vbNewLine & "Source: ") > 0 Then
+            .ErrDescription = Err.Description
+        Else
+            .ErrDescription = Err.Description & .ErrDescription & vbNewLine & _
+                              "Source: " & FilePathName
+        End If
     End With
     ExistsAccesibleValid = vbNullString
 End Function
+
+
+Public Sub Raise()
+    With this
+        If .ErrNumber <> 0 Then
+            Err.Raise .ErrNumber, .ErrSource, .ErrDescription
+        End If
+    End With
+End Sub
