@@ -3,6 +3,7 @@ Attribute VB_Name = "LiteADOTests"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
 '@IgnoreModule IndexedDefaultMemberAccess
+'@IgnoreModule SelfAssignedDeclaration: it's ok for services (FileSystemObject)
 Option Explicit
 Option Private Module
 

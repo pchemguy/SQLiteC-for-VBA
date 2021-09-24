@@ -417,7 +417,7 @@ Private Sub ztcCreate_FailsCreateDbInReadOnlyDir()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = Environ("ALLUSERSPROFILE") & PATH_SEP & "Dummy.db"
+    FilePathName = Environ$("ALLUSERSPROFILE") & PATH_SEP & "Dummy.db"
     ErrNumber = ErrNo.PermissionDeniedErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Permission denied" & vbNewLine & _
