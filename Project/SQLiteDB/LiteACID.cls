@@ -249,7 +249,7 @@ TOGGLE_FAILED:
 End Function
 
 
-Public Function DbIsWriteLocked() As Boolean
+Public Function LockedInTransaction() As Boolean
     Dim dbm As ILiteADO
     Set dbm = this.ADOTool
 
@@ -270,19 +270,35 @@ Public Function DbIsWriteLocked() As Boolean
                 On Error Resume Next
                     Set TextFile = fso.OpenTextFile(FilePathName, ForReading)
                     TextFile.Read 1
-                    If Err.Number <> 0 Then DbIsWriteLocked = True
+                    If Err.Number <> 0 Then LockedInTransaction = True
                     If Not TextFile Is Nothing Then TextFile.Close
                 On Error GoTo 0
             End If
         Case "DELETE", "TRUNCATE"
             FilePathName = this.ADOTool.MainDB & "-journal"
             If fso.FileExists(FilePathName) Then
-                If fso.GetFile(FilePathName).Size > 0 Then DbIsWriteLocked = True
+                If fso.GetFile(FilePathName).Size > 0 Then LockedInTransaction = True
             End If
     End Select
 End Function
 
 
+Public Function LockedReadOnly() As Boolean
+    If LockedInTransaction Then
+        LockedReadOnly = True
+        Exit Function
+    End If
+    
+    On Error Resume Next
+        JournalModeToggle
+        If Err.Number <> 0 Then
+            LockedReadOnly = True
+        Else
+            LockedReadOnly = False
+            JournalModeToggle
+        End If
+    On Error GoTo 0
+End Function
 
 '    Dim JournalModeUC As String
 '    JournalModeUC = UCase$(JournalMode)

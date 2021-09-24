@@ -122,7 +122,7 @@ Private Sub ztcTest()
     
     
     Do While True
-        Debug.Print ACIDTool.DbIsWriteLocked
+        Debug.Print ACIDTool.LockedReadOnly
         Stop
     Loop
     
@@ -157,7 +157,5 @@ End Sub
 '    dbm.ExecuteNonQuery "ROLLBACK"
 '    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
 'End Sub
-
-
 
 
