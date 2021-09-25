@@ -113,23 +113,31 @@ End Sub
 Private Sub ztcTest()
     Dim FilePathName As String
     FilePathName = REL_PREFIX & LIB_NAME & ".db"
-    
+        
     Dim dbm As ILiteADO
     Set dbm = LiteADO(FilePathName)
     
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(FilePathName, False)
+        
     Dim ACIDTool As LiteACID
     Set ACIDTool = LiteACID(dbm)
+    Set ACIDTool = dbm.ACIDTool
     
-    
+    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
+    dbm.ExecuteNonQuery "PRAGMA busy_timeout=1000"
+    dbm.AdoCommand.CommandTimeout = 1
+    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
     Do While True
         Debug.Print ACIDTool.LockedReadOnly
         Stop
     Loop
-    
+        
     Debug.Print ACIDTool.JournalModeToggle
     Debug.Print ACIDTool.JournalModeToggle
     Debug.Print ACIDTool.JournalModeToggle
-
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
 End Sub
 
 

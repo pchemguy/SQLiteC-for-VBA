@@ -25,6 +25,9 @@ End Property
 Public Property Get AdoCommand() As ADODB.Command
 End Property
 
+Public Property Get ACIDTool() As LiteACID
+End Property
+
 Public Function GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset
 End Function
 

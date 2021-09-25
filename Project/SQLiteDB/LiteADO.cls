@@ -21,6 +21,7 @@ Private Type TLiteADO
     ConnectionString As String
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
+    ACIDTool As LiteACID
 End Type
 Private this As TLiteADO
 
@@ -61,6 +62,7 @@ Friend Sub Init(ByVal Database As String, _
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
+    Set this.ACIDTool = LiteACID(Me)
 End Sub
 
 
@@ -205,6 +207,10 @@ End Property
 
 Private Property Get ILiteADO_AdoCommand() As ADODB.Command
     Set ILiteADO_AdoCommand = this.AdoCommand
+End Property
+
+Private Property Get ILiteADO_ACIDTool() As LiteACID
+    Set ILiteADO_ACIDTool = this.ACIDTool
 End Property
 
 Private Function ILiteADO_GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset

@@ -6,11 +6,12 @@ Attribute VB_Name = "LiteACID"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Attribute VB_Description = "This module provides ACID related functionality"
 '@Folder "SQLiteDB"
 '@ModuleDescription "This module provides ACID related functionality"
 '@PredeclaredId
+'@Exposed
 '@IgnoreModule ValueRequired: false positive with ADODB
 Option Explicit
 
