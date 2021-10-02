@@ -1,6 +1,15 @@
 @echo off
-rem Build SQLite using MSVC toolset
+rem ============================================================================
+rem Builds SQLite using Microsoft Visual C++ Build Tools (MSVC toolset).
+rem MSVC toolset can be installed via a
+rem   - dedicated installer:
+rem       https://go.microsoft.com/fwlink/?LinkId=691126
+rem   - Visual Studio installer (including CE):
+rem       https://visualstudio.microsoft.com/downloads
+rem TCL must also be available, as it is required by the building workflow.
+rem ============================================================================
 
+rem ============================== BEGIN MAIN ==============================
 SetLocal
 
 set ERROR_STATUS=0
@@ -59,9 +68,9 @@ cd ..
 
 EndLocal
 exit /b 0
+rem =============================== END MAIN ===============================
 
 
-rem ============================================================================
 rem ============================================================================
 rem ============================================================================
 :CHECK_PREREQUISITES
