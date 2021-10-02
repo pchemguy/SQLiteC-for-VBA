@@ -3,6 +3,9 @@ Attribute VB_Name = "Sqlite3Demo"
 '@IgnoreModule
 Option Explicit
 
+Public Declare Function DLL_Import_Add Lib "SQLite3.dll" Alias "Add" (ByVal A As Long, ByVal B As Long) As Long
+
+
 Dim TestFile As String
 
 Public Sub AllTests()
@@ -11,19 +14,28 @@ Public Sub AllTests()
     TestFile = Environ("TEMP") & "\TestSqlite3ForExcel.db"
         
     Dim InitReturn As Long
+'    InitReturn = AddInit(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\")
+'    If InitReturn <> SQLITE_INIT_OK Then
+'        Debug.Print "Error Initializing SQLite. Error: " & Err.LastDllError
+'        Exit Sub
+'    End If
+'    Debug.Print DLL_Import_Add(3, 5)
+'    AddFree
+    
     #If Win64 Then
-        InitReturn = LoadLib(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x64\")
+        InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x64\", False)
     #Else
-        InitReturn = LoadLib(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\")
+        InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\", False)
     #End If
-    If InitReturn <> SQLITE_OK Then
+    If InitReturn <> SQLITE_INIT_OK Then
         Debug.Print "Error Initializing SQLite. Error: " & Err.LastDllError
         Exit Sub
     End If
     Dim Result As String
-    Result = LibVersion()
+    Result = SQLite3LibVersionA()
     Debug.Print Result
-    FreeLib
+    Debug.Print DLL_Import_Add(1, 2)
+    SQLite3Free
     Exit Sub
         
 '''' =====================================================================================================================
@@ -40,14 +52,14 @@ Public Sub AllTests()
     TestBackup
     TestBlob
     TestWriteReadOnly
-'    SQLite3Free ' Quite optional
+    SQLite3Free ' Quite optional
         
     Debug.Print "----- All Tests Complete -----"
 End Sub
 
 Public Sub TestVersion()
 
-    Debug.Print LibVersion()
+    Debug.Print SQLite3LibVersion()
 
 End Sub
 
@@ -59,7 +71,7 @@ Public Sub TestApiCallSpeed()
     
     start = Now()
     For i = 0 To 10000000 ' 10 million
-        version = LibVersion()
+        version = SQLite3LibVersion()
     Next
     
     Debug.Print "ApiCall Elapsed: " & Format(Now() - start, "HH:mm:ss")
@@ -74,10 +86,10 @@ Public Sub TestOpenClose()
     #End If
     Dim RetVal As Long
     
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
     'Kill TestFile
@@ -95,17 +107,17 @@ Public Sub TestOpenCloseV2()
     Dim RetVal As Long
     
     ' Open the database in Read Write Access
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Open the database in Read Only Access
-    RetVal = DbOpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, "")
+    RetVal = SQLite3OpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, "")
     Debug.Print "SQLite3OpenV2 returned " & RetVal
     
-    RetVal = DbClose(myDbHandleV2)
+    RetVal = SQLite3Close(myDbHandleV2)
     Debug.Print "SQLite3Close V2 returned " & RetVal
     
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
     'Kill TestFile
@@ -120,18 +132,18 @@ Public Sub TestError()
     #End If
     Dim RetVal As Long
     
-    Dim ErrMessage As String
+    Dim ErrMsg As String
     
     Debug.Print "----- TestError Start -----"
     
     ' DbHandle is set up even if there is an error !
-    RetVal = DbOpen16("::::", myDbHandle)
+    RetVal = SQLite3Open("::::", myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
-    ErrMessage = ErrMsg(myDbHandle)
-    Debug.Print "SQLite3Open error message: " & ErrMessage
+    ErrMsg = SQLite3ErrMsg(myDbHandle)
+    Debug.Print "SQLite3Open error message: " & ErrMsg
   
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
 
     Debug.Print "----- TestError End -----"
@@ -154,23 +166,23 @@ Public Sub TestStatement()
     Debug.Print "----- TestStatement Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     Debug.Print "SQLite3Step returned " & RetVal
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestStatement End -----"
@@ -192,18 +204,18 @@ Public Sub TestInsert()
     Debug.Print "----- TestInsert Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
     ' Create the table
     ' ================
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "CREATE TABLE MySecondTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "CREATE TABLE MySecondTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -211,18 +223,18 @@ Public Sub TestInsert()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     '-------------------------
     ' Insert a record
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MySecondTable Values (123, 'ABC', 42.1)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MySecondTable Values (123, 'ABC', 42.1)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -230,7 +242,7 @@ Public Sub TestInsert()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
@@ -240,7 +252,7 @@ Public Sub TestInsert()
     Debug.Print "SQLite3Execute - Insert affected " & recordsAffected & " record(s)."
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestInsert End -----"
@@ -261,18 +273,18 @@ Public Sub TestSelect()
     Debug.Print "----- TestSelect Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
     ' Create the table
     ' ================
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -280,18 +292,18 @@ Public Sub TestSelect()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     '-------------------------
     ' Insert a record
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyFirstTable Values (123, 'ABC', 42.1)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyFirstTable Values (123, 'ABC', 42.1)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -299,18 +311,18 @@ Public Sub TestSelect()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
     ' Insert another record
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyFirstTable Values (987654, ""ZXCVBNM"", NULL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyFirstTable Values (987654, ""ZXCVBNM"", NULL)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -318,18 +330,18 @@ Public Sub TestSelect()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
     ' Select statement
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT * FROM MyFirstTable", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT * FROM MyFirstTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         Debug.Print "SQLite3Step Row Ready"
         PrintColumns myStmtHandle
@@ -338,7 +350,7 @@ Public Sub TestSelect()
     End If
     
     ' Move to next row
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         Debug.Print "SQLite3Step Row Ready"
         PrintColumns myStmtHandle
@@ -347,7 +359,7 @@ Public Sub TestSelect()
     End If
     
     ' Move on again (now we are done)
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_DONE Then
         Debug.Print "SQLite3Step Done"
     Else
@@ -355,12 +367,12 @@ Public Sub TestSelect()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestSelect End -----"
@@ -379,11 +391,11 @@ Sub PrintColumns(ByVal stmtHandle As Long)
     
     Dim i As Long
     
-    colCount = ColumnCount(stmtHandle)
+    colCount = SQLite3ColumnCount(stmtHandle)
     Debug.Print "Column count: " & colCount
     For i = 0 To colCount - 1
-        colName = ColumnName(stmtHandle, i)
-        colType = ColumnType(stmtHandle, i)
+        colName = SQLite3ColumnName(stmtHandle, i)
+        colType = SQLite3ColumnType(stmtHandle, i)
         colTypeName = TypeName(colType)
         colValue = ColumnValue(stmtHandle, i, colType)
         Debug.Print "Column " & i & ":", colName, colTypeName, colValue
@@ -430,9 +442,9 @@ Function ColumnValue(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long, 
 #End If
     Select Case SQLiteType
         Case SQLITE_INTEGER:
-            ColumnValue = ColumnInt32(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnInt32(stmtHandle, ZeroBasedColIndex)
         Case SQLITE_FLOAT:
-            ColumnValue = ColumnDouble(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnDouble(stmtHandle, ZeroBasedColIndex)
         Case SQLITE_TEXT:
             ColumnValue = SQLite3ColumnText(stmtHandle, ZeroBasedColIndex)
         Case SQLITE_BLOB:
@@ -468,23 +480,23 @@ Public Sub TestBinding()
     Debug.Print "----- TestBinding Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
     ' Create the table
     ' ================
     ' (O've got no error checking here...)
-    StmtPrepare16V2 myDbHandle, "CREATE TABLE MyBigTable (TheId INTEGER, TheDate REAL, TheText TEXT, TheValue REAL)", myStmtHandle
-    StmtStep myStmtHandle
-    StmtFinalize myStmtHandle
+    SQLite3PrepareV2 myDbHandle, "CREATE TABLE MyBigTable (TheId INTEGER, TheDate REAL, TheText TEXT, TheValue REAL)", myStmtHandle
+    SQLite3Step myStmtHandle
+    SQLite3Finalize myStmtHandle
     
     '---------------------------
     ' Add an index
     ' ================
-    StmtPrepare16V2 myDbHandle, "CREATE INDEX idx_MyBigTable_Id_Date ON MyBigTable (TheId, TheDate)", myStmtHandle
-    StmtStep myStmtHandle
-    StmtFinalize myStmtHandle
+    SQLite3PrepareV2 myDbHandle, "CREATE INDEX idx_MyBigTable_Id_Date ON MyBigTable (TheId, TheDate)", myStmtHandle
+    SQLite3Step myStmtHandle
+    SQLite3Finalize myStmtHandle
     
     ' START Insert Time
     testStart = Now()
@@ -492,17 +504,17 @@ Public Sub TestBinding()
     '-------------------
     ' Begin transaction
     '==================
-    StmtPrepare16V2 myDbHandle, "BEGIN TRANSACTION", myStmtHandle
-    StmtStep myStmtHandle
-    StmtFinalize myStmtHandle
+    SQLite3PrepareV2 myDbHandle, "BEGIN TRANSACTION", myStmtHandle
+    SQLite3Step myStmtHandle
+    SQLite3Finalize myStmtHandle
 
     '-------------------------
     ' Prepare an insert statement with parameters
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyBigTable Values (?, ?, ?, ?)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyBigTable Values (?, ?, ?, ?)", myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3PrepareV2 returned " & ErrMsg(myDbHandle)
+        Debug.Print "SQLite3PrepareV2 returned " & SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
@@ -515,52 +527,52 @@ Public Sub TestBinding()
         
         RetVal = SQLite3BindInt32(myStmtHandle, 1, 42000 + i)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
         RetVal = SQLite3BindDate(myStmtHandle, 2, curDate)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = BindText(myStmtHandle, 3, "The quick brown fox jumped over the lazy dog.")
+        RetVal = SQLite3BindText(myStmtHandle, 3, "The quick brown fox jumped over the lazy dog.")
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
         RetVal = SQLite3BindDouble(myStmtHandle, 4, curValue)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = StmtStep(myStmtHandle)
+        RetVal = SQLite3Step(myStmtHandle)
         If RetVal <> SQLITE_DONE Then
-            Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     
-        RetVal = StmtReset(myStmtHandle)
+        RetVal = SQLite3Reset(myStmtHandle)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     Next
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------
     ' Commit transaction
     '==================
     ' (I'm re-using the same variable myStmtHandle for the new statement)
-    StmtPrepare16V2 myDbHandle, "COMMIT TRANSACTION", myStmtHandle
-    StmtStep myStmtHandle
-    StmtFinalize myStmtHandle
+    SQLite3PrepareV2 myDbHandle, "COMMIT TRANSACTION", myStmtHandle
+    SQLite3Step myStmtHandle
+    SQLite3Finalize myStmtHandle
 
     ' STOP Insert Time
     Debug.Print "Insert Elapsed: " & Format(Now() - testStart, "HH:mm:ss")
@@ -573,7 +585,7 @@ Public Sub TestBinding()
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
     ' Now using named parameters!
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT TheId, datetime(TheDate), TheText, TheValue FROM MyBigTable WHERE TheId = @FindThisId AND TheDate <= @FindThisDate LIMIT 1", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT TheId, datetime(TheDate), TheText, TheValue FROM MyBigTable WHERE TheId = @FindThisId AND TheDate <= @FindThisDate LIMIT 1", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     paramIndexId = SQLite3BindParameterIndex(myStmtHandle, "@FindThisId")
@@ -596,17 +608,17 @@ Public Sub TestBinding()
         ' Bind the parameters
         RetVal = SQLite3BindInt32(myStmtHandle, paramIndexId, 42000 + 500 + offset)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     
         RetVal = SQLite3BindDate(myStmtHandle, paramIndexDate, startDate + 500 + offset)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = StmtStep(myStmtHandle)
+        RetVal = SQLite3Step(myStmtHandle)
         If RetVal = SQLITE_ROW Then
             ' We have access to the result columns here.
             If offset = 1 Then
@@ -619,22 +631,22 @@ Public Sub TestBinding()
             Debug.Print "No row found"
         End If
     
-        RetVal = StmtReset(myStmtHandle)
+        RetVal = SQLite3Reset(myStmtHandle)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     Next
         
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' STOP Select time
     Debug.Print "Select Elapsed: " & Format(Now() - testStart, "HH:mm:ss")
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestBinding End -----"
@@ -667,7 +679,7 @@ Public Sub TestBindingMore()
     Debug.Print "----- TestBinding Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -693,9 +705,9 @@ Public Sub TestBindingMore()
     ' Prepare an insert statement with parameters
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyBigTable Values (?, ?, ?, ?)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyBigTable Values (?, ?, ?, ?)", myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3PrepareV2 returned " & ErrMsg(myDbHandle)
+        Debug.Print "SQLite3PrepareV2 returned " & SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
@@ -710,43 +722,43 @@ Public Sub TestBindingMore()
         
         RetVal = SQLite3BindInt32(myStmtHandle, 1, 42000 + i)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
         RetVal = SQLite3BindDate(myStmtHandle, 2, curDate)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = BindText(myStmtHandle, 3, "The quick brown fox jumped over the lazy dog.")
+        RetVal = SQLite3BindText(myStmtHandle, 3, "The quick brown fox jumped over the lazy dog.")
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
         RetVal = SQLite3BindDouble(myStmtHandle, 4, curValue)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = StmtStep(myStmtHandle)
+        RetVal = SQLite3Step(myStmtHandle)
         If RetVal <> SQLITE_DONE Then
-            Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     
-        RetVal = StmtReset(myStmtHandle)
+        RetVal = SQLite3Reset(myStmtHandle)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     Next
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------
@@ -765,7 +777,7 @@ Public Sub TestBindingMore()
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
     ' Now using named parameters!
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT TheId, datetime(TheDate), TheText, TheValue FROM MyBigTable WHERE TheId = @FindThisId AND TheDate <= julianday(@FindThisDate) LIMIT 1", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT TheId, datetime(TheDate), TheText, TheValue FROM MyBigTable WHERE TheId = @FindThisId AND TheDate <= julianday(@FindThisDate) LIMIT 1", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     PrintParameters myStmtHandle
@@ -789,17 +801,17 @@ Public Sub TestBindingMore()
         ' Bind the parameters
         RetVal = SQLite3BindInt32(myStmtHandle, paramIndexId, 4200 + 500 + offset)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     
-        RetVal = BindText(myStmtHandle, paramIndexDate, Format(startDate + 500 + offset, "yyyy-MM-dd HH:mm:ss"))
+        RetVal = SQLite3BindText(myStmtHandle, paramIndexDate, Format(startDate + 500 + offset, "yyyy-MM-dd HH:mm:ss"))
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
         
-        RetVal = StmtStep(myStmtHandle)
+        RetVal = SQLite3Step(myStmtHandle)
         If RetVal = SQLITE_ROW Then
             ' We have access to the result columns here.
             If offset = 1 Then
@@ -812,22 +824,22 @@ Public Sub TestBindingMore()
             Debug.Print "No row found"
         End If
     
-        RetVal = StmtReset(myStmtHandle)
+        RetVal = SQLite3Reset(myStmtHandle)
         If RetVal <> SQLITE_OK Then
-            Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+            Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
             Beep
         End If
     Next
         
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' STOP Select time
     Debug.Print "Select Elapsed: " & Format(Now() - testStart, "HH:mm:ss")
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestBinding End -----"
@@ -852,7 +864,7 @@ Public Sub TestDates()
     Debug.Print "----- TestDates Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -865,32 +877,32 @@ Public Sub TestDates()
     ' Prepare an insert statement with parameters
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyDateTable Values (@SomeDate, @SomeEvent)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyDateTable Values (@SomeDate, @SomeEvent)", myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3PrepareV2 returned " & ErrMsg(myDbHandle)
+        Debug.Print "SQLite3PrepareV2 returned " & SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
     RetVal = SQLite3BindDate(myStmtHandle, 1, DateSerial(2010, 6, 19))
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = BindText(myStmtHandle, 2, "Nice trip somewhere")
+    RetVal = SQLite3BindText(myStmtHandle, 2, "Nice trip somewhere")
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal <> SQLITE_DONE Then
-        Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
     ' Finalize the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
@@ -898,10 +910,10 @@ Public Sub TestDates()
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
     ' Now using named parameters!
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT * FROM MyDateTable", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT * FROM MyDateTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         ' We have access to the result columns here.
         myDate = SQLite3ColumnDate(myStmtHandle, 0)
@@ -912,11 +924,11 @@ Public Sub TestDates()
     End If
         
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestDates End -----"
@@ -943,7 +955,7 @@ Public Sub TestStrings()
     Debug.Print "----- TestStrings Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myString2 = ""
@@ -959,61 +971,61 @@ Public Sub TestStrings()
     ' Prepare an insert statement with parameters
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyStringTable Values (@SomeString)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyStringTable Values (@SomeString)", myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3PrepareV2 returned " & ErrMsg(myDbHandle)
+        Debug.Print "SQLite3PrepareV2 returned " & SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = BindText(myStmtHandle, 1, myString1)
+    RetVal = SQLite3BindText(myStmtHandle, 1, myString1)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal <> SQLITE_DONE Then
-        Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtReset(myStmtHandle)
+    RetVal = SQLite3Reset(myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = BindText(myStmtHandle, 1, myString2)
+    RetVal = SQLite3BindText(myStmtHandle, 1, myString2)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal <> SQLITE_DONE Then
-        Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtReset(myStmtHandle)
+    RetVal = SQLite3Reset(myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Reset returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Reset returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = BindText(myStmtHandle, 1, myLongString)
+    RetVal = SQLite3BindText(myStmtHandle, 1, myLongString)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal <> SQLITE_DONE Then
-        Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     ' Finalize the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
@@ -1021,10 +1033,10 @@ Public Sub TestStrings()
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
     ' Now using named parameters!
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT * FROM MyStringTable", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT * FROM MyStringTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         ' We have access to the result columns here.
         myStringResult = SQLite3ColumnText(myStmtHandle, 0)
@@ -1033,7 +1045,7 @@ Public Sub TestStrings()
         Debug.Print "No row found"
     End If
         
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         ' We have access to the result columns here.
         myStringResult = SQLite3ColumnText(myStmtHandle, 0)
@@ -1042,7 +1054,7 @@ Public Sub TestStrings()
         Debug.Print "No row found"
     End If
         
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         ' We have access to the result columns here.
         myStringResult = SQLite3ColumnText(myStmtHandle, 0)
@@ -1053,11 +1065,11 @@ Public Sub TestStrings()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestStrings End -----"
@@ -1082,7 +1094,7 @@ Public Sub TestBackup()
     Debug.Print "----- TestBackup Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     SQLite3ExecuteNonQuery myDbHandle, "CREATE TABLE MyTestTable (Key INT PRIMARY KEY, Value TEXT)"
@@ -1092,7 +1104,7 @@ Public Sub TestBackup()
     
     ' Now do a backup
     testFileBackup = TestFile & ".bak"
-    RetVal = DbOpen16(testFileBackup, myDbBackupHandle)
+    RetVal = SQLite3Open(testFileBackup, myDbBackupHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myBackupHandle = SQLite3BackupInit(myDbBackupHandle, "main", myDbHandle, "main")
@@ -1102,13 +1114,13 @@ Public Sub TestBackup()
         RetVal = SQLite3BackupFinish(myBackupHandle)
         Debug.Print "SQLite3BackupFinish returned " & RetVal
     End If
-    RetVal = ErrCode(myDbBackupHandle)
+    RetVal = SQLite3ErrCode(myDbBackupHandle)
     Debug.Print "Backup result " & RetVal
     Debug.Print "Selecting from backup:"
     SQLite3ExecuteQuery myDbBackupHandle, "SELECT * FROM MyTestTable"
     
-    RetVal = DbClose(myDbHandle)
-    RetVal = DbClose(myDbBackupHandle)
+    RetVal = SQLite3Close(myDbHandle)
+    RetVal = SQLite3Close(myDbBackupHandle)
     
     'Kill TestFile
     'Kill TestFileBackup
@@ -1135,7 +1147,7 @@ Public Sub TestBlob()
     Debug.Print "----- TestBlob Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myBlob(0) = 90
@@ -1152,26 +1164,26 @@ Public Sub TestBlob()
     ' Prepare an insert statement with parameters
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "INSERT INTO MyBlobTable Values (@SomeString)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "INSERT INTO MyBlobTable Values (@SomeString)", myStmtHandle)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3PrepareV2 returned " & ErrMsg(myDbHandle)
+        Debug.Print "SQLite3PrepareV2 returned " & SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
     RetVal = SQLite3BindBlob(myStmtHandle, 1, myBlob)
     If RetVal <> SQLITE_OK Then
-        Debug.Print "SQLite3Bind returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Bind returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal <> SQLITE_DONE Then
-        Debug.Print "SQLite3Step returned " & RetVal, ErrMsg(myDbHandle)
+        Debug.Print "SQLite3Step returned " & RetVal, SQLite3ErrMsg(myDbHandle)
         Beep
     End If
     
     ' Finalize the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 
     '-------------------------
@@ -1179,13 +1191,13 @@ Public Sub TestBlob()
     ' ===============
     ' Create the sql statement - getting a StmtHandle back
     ' Now using named parameters!
-    RetVal = StmtPrepare16V2(myDbHandle, "SELECT * FROM MyBlobTable", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "SELECT * FROM MyBlobTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     If RetVal = SQLITE_ROW Then
         ' We have access to the result columns here.
-        myBlobResult = ColumnBlob(myStmtHandle, 0)
+        myBlobResult = SQLite3ColumnBlob(myStmtHandle, 0)
         For i = LBound(myBlobResult) To UBound(myBlobResult)
             Debug.Print "Blob byte " & i & ": " & myBlobResult(i)
         Next
@@ -1194,11 +1206,11 @@ Public Sub TestBlob()
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Close the database
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     'Kill TestFile
 
     Debug.Print "----- TestBlob End -----"
@@ -1217,32 +1229,32 @@ Public Sub TestWriteReadOnly()
     Dim RetVal As Long
     
     ' Open the database in Read Write Access
-    RetVal = DbOpen16(TestFile, myDbHandle)
+    RetVal = SQLite3Open(TestFile, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Open the database in Read Only Access
-    RetVal = DbOpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, Empty)
+    RetVal = SQLite3OpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, Empty)
     Debug.Print "SQLite3OpenV2 returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back
-    RetVal = StmtPrepare16V2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandle, "CREATE TABLE MyFirstTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     Debug.Print "SQLite3Step returned " & RetVal
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back with Read Only
-    RetVal = StmtPrepare16V2(myDbHandleV2, "CREATE TABLE MySecondTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandleV2, "CREATE TABLE MySecondTable (TheId INTEGER, TheText TEXT, TheValue REAL)", myStmtHandle)
     'RetVal = SQLite3PrepareV2(myDbHandleV2, "SELECT * FROM MyFirstTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement with Read Only
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     Debug.Print "SQLite3Step returned " & RetVal
     
     If RetVal = SQLITE_READONLY Then
@@ -1250,15 +1262,15 @@ Public Sub TestWriteReadOnly()
     End If
     
     ' Finalize (delete) the statement with Read Only
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back with Read Only
-    RetVal = StmtPrepare16V2(myDbHandleV2, "SELECT * FROM MyFirstTable", myStmtHandle)
+    RetVal = SQLite3PrepareV2(myDbHandleV2, "SELECT * FROM MyFirstTable", myStmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement with Read Only
-    RetVal = StmtStep(myStmtHandle)
+    RetVal = SQLite3Step(myStmtHandle)
     Debug.Print "SQLite3Step returned " & RetVal
         
     If RetVal = SQLITE_DONE Then
@@ -1266,13 +1278,13 @@ Public Sub TestWriteReadOnly()
     End If
     
     ' Finalize (delete) the statement with Read Only
-    RetVal = StmtFinalize(myStmtHandle)
+    RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
     
-    RetVal = DbClose(myDbHandleV2)
+    RetVal = SQLite3Close(myDbHandleV2)
     Debug.Print "SQLite3Close V2 returned " & RetVal
     
-    RetVal = DbClose(myDbHandle)
+    RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
     'Kill TestFile
@@ -1288,29 +1300,29 @@ Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As Long, ByVal SqlCommand 
     Dim stmtHandle As Long
 #End If
     
-    StmtPrepare16V2 dbHandle, SqlCommand, stmtHandle
-    StmtStep stmtHandle
-    StmtFinalize stmtHandle
+    SQLite3PrepareV2 dbHandle, SqlCommand, stmtHandle
+    SQLite3Step stmtHandle
+    SQLite3Finalize stmtHandle
     
-    SQLite3ExecuteNonQuery = Changes(dbHandle)
+    SQLite3ExecuteNonQuery = SQLite3Changes(dbHandle)
 End Function
 
 #If Win64 Then
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal SQLQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal sqlQuery As String)
     Dim stmtHandle As LongPtr
 #Else
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal SQLQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal sqlQuery As String)
     Dim stmtHandle As Long
 #End If
     ' Dumps a query to the debug window. No error checking
     
     Dim RetVal As Long
 
-    RetVal = StmtPrepare16V2(dbHandle, SQLQuery, stmtHandle)
+    RetVal = SQLite3PrepareV2(dbHandle, sqlQuery, stmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = StmtStep(stmtHandle)
+    RetVal = SQLite3Step(stmtHandle)
     If RetVal = SQLITE_ROW Then
         Debug.Print "SQLite3Step Row Ready"
         PrintColumns stmtHandle
@@ -1319,11 +1331,11 @@ Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal SQLQuery As String)
     End If
     
     ' Move to next row
-    RetVal = StmtStep(stmtHandle)
+    RetVal = SQLite3Step(stmtHandle)
     Do While RetVal = SQLITE_ROW
         Debug.Print "SQLite3Step Row Ready"
         PrintColumns stmtHandle
-        RetVal = StmtStep(stmtHandle)
+        RetVal = SQLite3Step(stmtHandle)
     Loop
 
     If RetVal = SQLITE_DONE Then
@@ -1333,6 +1345,6 @@ Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal SQLQuery As String)
     End If
     
     ' Finalize (delete) the statement
-    RetVal = StmtFinalize(stmtHandle)
+    RetVal = SQLite3Finalize(stmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 End Sub
