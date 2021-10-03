@@ -8,7 +8,6 @@ Attribute VB_Name = "CommonRoutinesTests"
 Option Explicit
 Option Private Module
 
-
 #Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object

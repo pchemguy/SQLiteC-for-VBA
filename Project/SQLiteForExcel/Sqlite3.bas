@@ -290,16 +290,7 @@ Public Function SQLite3Initialize(Optional ByVal libDir As String, Optional ByVa
         End If
     End If
     #End If
-    
-    If hSQLiteLibrary = 0 Then
-        hSQLiteLibrary = LoadLibrary(libDir + "SQLite3.dll")
-        If hSQLiteLibrary = 0 Then
-            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3.dll:", Err.LastDllError
-            SQLite3Initialize = SQLITE_INIT_ERROR
-            Exit Function
-        End If
-    End If
-    
+        
     If hicudt68 = 0 Then
         hicudt68 = LoadLibrary(libDir + "icudt68.dll")
         If hicudt68 = 0 Then
@@ -307,6 +298,13 @@ Public Function SQLite3Initialize(Optional ByVal libDir As String, Optional ByVa
         End If
     End If
     
+    If hicuuc68 = 0 Then
+        hicuuc68 = LoadLibrary(libDir + "icuuc68.dll")
+        If hicuuc68 = 0 Then
+            Debug.Print "ICU error Loading " + libDir + "icuuc68.dll:", Err.LastDllError
+        End If
+    End If
+
     If hicuin68 = 0 Then
         hicuin68 = LoadLibrary(libDir + "icuin68.dll")
         If hicuin68 = 0 Then
@@ -329,10 +327,12 @@ Public Function SQLite3Initialize(Optional ByVal libDir As String, Optional ByVa
         End If
     End If
     
-    If hicuuc68 = 0 Then
-        hicuuc68 = LoadLibrary(libDir + "icuuc68.dll")
-        If hicuuc68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icuuc68.dll:", Err.LastDllError
+    If hSQLiteLibrary = 0 Then
+        hSQLiteLibrary = LoadLibrary(libDir + "SQLite3.dll")
+        If hSQLiteLibrary = 0 Then
+            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3.dll:", Err.LastDllError
+            SQLite3Initialize = SQLITE_INIT_ERROR
+            Exit Function
         End If
     End If
 End Function
