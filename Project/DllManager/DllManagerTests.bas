@@ -1,7 +1,8 @@
 Attribute VB_Name = "DllManagerTests"
 '@Folder "DllManager"
 '@TestModule
-'@IgnoreModule IndexedDefaultMemberAccess, LineLabelNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, UnhandledOnErrorResumeNext
+'@IgnoreModule LineLabelNotUsed, VariableNotUsed, AssignmentNotUsed
 Option Explicit
 Option Private Module
 

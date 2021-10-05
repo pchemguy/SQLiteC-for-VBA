@@ -3,9 +3,13 @@ Attribute VB_Name = "DllManagerDemo"
 Option Explicit
 Option Private Module
 
-
+#If VBA7 Then
+Private Declare PtrSafe Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
+Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
+#Else
 Private Declare Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
+#End If
 
 
 Private Type TDllManagerDemo
@@ -20,18 +24,19 @@ End Sub
 
 
 Private Sub GetSQLite3VersionNumber()
-    SQLiteLoadMultipleArray
+    '''' Absolute or relative to ThisWorkbook.Path
+    Dim DllPath As String
+    DllPath = "Library\SQLiteCforVBA\dll\x32"
+    
+    SQLiteLoadMultipleArray DllPath
     Debug.Print sqlite3_libversion_number()
     Set this.DllMan = Nothing
 End Sub
 
 
-Private Sub SQLiteLoadMultipleArray()
-    Dim RelativePath As String
-    RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    
+Private Sub SQLiteLoadMultipleArray(ByVal DllPath As String)
     Dim DllMan As DllManager
-    Set DllMan = DllManager(RelativePath)
+    Set DllMan = DllManager(DllPath)
     Set this.DllMan = DllMan
     Dim DllNames As Variant
     
