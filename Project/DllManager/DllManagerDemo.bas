@@ -4,10 +4,14 @@ Option Explicit
 Option Private Module
 
 #If VBA7 Then
+'''' System library
 Private Declare PtrSafe Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
+'''' User library
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 #Else
+'''' System library
 Private Declare Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
+'''' User library
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 #End If
 
@@ -27,8 +31,8 @@ Private Sub GetSQLite3VersionNumber()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
     DllPath = "Library\SQLiteCforVBA\dll\x32"
-    
     SQLiteLoadMultipleArray DllPath
+    
     Debug.Print sqlite3_libversion_number()
     Set this.DllMan = Nothing
 End Sub
@@ -39,7 +43,6 @@ Private Sub SQLiteLoadMultipleArray(ByVal DllPath As String)
     Set DllMan = DllManager(DllPath)
     Set this.DllMan = DllMan
     Dim DllNames As Variant
-    
     DllNames = Array( _
         "icudt68.dll", _
         "icuuc68.dll", _
@@ -48,7 +51,6 @@ Private Sub SQLiteLoadMultipleArray(ByVal DllPath As String)
         "icutu68.dll", _
         "sqlite3.dll" _
     )
-    
     DllMan.LoadMultiple DllNames
 End Sub
 
@@ -59,10 +61,8 @@ End Sub
 Private Sub SQLiteLoadMultipleParamArray()
     Dim RelativePath As String
     RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    
     Dim DllMan As DllManager
     Set DllMan = DllManager(RelativePath)
-    
     DllMan.LoadMultiple _
         "icudt68.dll", _
         "icuuc68.dll", _
@@ -76,11 +76,9 @@ End Sub
 Private Sub SQLiteLoad()
     Dim RelativePath As String
     RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    
     Dim DllMan As DllManager
     Set DllMan = DllManager(RelativePath)
     Dim DllNames As Variant
-    
     DllNames = Array( _
         "icudt68.dll", _
         "icuuc68.dll", _
@@ -89,7 +87,6 @@ Private Sub SQLiteLoad()
         "icutu68.dll", _
         "sqlite3.dll" _
     )
-    
     Dim DllNameIndex As Long
     For DllNameIndex = LBound(DllNames) To UBound(DllNames)
         Dim DllName As String
@@ -97,4 +94,3 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, RelativePath
     Next DllNameIndex
 End Sub
-
