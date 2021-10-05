@@ -9,11 +9,10 @@ Private Declare PtrSafe Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal V
 Private Declare Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
 #End If
 
-
-Private Type TDllManagerDemo
+Private Type TAddLibDemo
     DllMan As DllManager
 End Type
-Private this As TDllManagerDemo
+Private this As TAddLibDemo
 
 
 Private Sub GetSum()

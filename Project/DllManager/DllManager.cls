@@ -121,16 +121,20 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
     End If
     
     Dim Prefix As String
-    If fso.FolderExists(Path) Then
-        '''' Absolute existing path is provided
-        Prefix = Path
-    ElseIf fso.FolderExists(fso.BuildPath(ThisWorkbook.Path, Path)) Then
-        '''' Relative existing path is provided
-        Prefix = fso.BuildPath(ThisWorkbook.Path, Path)
-    Else
+    If Len(Path) = 0 Then
         '''' Default path
-        Prefix = fso.BuildPath(fso.BuildPath(ThisWorkbook.Path, "Library"), _
-                               ThisWorkbook.VBProject.Name)
+        Prefix = this.DefaultPath
+    Else
+        If fso.FolderExists(Path) Then
+            '''' Absolute existing path is provided
+            Prefix = Path
+        ElseIf fso.FolderExists(fso.BuildPath(ThisWorkbook.Path, Path)) Then
+            '''' Relative existing path is provided
+            Prefix = fso.BuildPath(ThisWorkbook.Path, Path)
+        Else
+            Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
+                      "Path not found: <" & Path & ">"
+        End If
     End If
     Prefix = fso.GetAbsolutePathName(Prefix)
     
