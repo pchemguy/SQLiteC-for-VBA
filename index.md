@@ -1,37 +1,34 @@
-## Welcome to GitHub Pages
+---
+layout: default
+title: Overview
+nav_order: 1
+permalink: /
+---
 
-You can use the [editor on GitHub](https://github.com/pchemguy/SQLiteC-for-VBA/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+### How to compile SQLite with ICU and SQLiteODBC on Windows with MinGW
+<p></p>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+[SQLite][] is arguably the most used database engine worldwide, characterized by especially compact size and modular design. By design, the essential functions form the engine core, with other features developed as extensions. Since extensions provide widely used functions, most of them are available as a part of source code distributions. Select extensions are also enabled in the official [precompiled binaries][SQLite Distros] available for various platforms.
 
-### Markdown
+A notable extension not included in the official SQLite binaries or [documentation][SQLite Docs] is [ICU][]. It enables case insensitive string treatment and case conversion for non-ASCII Unicode symbols, whereas the core provides such functions for the Latin alphabet only. The official website has brief SQLite building instructions ([here][How To Compile SQLite], [here][Compile-time Options], and [here][README.md]) but no information on how to enable the ICU extension. Since figuring out the necessary steps was not straightforward because of several obscure issues, I share and discuss scripts that automate the entire process. I also give instructions for setting up [MSYS2/MinGW][MSYS2] toolchains from scratch.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Additionally, I go over the build process for the Christian Werner's [SQLite ODBC driver][] (the source code is also available from [GitHub][SQLite ODBC GitHub]). The SQLite library embedded into the provided binaries has all extensions disabled and is almost a year old. The binaries include some extensions as loadable modules, but integrated extensions are more convenient. An alternative build, designed to work with the system SQLite library, did not work for me either. Thus, I decided to build the driver from the source.
 
-```markdown
-Syntax highlighted code block
 
-# Header 1
-## Header 2
-### Header 3
+<!---
+### References
+--->
 
-- Bulleted
-- List
+[SQLite]: https://sqlite.org
+[SQLite Distros]: https://sqlite.org/download.html
+[SQLite Docs]: https://sqlite.org/docs.html
 
-1. Numbered
-2. List
+[How To Compile SQLite]: https://sqlite.org/howtocompile.html
+[Compile-time Options]: https://sqlite.org/compile.html
+[README.md]: https://sqlite.org/src/doc/trunk/README.md
 
-**Bold** and _Italic_ and `Code` text
+[ICU]: https://icu-project.org
+[MSYS2]: https://msys2.org
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/pchemguy/SQLiteC-for-VBA/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+[SQLite ODBC driver]: http://ch-werner.de/sqliteodbc
+[SQLite ODBC GitHub]: https://github.com/softace/sqliteodbc
