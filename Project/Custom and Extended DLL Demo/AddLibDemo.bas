@@ -1,5 +1,5 @@
 Attribute VB_Name = "AddLibDemo"
-'@Folder "DllManager.Demo"
+'@Folder "Custom and Extended DLL Demo"
 Option Explicit
 Option Private Module
 
@@ -37,3 +37,4 @@ Private Sub LoadDlls(ByVal DllPath As String)
     )
     DllMan.LoadMultiple DllNames
 End Sub
+
