@@ -7,7 +7,7 @@ permalink: /dllman
 
 ### VBA class managing loading DLL libraries
 
-Before a DLL library placed in a user directory is available from the VBA code, it must be loaded via the Windows API (alternatively, the location may be indicated in the Declare statement, but this approach is ugly and inconvinient). It is also prudent to unload the library, when is no longer needed. To make the load/unload process more robust, I created the DllManager class wrapping the [LoadLibrary], FreeLibrary, and SetDllDirectory APIs. DllManager can be used for loading/unloading multiple DLLs. It wraps a Scripting.Dictionary object to hold \<DLL name\>&nbsp;&rarr;&nbsp;\<DLL handle\> mapping.
+Before a DLL library placed in a user directory is available from the VBA code, it must be loaded via the Windows API (alternatively, the Declare statement may include the library location, but this approach is ugly and inconvenient). It is also prudent to unload the library when no longer needed. To make the load/unload process more robust, I created the DllManager class wrapping the [LoadLibrary], FreeLibrary, and SetDllDirectory APIs. DllManager can be used for loading/unloading multiple DLLs. It wraps a Scripting.Dictionary object to hold \<DLL name\>&nbsp;&rarr;&nbsp;\<DLL handle\> mapping.
 
 **API**
 
