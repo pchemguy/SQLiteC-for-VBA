@@ -1,6 +1,6 @@
 ---
 layout: default
-title: DLL - Customizing and Extending
+title: Customize & Extend DLL
 nav_order: 3
 permalink: /dll-custom-ext
 ---
