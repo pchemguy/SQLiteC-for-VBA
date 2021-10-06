@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Custom DLL and Extending DLL for VBA
+title: DLL - Customizing and Extending
 nav_order: 3
 permalink: /dll-custom-ext
 ---
