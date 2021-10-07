@@ -22,7 +22,7 @@ Public Sub AllTests()
 '    Debug.Print DLL_Import_Add(3, 5)
 '    AddFree
     
-    #If Win64 Then
+    #If WIN64 Then
         InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x64\", False)
     #Else
         InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\", False)
@@ -79,7 +79,7 @@ Public Sub TestApiCallSpeed()
 End Sub
 
 Public Sub TestOpenClose()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     #Else
     Dim myDbHandle As Long
@@ -97,7 +97,7 @@ Public Sub TestOpenClose()
 End Sub
 
 Public Sub TestOpenCloseV2()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myDbHandleV2 As LongPtr
     #Else
@@ -125,7 +125,7 @@ Public Sub TestOpenCloseV2()
 End Sub
 
 Public Sub TestError()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     #Else
     Dim myDbHandle As Long
@@ -151,7 +151,7 @@ Public Sub TestError()
 End Sub
 
 Public Sub TestStatement()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -189,7 +189,7 @@ Public Sub TestStatement()
 End Sub
 
 Public Sub TestInsert()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -259,7 +259,7 @@ Public Sub TestInsert()
 End Sub
 
 Public Sub TestSelect()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -378,7 +378,7 @@ Public Sub TestSelect()
     Debug.Print "----- TestSelect End -----"
 End Sub
 
-#If Win64 Then
+#If WIN64 Then
 Sub PrintColumns(ByVal stmtHandle As LongPtr)
 #Else
 Sub PrintColumns(ByVal stmtHandle As Long)
@@ -402,7 +402,7 @@ Sub PrintColumns(ByVal stmtHandle As Long)
     Next
 End Sub
 
-#If Win64 Then
+#If WIN64 Then
 Sub PrintParameters(ByVal stmtHandle As LongPtr)
 #Else
 Sub PrintParameters(ByVal stmtHandle As Long)
@@ -435,7 +435,7 @@ Function TypeName(ByVal SQLiteType As Long) As String
     End Select
 End Function
 
-#If Win64 Then
+#If WIN64 Then
 Function ColumnValue(ByVal stmtHandle As LongPtr, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
 #Else
 Function ColumnValue(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
@@ -455,7 +455,7 @@ Function ColumnValue(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long, 
 End Function
 
 Public Sub TestBinding()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -654,7 +654,7 @@ End Sub
 
 
 Public Sub TestBindingMore()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -846,7 +846,7 @@ Public Sub TestBindingMore()
 End Sub
 
 Public Sub TestDates()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -936,7 +936,7 @@ End Sub
 
 
 Public Sub TestStrings()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -1078,7 +1078,7 @@ End Sub
 Public Sub TestBackup()
     Dim testFileBackup As String
     
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myDbBackupHandle As LongPtr
     Dim myBackupHandle As LongPtr
@@ -1130,7 +1130,7 @@ End Sub
 
 
 Public Sub TestBlob()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myStmtHandle As LongPtr
     #Else
@@ -1217,7 +1217,7 @@ Public Sub TestBlob()
 End Sub
 
 Public Sub TestWriteReadOnly()
-    #If Win64 Then
+    #If WIN64 Then
     Dim myDbHandle As LongPtr
     Dim myDbHandleV2 As LongPtr
     Dim myStmtHandle As LongPtr
@@ -1292,7 +1292,7 @@ Public Sub TestWriteReadOnly()
 End Sub
 
 ' SQLite3 Helper Functions
-#If Win64 Then
+#If WIN64 Then
 Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As LongPtr, ByVal SqlCommand As String) As Long
     Dim stmtHandle As LongPtr
 #Else
@@ -1307,7 +1307,7 @@ Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As Long, ByVal SqlCommand 
     SQLite3ExecuteNonQuery = SQLite3Changes(dbHandle)
 End Function
 
-#If Win64 Then
+#If WIN64 Then
 Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal sqlQuery As String)
     Dim stmtHandle As LongPtr
 #Else
