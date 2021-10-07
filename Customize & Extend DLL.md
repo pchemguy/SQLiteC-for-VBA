@@ -24,7 +24,7 @@ AddLibDemo.bas module in the "SQLiteC.xls" file (in the repo root) contains the 
 Given the source code of the DLL library, there are several approaches to extend it.
 
 1. Patching the source code is optimal for small modifications/additions and should provide the best compile-time code optimization. As illustrated by this demo, a library's code module may contain the new code inlined, or it may #include the extension source files.  
-2. Static linking reduces source code coupling. In this case, the extension modules are compiled into separate object modules statically linked with the library into a single binary file. For example, The SQLite3odbc.dll binary of the [SQLiteODBC][] driver (also my [customized version][SQLiteODBC PG]) incorporates the SQLite library and the ODBC driver functionality.
+2. Static linking reduces source code coupling. In this case, the extension modules are compiled into separate object modules statically linked with the library into a single binary file. For example, The [SQLite3odbc.dll][SQLiteODBC] driver (also see my [customized version][SQLiteODBC PG]) incorporates the SQLite library and the ODBC driver functionality.
 3. Dynamic linking minimizes the coupling between the library and extension. The latter is compiled into a separate DLL dynamically linked to the library. [SQLiteForExcel][] project follows this approach. The stubs, performing STDCALL&nbsp;&rarr;&nbsp;CDECL translation for the SQLite API exposed by an official SQLite3 binary (x32), form the "SQLite3_StdCall.dll" module dynamically linked to the "SQLite3.dll" library module.
 
 This demo consists of a single Bash script, [sqlite3\.ref\.extends\.sh][Dll adapter], based on the [code][SQLite ICU MinGW - Proxy] from a related [project][SQLite ICU MinGW]. The script compiles the library using the default CDECL convention. For this reason, an attempt to call any API from 32-bit VBA should cause the "Bad calling convention" error unless such API takes no arguments (see sqlite3_libversion_number call in the *DllExtAdapterEmbedDemo.GetSQLiteVersion* sub). At the same time, a new routine, *demo_sqlite3_extension_adapter*, is added to the SQLite3.c source code file before compilation. This adapter is labeled with STDCALL and, therefore, accessible from VBA.
@@ -33,9 +33,7 @@ This demo consists of a single Bash script, [sqlite3\.ref\.extends\.sh][Dll adap
 
 There are a few other resources related to DLL development, which I added to my bookmarks: [Dynamic-Link Libraries][] and [C/C++ projects and build systems in Visual Studio][] from Microsoft and [DLL Tutorial][] from Tutorials Point.
 
-
 <!-- References -->
-
 
 [Transmission Zero]: https://www.transmissionzero.co.uk/computing/advanced-mingw-dll-topics/
 [AddLib]: https://github.com/pchemguy/SQLiteC-for-VBA/tree/develop/Library/SQLiteCforVBA/Demo%20-%20DLL%20-%20STDCALL%20and%20Adapter/AddLib
