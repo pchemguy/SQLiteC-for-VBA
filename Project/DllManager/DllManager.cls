@@ -12,6 +12,7 @@ Attribute VB_Description = "Loads/unloads dll libraries"
 '@ModuleDescription "Loads/unloads dll libraries"
 '@PredeclaredId
 '@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
 
 #If VBA7 Then
@@ -58,6 +59,7 @@ Private Sub Class_Terminate()
 End Sub
 
 
+'@Ignore ProcedureNotUsed
 Public Property Get Dlls() As Scripting.Dictionary
     Set Dlls = this.Dlls
 End Property
@@ -152,10 +154,13 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
     End If
     FilePathName = fso.GetAbsolutePathName(FilePathName)
     
-    Dim DllHandle As Long
+    #If VBA7 Then
+        Dim DllHandle As LongPtr
+    #Else
+        Dim DllHandle As Long
+    #End If
     DllHandle = LoadLibrary(FilePathName)
     If DllHandle <> 0 Then
-        '@Ignore IndexedDefaultMemberAccess: Dictionary
         this.Dlls(FileName) = DllHandle
         Debug.Print "<" & DllName & "> loaded."
         Load = LOAD_OK

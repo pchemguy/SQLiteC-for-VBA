@@ -1,5 +1,6 @@
 Attribute VB_Name = "DllManagerDemo"
 '@Folder "DllManager"
+'@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess
 Option Explicit
 Option Private Module
 

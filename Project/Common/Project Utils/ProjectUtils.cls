@@ -286,13 +286,13 @@ Attribute ProjectFilesExport.VB_Description = "Exports code modules (entire proj
 End Sub
 
 
-Private Sub WalkTreeCore(ByVal Folder As Folder)
-    Dim SubFolder As Folder
+Private Sub WalkTreeCore(ByVal Directory As Scripting.Folder)
+    Dim SubDirectory As Scripting.Folder
     
-    this.Paths(Folder.Path) = vbNullString
-    For Each SubFolder In Folder.SubFolders
-        WalkTreeCore SubFolder
-    Next SubFolder
+    this.Paths(Directory.Path) = vbNullString
+    For Each SubDirectory In Directory.SubFolders
+        WalkTreeCore SubDirectory
+    Next SubDirectory
 End Sub
 
 
@@ -302,7 +302,7 @@ Public Sub WalkTree(Optional ByVal Prefix As String = vbNullString, Optional ByV
     Dim RootPrefix As String
     RootPrefix = IIf(Prefix = vbNullString, this.ProjectPath, this.ProjectPath & Application.PathSeparator & Prefix)
     
-    Dim Root As Folder
+    Dim Root As Scripting.Folder
     Set Root = this.fso.GetFolder(RootPrefix)
     
     WalkTreeCore Root

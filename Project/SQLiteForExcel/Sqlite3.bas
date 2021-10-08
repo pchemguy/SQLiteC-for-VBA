@@ -3,132 +3,14 @@ Attribute VB_Name = "Sqlite3"
 '@IgnoreModule
 Option Explicit
 
-#If WIN64 Then
-    Private Declare PtrSafe Function sqlite3_libversionA Lib "SQLite3" Alias "sqlite3_libversion" () As LongPtr ' PtrUtf8String
-#Else
-    Private Declare Function sqlite3_libversionA Lib "SQLite3" Alias "sqlite3_libversion" () As Long  ' PtrUtf8String
-#End If
-
-
-
+'
 ' Notes:
 ' Microsoft uses UTF-16, little endian byte order.
 
-Private Const JULIANDAY_OFFSET As Double = 2415018.5
-
-' Returned from SQLite3Initialize
-Public Const SQLITE_INIT_OK     As Long = 0
-Public Const SQLITE_INIT_ERROR  As Long = 1
-
-' SQLite data types
-Public Const SQLITE_INTEGER  As Long = 1
-Public Const SQLITE_FLOAT    As Long = 2
-Public Const SQLITE_TEXT     As Long = 3
-Public Const SQLITE_BLOB     As Long = 4
-Public Const SQLITE_NULL     As Long = 5
-
-' SQLite atandard return value
-Public Const SQLITE_OK          As Long = 0   ' Successful result
-Public Const SQLITE_ERROR       As Long = 1   ' SQL error or missing database
-Public Const SQLITE_INTERNAL    As Long = 2   ' Internal logic error in SQLite
-Public Const SQLITE_PERM        As Long = 3   ' Access permission denied
-Public Const SQLITE_ABORT       As Long = 4   ' Callback routine requested an abort
-Public Const SQLITE_BUSY        As Long = 5   ' The database file is locked
-Public Const SQLITE_LOCKED      As Long = 6   ' A table in the database is locked
-Public Const SQLITE_NOMEM       As Long = 7   ' A malloc() failed
-Public Const SQLITE_READONLY    As Long = 8   ' Attempt to write a readonly database
-Public Const SQLITE_INTERRUPT   As Long = 9   ' Operation terminated by sqlite3_interrupt()
-Public Const SQLITE_IOERR      As Long = 10   ' Some kind of disk I/O error occurred
-Public Const SQLITE_CORRUPT    As Long = 11   ' The database disk image is malformed
-Public Const SQLITE_NOTFOUND   As Long = 12   ' NOT USED. Table or record not found
-Public Const SQLITE_FULL       As Long = 13   ' Insertion failed because database is full
-Public Const SQLITE_CANTOPEN   As Long = 14   ' Unable to open the database file
-Public Const SQLITE_PROTOCOL   As Long = 15   ' NOT USED. Database lock protocol error
-Public Const SQLITE_EMPTY      As Long = 16   ' Database is empty
-Public Const SQLITE_SCHEMA     As Long = 17   ' The database schema changed
-Public Const SQLITE_TOOBIG     As Long = 18   ' String or BLOB exceeds size limit
-Public Const SQLITE_CONSTRAINT As Long = 19   ' Abort due to constraint violation
-Public Const SQLITE_MISMATCH   As Long = 20   ' Data type mismatch
-Public Const SQLITE_MISUSE     As Long = 21   ' Library used incorrectly
-Public Const SQLITE_NOLFS      As Long = 22   ' Uses OS features not supported on host
-Public Const SQLITE_AUTH       As Long = 23   ' Authorization denied
-Public Const SQLITE_FORMAT     As Long = 24   ' Auxiliary database format error
-Public Const SQLITE_RANGE      As Long = 25   ' 2nd parameter to sqlite3_bind out of range
-Public Const SQLITE_NOTADB     As Long = 26   ' File opened that is not a database file
-Public Const SQLITE_ROW        As Long = 100  ' sqlite3_step() has another row ready
-Public Const SQLITE_DONE       As Long = 101  ' sqlite3_step() has finished executing
-
-' Extended error codes
-Public Const SQLITE_IOERR_READ               As Long = 266  '(SQLITE_IOERR | (1<<8))
-Public Const SQLITE_IOERR_SHORT_READ         As Long = 522  '(SQLITE_IOERR | (2<<8))
-Public Const SQLITE_IOERR_WRITE              As Long = 778  '(SQLITE_IOERR | (3<<8))
-Public Const SQLITE_IOERR_FSYNC              As Long = 1034 '(SQLITE_IOERR | (4<<8))
-Public Const SQLITE_IOERR_DIR_FSYNC          As Long = 1290 '(SQLITE_IOERR | (5<<8))
-Public Const SQLITE_IOERR_TRUNCATE           As Long = 1546 '(SQLITE_IOERR | (6<<8))
-Public Const SQLITE_IOERR_FSTAT              As Long = 1802 '(SQLITE_IOERR | (7<<8))
-Public Const SQLITE_IOERR_UNLOCK             As Long = 2058 '(SQLITE_IOERR | (8<<8))
-Public Const SQLITE_IOERR_RDLOCK             As Long = 2314 '(SQLITE_IOERR | (9<<8))
-Public Const SQLITE_IOERR_DELETE             As Long = 2570 '(SQLITE_IOERR | (10<<8))
-Public Const SQLITE_IOERR_BLOCKED            As Long = 2826 '(SQLITE_IOERR | (11<<8))
-Public Const SQLITE_IOERR_NOMEM              As Long = 3082 '(SQLITE_IOERR | (12<<8))
-Public Const SQLITE_IOERR_ACCESS             As Long = 3338 '(SQLITE_IOERR | (13<<8))
-Public Const SQLITE_IOERR_CHECKRESERVEDLOCK  As Long = 3594 '(SQLITE_IOERR | (14<<8))
-Public Const SQLITE_IOERR_LOCK               As Long = 3850 '(SQLITE_IOERR | (15<<8))
-Public Const SQLITE_IOERR_CLOSE              As Long = 4106 '(SQLITE_IOERR | (16<<8))
-Public Const SQLITE_IOERR_DIR_CLOSE          As Long = 4362 '(SQLITE_IOERR | (17<<8))
-Public Const SQLITE_LOCKED_SHAREDCACHE       As Long = 265  '(SQLITE_LOCKED | (1<<8) )
-
-' Flags For File Open Operations
-Public Const SQLITE_OPEN_READONLY           As Long = 1       ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_READWRITE          As Long = 2       ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_CREATE             As Long = 4       ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_DELETEONCLOSE      As Long = 8       ' VFS only
-Public Const SQLITE_OPEN_EXCLUSIVE          As Long = 16      ' VFS only
-Public Const SQLITE_OPEN_AUTOPROXY          As Long = 32      ' VFS only
-Public Const SQLITE_OPEN_URI                As Long = 64      ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_MEMORY             As Long = 128     ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_MAIN_DB            As Long = 256     ' VFS only
-Public Const SQLITE_OPEN_TEMP_DB            As Long = 512     ' VFS only
-Public Const SQLITE_OPEN_TRANSIENT_DB       As Long = 1024    ' VFS only
-Public Const SQLITE_OPEN_MAIN_JOURNAL       As Long = 2048    ' VFS only
-Public Const SQLITE_OPEN_TEMP_JOURNAL       As Long = 4096    ' VFS only
-Public Const SQLITE_OPEN_SUBJOURNAL         As Long = 8192    ' VFS only
-Public Const SQLITE_OPEN_MASTER_JOURNAL     As Long = 16384   ' VFS only
-Public Const SQLITE_OPEN_NOMUTEX            As Long = 32768   ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_FULLMUTEX          As Long = 65536   ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_SHAREDCACHE        As Long = 131072  ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_PRIVATECACHE       As Long = 262144  ' Ok for sqlite3_open_v2()
-Public Const SQLITE_OPEN_WAL                As Long = 524288  ' VFS only
-
-' Options for Text and Blob binding
-Private Const SQLITE_STATIC      As Long = 0
-Private Const SQLITE_TRANSIENT   As Long = -1
-
-' System calls
-Private Const CP_UTF8 As Long = 65001
 #If WIN64 Then
-
-Private Declare PtrSafe Function MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As LongPtr, ByVal cbMultiByte As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long) As Long
-Private Declare PtrSafe Function WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long, ByVal lpMultiByteStr As LongPtr, ByVal cbMultiByte As Long, ByVal lpDefaultChar As LongPtr, ByVal lpUsedDefaultChar As LongPtr) As Long
-Private Declare PtrSafe Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As LongPtr, ByVal pSource As LongPtr, ByVal length As Long)
-Private Declare PtrSafe Function lstrcpynW Lib "kernel32" (ByVal pwsDest As LongPtr, ByVal pwsSource As LongPtr, ByVal cchCount As Long) As LongPtr
-Private Declare PtrSafe Function lstrcpyW Lib "kernel32" (ByVal pwsDest As LongPtr, ByVal pwsSource As LongPtr) As LongPtr
-Private Declare PtrSafe Function lstrlenW Lib "kernel32" (ByVal pwsString As LongPtr) As Long
-Private Declare PtrSafe Function SysAllocString Lib "OleAut32" (ByRef pwsString As LongPtr) As LongPtr
-Private Declare PtrSafe Function SysStringLen Lib "OleAut32" (ByVal bstrString As LongPtr) As Long
-Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
-Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal hLibModule As LongPtr) As Long
+Private Declare PtrSafe Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As LongPtr, ByVal pSource As LongPtr, ByVal Length As Long)
 #Else
-Private Declare Function MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
-Private Declare Function WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpDefaultChar As Long, ByVal lpUsedDefaultChar As Long) As Long
-Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSource As Long, ByVal length As Long)
-Private Declare Function lstrcpynW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long, ByVal cchCount As Long) As Long
-Private Declare Function lstrcpyW Lib "kernel32" (ByVal pwsDest As Long, ByVal pwsSource As Long) As Long
-Private Declare Function lstrlenW Lib "kernel32" (ByVal pwsString As Long) As Long
-Private Declare Function SysAllocString Lib "OleAut32" (ByRef pwsString As Long) As Long
-Private Declare Function SysStringLen Lib "OleAut32" (ByVal bstrString As Long) As Long
-Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
-Private Declare Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) As Long
+Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSource As Long, ByVal Length As Long)
 #End If
 '=====================================================================================
 ' SQLite StdCall Imports
@@ -199,8 +81,7 @@ Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal h
 ' SQLite library version
 Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
 ' Database connections
-'Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ParamArray Args() As Variant) As Long                        ' PtrDb
-Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As Long                                               ' PtrDb
+Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As Long ' PtrDb
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As Long ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
 ' Database connection error info
@@ -259,141 +140,17 @@ Private Declare Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup A
 Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As Long) As Long
 #End If
 '=====================================================================================
-' Initialize - load libraries explicitly
-#If WIN64 Then
-Private hSQLiteLibrary As LongPtr
-Private hSQLiteStdCallLibrary As LongPtr
-#Else
-Private hSQLiteLibrary As Long
-Private hSQLiteStdCallLibrary As Long
-Private hAddLib As Long
-Private hicudt68 As Long
-Private hicuin68 As Long
-Private hicuio68 As Long
-Private hicutu68 As Long
-Private hicuuc68 As Long
-#End If
 
-Public Function SQLite3Initialize(Optional ByVal libDir As String, Optional ByVal loadProxy As Boolean = True) As Long
-    ' A nice option here is to call SetDllDirectory, but that API is only available since Windows XP SP1.
-    If libDir = "" Then libDir = ThisWorkbook.Path
-    If Right(libDir, 1) <> "\" Then libDir = libDir & "\"
-    
-    #If WIN64 Then
-    #Else
-    If hSQLiteStdCallLibrary = 0 And loadProxy Then
-        hSQLiteStdCallLibrary = LoadLibrary(libDir + "SQLite3_StdCall.dll")
-        If hSQLiteStdCallLibrary = 0 Then
-            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3_StdCall.dll:", Err.LastDllError
-            SQLite3Initialize = SQLITE_INIT_ERROR
-            Exit Function
-        End If
-    End If
-    #End If
-        
-    If hicudt68 = 0 Then
-        hicudt68 = LoadLibrary(libDir + "icudt68.dll")
-        If hicudt68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icudt68.dll:", Err.LastDllError
-        End If
-    End If
-    
-    If hicuuc68 = 0 Then
-        hicuuc68 = LoadLibrary(libDir + "icuuc68.dll")
-        If hicuuc68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icuuc68.dll:", Err.LastDllError
-        End If
-    End If
 
-    If hicuin68 = 0 Then
-        hicuin68 = LoadLibrary(libDir + "icuin68.dll")
-        If hicuin68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icuin68.dll:", Err.LastDllError
-        End If
-    End If
-    SQLite3Initialize = SQLITE_INIT_OK
-
-    If hicuio68 = 0 Then
-        hicuio68 = LoadLibrary(libDir + "icuio68.dll")
-        If hicuio68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icuio68.dll:", Err.LastDllError
-        End If
-    End If
-
-    If hicutu68 = 0 Then
-        hicutu68 = LoadLibrary(libDir + "icutu68.dll")
-        If hicutu68 = 0 Then
-            Debug.Print "ICU error Loading " + libDir + "icutu68.dll:", Err.LastDllError
-        End If
-    End If
-    
-    If hSQLiteLibrary = 0 Then
-        hSQLiteLibrary = LoadLibrary(libDir + "SQLite3.dll")
-        If hSQLiteLibrary = 0 Then
-            Debug.Print "SQLite3Initialize Error Loading " + libDir + "SQLite3.dll:", Err.LastDllError
-            SQLite3Initialize = SQLITE_INIT_ERROR
-            Exit Function
-        End If
-    End If
-End Function
-
-Public Function AddInit(Optional ByVal libDir As String, Optional ByVal loadProxy As Boolean = True) As Long
-    ' A nice option here is to call SetDllDirectory, but that API is only available since Windows XP SP1.
-    If libDir = "" Then libDir = ThisWorkbook.Path
-    If Right(libDir, 1) <> "\" Then libDir = libDir & "\"
-    
-    If hAddLib = 0 Then
-        hAddLib = LoadLibrary(libDir + "AddLib.dll")
-        If hAddLib = 0 Then
-            Debug.Print "SQLite3Initialize Error Loading " + libDir + "AddLib.dll:", Err.LastDllError
-            AddInit = SQLITE_INIT_ERROR
-            Exit Function
-        End If
-    End If
-        
-    AddInit = SQLITE_INIT_OK
-End Function
-
-Public Sub AddFree()
-   Dim refCount As Long
-    If hAddLib <> 0 Then
-        refCount = FreeLibrary(hAddLib)
-        hAddLib = 0
-        If refCount = 0 Then
-            Debug.Print "SQLite3Free Error Freeing AddLib.dll:", refCount, Err.LastDllError
-        End If
-    End If
-End Sub
-
-Public Sub SQLite3Free()
-   Dim refCount As Long
-   If hSQLiteStdCallLibrary <> 0 Then
-        refCount = FreeLibrary(hSQLiteStdCallLibrary)
-        hSQLiteStdCallLibrary = 0
-        If refCount = 0 Then
-            Debug.Print "SQLite3Free Error Freeing SQLite3_StdCall.dll:", refCount, Err.LastDllError
-        End If
-    End If
-    If hSQLiteLibrary <> 0 Then
-        refCount = FreeLibrary(hSQLiteLibrary)
-        hSQLiteLibrary = 0
-        If refCount = 0 Then
-            Debug.Print "SQLite3Free Error Freeing SQLite3.dll:", refCount, Err.LastDllError
-        End If
-    End If
-End Sub
 
 
 '=====================================================================================
 ' SQLite library version
 
 Public Function SQLite3LibVersion() As String
-    SQLite3LibVersion = Utf8PtrToString(sqlite3_libversion())
+    SQLite3LibVersion = UTFlib.Utf8PtrToString(sqlite3_libversion())
 End Function
 
-Public Function SQLite3LibVersionA() As String
-    SQLite3LibVersionA = Utf8PtrToString(sqlite3_libversionA())
-End Function
 
 '=====================================================================================
 ' Database connections
@@ -406,19 +163,19 @@ Public Function SQLite3Open(ByVal FileName As String, ByRef dbHandle As Long) As
 End Function
 
 #If WIN64 Then
-Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As LongPtr, ByVal flags As Long, ByVal vfsName As String) As Long
+Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As LongPtr, ByVal Flags As Long, ByVal vfsName As String) As Long
 #Else
-Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As Long, ByVal flags As Long, ByVal vfsName As String) As Long
+Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As Long, ByVal Flags As Long, ByVal vfsName As String) As Long
 #End If
 
     Dim bufFileName() As Byte
     Dim bufVfsName() As Byte
-    bufFileName = StringToUtf8Bytes(FileName)
+    bufFileName = UTFlib.StringToUtf8Bytes(FileName)
     If vfsName = Empty Then
-        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, flags, 0)
+        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, Flags, 0)
     Else
-        bufVfsName = StringToUtf8Bytes(vfsName)
-        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, flags, VarPtr(bufVfsName(0)))
+        bufVfsName = UTFlib.StringToUtf8Bytes(vfsName)
+        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, Flags, VarPtr(bufVfsName(0)))
     End If
 
 End Function
@@ -439,7 +196,7 @@ Public Function SQLite3ErrMsg(ByVal dbHandle As LongPtr) As String
 #Else
 Public Function SQLite3ErrMsg(ByVal dbHandle As Long) As String
 #End If
-    SQLite3ErrMsg = Utf8PtrToString(sqlite3_errmsg(dbHandle))
+    SQLite3ErrMsg = UTFlib.Utf8PtrToString(sqlite3_errmsg(dbHandle))
 End Function
 
 #If WIN64 Then
@@ -537,7 +294,7 @@ Public Function SQLite3ColumnName(ByVal stmtHandle As LongPtr, ByVal ZeroBasedCo
 #Else
 Public Function SQLite3ColumnName(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As String
 #End If
-    SQLite3ColumnName = Utf8PtrToString(sqlite3_column_name(stmtHandle, ZeroBasedColIndex))
+    SQLite3ColumnName = UTFlib.Utf8PtrToString(sqlite3_column_name(stmtHandle, ZeroBasedColIndex))
 End Function
 
 #If WIN64 Then
@@ -561,7 +318,7 @@ Public Function SQLite3ColumnText(ByVal stmtHandle As LongPtr, ByVal ZeroBasedCo
 #Else
 Public Function SQLite3ColumnText(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long) As String
 #End If
-    SQLite3ColumnText = Utf8PtrToString(sqlite3_column_text(stmtHandle, ZeroBasedColIndex))
+    SQLite3ColumnText = UTFlib.Utf8PtrToString(sqlite3_column_text(stmtHandle, ZeroBasedColIndex))
 End Function
 
 #If WIN64 Then
@@ -580,13 +337,13 @@ Public Function SQLite3ColumnBlob(ByVal stmtHandle As Long, ByVal ZeroBasedColIn
     Dim ptr As Long
 #End If
 
-    Dim length As Long
+    Dim Length As Long
     Dim buf() As Byte
     
     ptr = sqlite3_column_blob(stmtHandle, ZeroBasedColIndex)
-    length = sqlite3_column_bytes(stmtHandle, ZeroBasedColIndex)
-    ReDim buf(length - 1)
-    RtlMoveMemory VarPtr(buf(0)), ptr, length
+    Length = sqlite3_column_bytes(stmtHandle, ZeroBasedColIndex)
+    ReDim buf(Length - 1)
+    RtlMoveMemory VarPtr(buf(0)), ptr, Length
     SQLite3ColumnBlob = buf
 End Function
 '=====================================================================================
@@ -629,9 +386,9 @@ Public Function SQLite3BindBlob(ByVal stmtHandle As LongPtr, ByVal OneBasedParam
 #Else
 Public Function SQLite3BindBlob(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long, ByRef Value() As Byte) As Long
 #End If
-    Dim length As Long
-    length = UBound(Value) - LBound(Value) + 1
-    SQLite3BindBlob = sqlite3_bind_blob(stmtHandle, OneBasedParamIndex, VarPtr(Value(0)), length, SQLITE_TRANSIENT)
+    Dim Length As Long
+    Length = UBound(Value) - LBound(Value) + 1
+    SQLite3BindBlob = sqlite3_bind_blob(stmtHandle, OneBasedParamIndex, VarPtr(Value(0)), Length, SQLITE_TRANSIENT)
 End Function
 
 #If WIN64 Then
@@ -655,7 +412,7 @@ Public Function SQLite3BindParameterName(ByVal stmtHandle As LongPtr, ByVal OneB
 #Else
 Public Function SQLite3BindParameterName(ByVal stmtHandle As Long, ByVal OneBasedParamIndex As Long) As String
 #End If
-    SQLite3BindParameterName = Utf8PtrToString(sqlite3_bind_parameter_name(stmtHandle, OneBasedParamIndex))
+    SQLite3BindParameterName = UTFlib.Utf8PtrToString(sqlite3_bind_parameter_name(stmtHandle, OneBasedParamIndex))
 End Function
 
 #If WIN64 Then
@@ -664,7 +421,7 @@ Public Function SQLite3BindParameterIndex(ByVal stmtHandle As LongPtr, ByVal par
 Public Function SQLite3BindParameterIndex(ByVal stmtHandle As Long, ByVal paramName As String) As Long
 #End If
     Dim buf() As Byte
-    buf = StringToUtf8Bytes(paramName)
+    buf = UTFlib.StringToUtf8Bytes(paramName)
     SQLite3BindParameterIndex = sqlite3_bind_parameter_index(stmtHandle, VarPtr(buf(0)))
 End Function
 
@@ -690,8 +447,8 @@ Public Function SQLite3BackupInit(ByVal dbHandleDestination As Long, ByVal desti
 #End If
     Dim bufDestinationName() As Byte
     Dim bufSourceName() As Byte
-    bufDestinationName = StringToUtf8Bytes(destinationName)
-    bufSourceName = StringToUtf8Bytes(sourceName)
+    bufDestinationName = UTFlib.StringToUtf8Bytes(destinationName)
+    bufSourceName = UTFlib.StringToUtf8Bytes(sourceName)
     SQLite3BackupInit = sqlite3_backup_init(dbHandleDestination, VarPtr(bufDestinationName(0)), dbHandleSource, VarPtr(bufSourceName(0)))
 End Function
 
@@ -727,69 +484,14 @@ Public Function SQLite3BackupRemaining(ByVal backupHandle As Long) As Long
     SQLite3BackupRemaining = sqlite3_backup_remaining(backupHandle)
 End Function
 
-' String Helpers
-#If WIN64 Then
-Function Utf8PtrToString(ByVal pUtf8String As LongPtr) As String
-#Else
-Function Utf8PtrToString(ByVal pUtf8String As Long) As String
-#End If
-    Dim buf As String
-    Dim cSize As Long
-    Dim RetVal As Long
-    
-    cSize = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, 0, 0)
-    ' cSize includes the terminating null character
-    If cSize <= 1 Then
-        Utf8PtrToString = ""
-        Exit Function
-    End If
-    
-    Utf8PtrToString = String(cSize - 1, "*") ' and a termintating null char.
-    RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, StrPtr(Utf8PtrToString), cSize)
-    If RetVal = 0 Then
-        Debug.Print "Utf8PtrToString Error:", Err.LastDllError
-        Exit Function
-    End If
-End Function
-
-Function StringToUtf8Bytes(ByVal str As String) As Variant
-    Dim bSize As Long
-    Dim RetVal As Long
-    Dim buf() As Byte
-    
-    bSize = WideCharToMultiByte(CP_UTF8, 0, StrPtr(str), -1, 0, 0, 0, 0)
-    If bSize = 0 Then
-        Exit Function
-    End If
-    
-    ReDim buf(bSize)
-    RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(str), -1, VarPtr(buf(0)), bSize, 0, 0)
-    If RetVal = 0 Then
-        Debug.Print "StringToUtf8Bytes Error:", Err.LastDllError
-        Exit Function
-    End If
-    StringToUtf8Bytes = buf
-End Function
-
-#If WIN64 Then
-Function Utf16PtrToString(ByVal pUtf16String As LongPtr) As String
-#Else
-Function Utf16PtrToString(ByVal pUtf16String As Long) As String
-#End If
-    Dim StrLen As Long
-    
-    StrLen = lstrlenW(pUtf16String)
-    Utf16PtrToString = String(StrLen, "*")
-    lstrcpynW StrPtr(Utf16PtrToString), pUtf16String, StrLen
-End Function
 
 ' Date Helpers
 Public Function ToJulianDay(oleDate As Date) As Double
+    Const JULIANDAY_OFFSET As Double = 2415018.5
     ToJulianDay = CDbl(oleDate) + JULIANDAY_OFFSET
 End Function
 
 Public Function FromJulianDay(julianDay As Double) As Date
+    Const JULIANDAY_OFFSET As Double = 2415018.5
     FromJulianDay = CDate(julianDay - JULIANDAY_OFFSET)
 End Function
-
-

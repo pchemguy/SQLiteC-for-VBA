@@ -1,42 +1,34 @@
-Attribute VB_Name = "Sqlite3Demo"
+Attribute VB_Name = "SQLite3Demo"
 '@Folder "SQLiteForExcel"
 '@IgnoreModule
 Option Explicit
 
-Public Declare Function DLL_Import_Add Lib "SQLite3.dll" Alias "Add" (ByVal A As Long, ByVal B As Long) As Long
+#Const ALL_TESTS = 0
+
+Private Type TSQLite3Demo
+    DllMan As DllManager
+    DbPath As String
+End Type
+Private this As TSQLite3Demo
 
 
-Dim TestFile As String
-
-Public Sub AllTests()
+Public Sub RunTests()
     ' Check that this location can be written to
     ' Note that this file will be deleted after the tests complete!
-    TestFile = Environ("TEMP") & "\TestSqlite3ForExcel.db"
+    this.DbPath = Environ("TEMP") & "\TestSqlite3ForExcel.db"
         
-    Dim InitReturn As Long
-'    InitReturn = AddInit(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\")
-'    If InitReturn <> SQLITE_INIT_OK Then
-'        Debug.Print "Error Initializing SQLite. Error: " & Err.LastDllError
-'        Exit Sub
-'    End If
-'    Debug.Print DLL_Import_Add(3, 5)
-'    AddFree
-    
+    Dim DllPath As String
     #If WIN64 Then
-        InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x64\", False)
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
     #Else
-        InitReturn = SQLite3Initialize(ThisWorkbook.Path & "\Library\SQLiteCforVBA\dll\x32\", False)
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
     #End If
-    If InitReturn <> SQLITE_INIT_OK Then
-        Debug.Print "Error Initializing SQLite. Error: " & Err.LastDllError
-        Exit Sub
-    End If
+    SQLiteLoad DllPath
+    
     Dim Result As String
-    Result = SQLite3LibVersionA()
+    Result = SQLite3LibVersion()
     Debug.Print Result
-    Debug.Print DLL_Import_Add(1, 2)
-    SQLite3Free
-    Exit Sub
+    
         
 '''' =====================================================================================================================
     
@@ -46,21 +38,32 @@ Public Sub AllTests()
     TestError
     TestInsert
     TestSelect
-    TestBinding
+    #If ALL_TESTS = 1 Then
+        TestBinding
+    #End If
     TestDates
     TestStrings
-    TestBackup
+    #If ALL_TESTS = 1 Then
+        TestBackup
+    #End If
     TestBlob
     TestWriteReadOnly
-    SQLite3Free ' Quite optional
         
+    Set this.DllMan = Nothing
     Debug.Print "----- All Tests Complete -----"
 End Sub
 
+
+Private Sub SQLiteLoad(ByVal DllPath As String)
+    Dim DllNames As Variant
+    DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+    Set this.DllMan = DllManager(DllPath)
+    this.DllMan.LoadMultiple DllNames
+End Sub
+
+
 Public Sub TestVersion()
-
     Debug.Print SQLite3LibVersion()
-
 End Sub
 
 Public Sub TestApiCallSpeed()
@@ -86,13 +89,13 @@ Public Sub TestOpenClose()
     #End If
     Dim RetVal As Long
     
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
-    'Kill TestFile
+    'Kill this.dbpath
 
 End Sub
 
@@ -107,11 +110,11 @@ Public Sub TestOpenCloseV2()
     Dim RetVal As Long
     
     ' Open the database in Read Write Access
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Open the database in Read Only Access
-    RetVal = SQLite3OpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, "")
+    RetVal = SQLite3OpenV2(this.DbPath, myDbHandleV2, SQLITE_OPEN_READONLY, "")
     Debug.Print "SQLite3OpenV2 returned " & RetVal
     
     RetVal = SQLite3Close(myDbHandleV2)
@@ -120,7 +123,7 @@ Public Sub TestOpenCloseV2()
     RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
-    'Kill TestFile
+    'Kill this.dbpath
 
 End Sub
 
@@ -166,7 +169,7 @@ Public Sub TestStatement()
     Debug.Print "----- TestStatement Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back
@@ -183,7 +186,7 @@ Public Sub TestStatement()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestStatement End -----"
 End Sub
@@ -204,7 +207,7 @@ Public Sub TestInsert()
     Debug.Print "----- TestInsert Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -253,7 +256,7 @@ Public Sub TestInsert()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestInsert End -----"
 End Sub
@@ -273,7 +276,7 @@ Public Sub TestSelect()
     Debug.Print "----- TestSelect Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -373,7 +376,7 @@ Public Sub TestSelect()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestSelect End -----"
 End Sub
@@ -480,7 +483,7 @@ Public Sub TestBinding()
     Debug.Print "----- TestBinding Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -647,7 +650,7 @@ Public Sub TestBinding()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestBinding End -----"
 End Sub
@@ -679,7 +682,7 @@ Public Sub TestBindingMore()
     Debug.Print "----- TestBinding Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -840,7 +843,7 @@ Public Sub TestBindingMore()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestBinding End -----"
 End Sub
@@ -864,7 +867,7 @@ Public Sub TestDates()
     Debug.Print "----- TestDates Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     '------------------------
@@ -929,7 +932,7 @@ Public Sub TestDates()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestDates End -----"
 End Sub
@@ -955,7 +958,7 @@ Public Sub TestStrings()
     Debug.Print "----- TestStrings Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myString2 = ""
@@ -1070,13 +1073,13 @@ Public Sub TestStrings()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestStrings End -----"
 End Sub
 
 Public Sub TestBackup()
-    Dim testFileBackup As String
+    Dim TestFileBackup As String
     
     #If WIN64 Then
     Dim myDbHandle As LongPtr
@@ -1094,7 +1097,7 @@ Public Sub TestBackup()
     Debug.Print "----- TestBackup Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     SQLite3ExecuteNonQuery myDbHandle, "CREATE TABLE MyTestTable (Key INT PRIMARY KEY, Value TEXT)"
@@ -1103,8 +1106,8 @@ Public Sub TestBackup()
     SQLite3ExecuteQuery myDbHandle, "SELECT * FROM MyTestTable"
     
     ' Now do a backup
-    testFileBackup = TestFile & ".bak"
-    RetVal = SQLite3Open(testFileBackup, myDbBackupHandle)
+    TestFileBackup = this.DbPath & ".bak"
+    RetVal = SQLite3Open(TestFileBackup, myDbBackupHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myBackupHandle = SQLite3BackupInit(myDbBackupHandle, "main", myDbHandle, "main")
@@ -1122,8 +1125,8 @@ Public Sub TestBackup()
     RetVal = SQLite3Close(myDbHandle)
     RetVal = SQLite3Close(myDbBackupHandle)
     
-    'Kill TestFile
-    'Kill TestFileBackup
+    'Kill this.dbpath
+    'Kill this.dbpathBackup
     
     Debug.Print "----- TestBackup End -----"
 End Sub
@@ -1147,7 +1150,7 @@ Public Sub TestBlob()
     Debug.Print "----- TestBlob Start -----"
     
     ' Open the database - getting a DbHandle back
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     myBlob(0) = 90
@@ -1211,7 +1214,7 @@ Public Sub TestBlob()
     
     ' Close the database
     RetVal = SQLite3Close(myDbHandle)
-    'Kill TestFile
+    'Kill this.dbpath
 
     Debug.Print "----- TestBlob End -----"
 End Sub
@@ -1229,11 +1232,11 @@ Public Sub TestWriteReadOnly()
     Dim RetVal As Long
     
     ' Open the database in Read Write Access
-    RetVal = SQLite3Open(TestFile, myDbHandle)
+    RetVal = SQLite3Open(this.DbPath, myDbHandle)
     Debug.Print "SQLite3Open returned " & RetVal
     
     ' Open the database in Read Only Access
-    RetVal = SQLite3OpenV2(TestFile, myDbHandleV2, SQLITE_OPEN_READONLY, Empty)
+    RetVal = SQLite3OpenV2(this.DbPath, myDbHandleV2, SQLITE_OPEN_READONLY, Empty)
     Debug.Print "SQLite3OpenV2 returned " & RetVal
     
     ' Create the sql statement - getting a StmtHandle back
@@ -1287,7 +1290,7 @@ Public Sub TestWriteReadOnly()
     RetVal = SQLite3Close(myDbHandle)
     Debug.Print "SQLite3Close returned " & RetVal
     
-    'Kill TestFile
+    'Kill this.dbpath
 
 End Sub
 
@@ -1308,17 +1311,17 @@ Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As Long, ByVal SqlCommand 
 End Function
 
 #If WIN64 Then
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal sqlQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal SQLQuery As String)
     Dim stmtHandle As LongPtr
 #Else
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal sqlQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal SQLQuery As String)
     Dim stmtHandle As Long
 #End If
     ' Dumps a query to the debug window. No error checking
     
     Dim RetVal As Long
 
-    RetVal = SQLite3PrepareV2(dbHandle, sqlQuery, stmtHandle)
+    RetVal = SQLite3PrepareV2(dbHandle, SQLQuery, stmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement

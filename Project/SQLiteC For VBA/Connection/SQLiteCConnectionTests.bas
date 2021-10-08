@@ -27,7 +27,7 @@ Private Sub ModuleInitialize()
     #End If
     
     Dim DllPath As String
-    #If Win64 Then
+    #If WIN64 Then
         DllPath = "Library\SQLiteCforVBA\dll\x64"
     #Else
         DllPath = "Library\SQLiteCforVBA\dll\x32"
@@ -60,7 +60,7 @@ Arrange:
     If this.DllMan Is Nothing Then
         Debug.Print "Loading SQLite in ztcSQLite3Version_VerifiesVersionInfo"
         Dim DllPath As String
-        #If Win64 Then
+        #If WIN64 Then
             DllPath = "Library\SQLiteCforVBA\dll\x64"
         #Else
             DllPath = "Library\SQLiteCforVBA\dll\x32"

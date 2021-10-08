@@ -3,7 +3,7 @@ Attribute VB_Name = "DllExtAdapterEmbedDemo"
 Option Explicit
 Option Private Module
 
-#If WIN64 Then
+#If VBA7 Then
 Private Declare PtrSafe Function demo_sqlite3_extension_adapter Lib "SQLite3" (ByVal Dummy As Long) As Long
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 #Else
@@ -17,10 +17,11 @@ End Type
 Private this As TDllExtAdapterEmbedDemo
 
 
-Private Sub GetDummySQLiteVersion()
+'@Ignore ProcedureNotUsed
+Private Sub GetSQLiteVersion()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
-    #If WIN64 Then
+    #If VBA7 Then
         '''' TODO
         '''' DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\SQLite\x64"
     #Else
@@ -28,7 +29,9 @@ Private Sub GetDummySQLiteVersion()
     #End If
     LoadDlls DllPath
     
+    '''' Calling CDECL without arguments
     Debug.Print 990000000 + sqlite3_libversion_number()
+    '''' Calling STDCALL with arguments
     Debug.Print demo_sqlite3_extension_adapter(990000000)
     Set this.DllMan = Nothing
 End Sub
@@ -44,5 +47,3 @@ Private Sub LoadDlls(ByVal DllPath As String)
     )
     DllMan.LoadMultiple DllNames
 End Sub
-
-
