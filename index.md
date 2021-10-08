@@ -10,7 +10,7 @@ I am exploring SQLite C-language API and am using this page for now for notes ta
 **Development environment**  
 I use MSYS2/MinGW toolset on Windows 10 as my primary development [environment][MSYS2/MinGW Setup]. Unless otherwise indicated, run all scripts/commands from a MinGW shell.
 
-**Source code**
+**Source code**  
 The SQLite source code is available in several formats. The latest release ([zip][zip release] or [tar][tar release]) available from the [repository][Trunk README] is preferable. The following notes assume that the contents of the archive are in the “sqlite” folder produced via appropriate command (depending on the type of archive):
 
 1. `tar xzf sqlite.tar.gz`
