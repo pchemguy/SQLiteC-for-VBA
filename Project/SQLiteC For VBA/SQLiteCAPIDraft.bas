@@ -1,5 +1,6 @@
 Attribute VB_Name = "SQLiteCAPIDraft"
 '@Folder "SQLiteC For VBA"
+'@IgnoreModule EmptyModule
 Option Explicit
 
 
@@ -241,4 +242,5 @@ Option Explicit
 '
 '
 '
+
 

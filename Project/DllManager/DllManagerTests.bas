@@ -3,6 +3,7 @@ Attribute VB_Name = "DllManagerTests"
 '@TestModule
 '@IgnoreModule IndexedDefaultMemberAccess, UnhandledOnErrorResumeNext
 '@IgnoreModule LineLabelNotUsed, VariableNotUsed, AssignmentNotUsed
+'@IgnoreModule FunctionReturnValueDiscarded
 Option Explicit
 Option Private Module
 
@@ -136,3 +137,23 @@ Private Sub ztcDefaultPath_ThrowsOnInvalidPath()
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
 End Sub
 
+
+'@TestMethod("WrongBitness")
+Private Sub ztcLoad_ThrowsOnBitnessMismatch()
+    On Error Resume Next
+    '''' Set mismatched path to test for error
+    Dim DllPath As String
+    #If WIN64 Then
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
+    #Else
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
+    #End If
+    Dim DllName As String
+    DllName = "sqlite3.dll"
+    
+    Dim DllMan As DllManager
+    Set DllMan = DllManager(DllPath)
+    DllMan.Load DllName
+    Const LoadingDllErr As Long = 48
+    Guard.AssertExpectedError Assert, LoadingDllErr
+End Sub

@@ -25,14 +25,10 @@ Public Sub RunTests()
     #End If
     SQLiteLoad DllPath
     
-    Dim Result As String
-    Result = SQLite3LibVersion()
-    Debug.Print Result
     
         
 '''' =====================================================================================================================
     
-    TestVersion
     TestOpenClose
     TestOpenCloseV2
     TestError
@@ -61,25 +57,6 @@ Private Sub SQLiteLoad(ByVal DllPath As String)
     this.DllMan.LoadMultiple DllNames
 End Sub
 
-
-Public Sub TestVersion()
-    Debug.Print SQLite3LibVersion()
-End Sub
-
-Public Sub TestApiCallSpeed()
-    
-    Dim i As Long
-    Dim version As String
-    Dim start As Date
-    
-    start = Now()
-    For i = 0 To 10000000 ' 10 million
-        version = SQLite3LibVersion()
-    Next
-    
-    Debug.Print "ApiCall Elapsed: " & Format(Now() - start, "HH:mm:ss")
-    
-End Sub
 
 Public Sub TestOpenClose()
     #If WIN64 Then

@@ -13,6 +13,7 @@ Attribute VB_Description = "Loads/unloads dll libraries"
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
+'@IgnoreModule SelfAssignedDeclaration: ok for FileSystemObject
 Option Explicit
 
 #If VBA7 Then
@@ -29,6 +30,9 @@ Private Const LOAD_OK As Long = -1
 Private Const LOAD_FAIL As Long = 0
 Private Const LOAD_ALREADY_LOADED As Long = 1
 
+Private Const ERROR_BAD_EXE_FORMAT As Long = 193
+Private Const LoadingDllErr As Long = 48
+
 Private Type TDllManager
     DefaultPath As String
     Dlls As Scripting.Dictionary
@@ -37,19 +41,26 @@ Private this As TDllManager
 
 
 '@DefaultMember
-Public Function Create(Optional ByVal DefaultPath As String = vbNullString) As DllManager
+Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
+                       Optional ByVal DllNames As Variant = Empty) As DllManager
 Attribute Create.VB_UserMemId = 0
     Dim Instance As DllManager
     Set Instance = New DllManager
-    Instance.Init DefaultPath
+    Instance.Init DefaultPath, DllNames
     Set Create = Instance
 End Function
 
 
-Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString)
+Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
+                Optional ByVal DllNames As Variant = Empty)
     Set this.Dlls = New Scripting.Dictionary
     this.Dlls.CompareMode = TextCompare
     Me.DefaultPath = DefaultPath
+    If Not IsEmpty(DllNames) Then
+        If Not LoadMultiple(DllNames) = LOAD_OK Then
+            Err.Raise LoadingDllErr, "DllManager/Constructor", "Failed to load Dlls"
+        End If
+    End If
 End Sub
 
 
@@ -71,7 +82,6 @@ End Property
 
 
 Public Property Let DefaultPath(ByVal Value As String)
-    '@Ignore SelfAssignedDeclaration: Stateless utility object
     Dim fso As New Scripting.FileSystemObject
     Dim Path As String
     If fso.FolderExists(Value) Then
@@ -111,7 +121,8 @@ End Sub
 
 
 Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vbNullString) As Long
-    '@Ignore SelfAssignedDeclaration: Stateless utility object
+    Guard.EmptyString DllName
+    
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
     FileName = fso.GetFileName(DllName)
@@ -140,7 +151,6 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
     End If
     Prefix = fso.GetAbsolutePathName(Prefix)
     
-    
     Dim FilePathName As String
     If fso.FileExists(DllName) Then
         FilePathName = DllName
@@ -154,6 +164,7 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
     End If
     FilePathName = fso.GetAbsolutePathName(FilePathName)
     
+    Dim LastDllError As Long
     #If VBA7 Then
         Dim DllHandle As LongPtr
     #Else
@@ -165,14 +176,21 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
         Debug.Print "<" & DllName & "> loaded."
         Load = LOAD_OK
     Else
-        Debug.Print "Library <" & FilePathName & "> loading error: " & CStr(Err.LastDllError)
+        LastDllError = Err.LastDllError
+        Debug.Print "Library <" & FilePathName & "> loading error: " & CStr(LastDllError)
         Load = LOAD_FAIL
+        If LastDllError = ERROR_BAD_EXE_FORMAT Then
+            '''' TODO: Make PE Format analyzer class to check target architechture
+            ''''       and imports (dependencies).
+            Err.Raise LoadingDllErr, "DllManager", "LoadLibrary error 193: <" _
+                      & FilePathName & ">" & vbNewLine & _
+                      "Check that DLL bitness matches that of Office."
+        End If
     End If
 End Function
 
 
 Public Function Free(Optional ByVal DllName As String) As Long
-    '@Ignore SelfAssignedDeclaration: Stateless utility object
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
     FileName = fso.GetFileName(DllName)

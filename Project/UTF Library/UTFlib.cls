@@ -13,6 +13,7 @@ Attribute VB_Description = "Performs UTF text conversion"
 '@PredeclaredId
 Option Explicit
 
+'@Ignore UseMeaningfulName
 Private Const CP_UTF8 As Long = 65001
 
 #If WIN64 Then
@@ -29,9 +30,9 @@ Private Declare Function lstrcpynW Lib "kernel32" (ByVal pwsDest As Long, ByVal 
 
 
 #If VBA7 Then
-Function Utf8PtrToString(ByVal pUtf8String As LongPtr) As String
+Public Function Utf8PtrToString(ByVal pUtf8String As LongPtr) As String
 #Else
-Function Utf8PtrToString(ByVal pUtf8String As Long) As String
+Public Function Utf8PtrToString(ByVal pUtf8String As Long) As String
 #End If
     Dim Buffer As String
     Buffer = vbNullString
@@ -51,7 +52,7 @@ Function Utf8PtrToString(ByVal pUtf8String As Long) As String
 End Function
 
 
-Function StringToUtf8Bytes(ByVal Text As String) As Variant
+Public Function StringToUtf8Bytes(ByVal Text As String) As Variant
     Dim Length As Long
     Length = WideCharToMultiByte(CP_UTF8, 0, StrPtr(Text), -1, 0, 0, 0, 0)
     If Length = 0 Then
@@ -70,9 +71,9 @@ End Function
 
 
 #If VBA7 Then
-Function Utf16PtrToString(ByVal pUtf16String As LongPtr) As String
+Public Function Utf16PtrToString(ByVal pUtf16String As LongPtr) As String
 #Else
-Function Utf16PtrToString(ByVal pUtf16String As Long) As String
+Public Function Utf16PtrToString(ByVal pUtf16String As Long) As String
 #End If
     Dim Length As Long
     Length = lstrlenW(pUtf16String)

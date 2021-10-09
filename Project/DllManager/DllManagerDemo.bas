@@ -29,29 +29,34 @@ End Sub
 
 
 Private Sub GetSQLite3VersionNumber()
-    '''' Absolute or relative to ThisWorkbook.Path
-    Dim DllPath As String
-    DllPath = "Library\SQLiteCforVBA\dll\x32"
-    SQLiteLoadMultipleArray DllPath
+    SQLiteLoadMultipleArray
     
     Debug.Print sqlite3_libversion_number()
     Set this.DllMan = Nothing
 End Sub
 
 
-Private Sub SQLiteLoadMultipleArray(ByVal DllPath As String)
+Private Sub SQLiteLoadMultipleArray()
+    '''' Absolute or relative to ThisWorkbook.Path
+    Dim DllPath As String
+    Dim DllNames As Variant
+    #If WIN64 Then
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllNames = "sqlite3.dll"
+    #Else
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllNames = Array( _
+            "icudt68.dll", _
+            "icuuc68.dll", _
+            "icuin68.dll", _
+            "icuio68.dll", _
+            "icutu68.dll", _
+            "sqlite3.dll" _
+        )
+    #End If
     Dim DllMan As DllManager
     Set DllMan = DllManager(DllPath)
     Set this.DllMan = DllMan
-    Dim DllNames As Variant
-    DllNames = Array( _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll" _
-    )
     DllMan.LoadMultiple DllNames
 End Sub
 
@@ -59,39 +64,75 @@ End Sub
 ' ========================= '
 ' Additional usage examples '
 ' ========================= '
-Private Sub SQLiteLoadMultipleParamArray()
-    Dim RelativePath As String
-    RelativePath = "Library\SQLiteCforVBA\dll\x32"
+Private Sub SQLiteLoadMultipleArrayCompact()
+    '''' Absolute or relative to ThisWorkbook.Path
+    Dim DllPath As String
+    Dim DllNames As Variant
+    #If WIN64 Then
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllNames = "sqlite3.dll"
+    #Else
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllNames = Array( _
+            "icudt68.dll", _
+            "icuuc68.dll", _
+            "icuin68.dll", _
+            "icuio68.dll", _
+            "icutu68.dll", _
+            "sqlite3.dll" _
+        )
+    #End If
     Dim DllMan As DllManager
-    Set DllMan = DllManager(RelativePath)
-    DllMan.LoadMultiple _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll"
+    Set DllMan = DllManager(DllPath, DllNames)
+End Sub
+
+
+Private Sub SQLiteLoadMultipleParamArray()
+    Dim DllPath As String
+    #If WIN64 Then
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
+    #Else
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
+    #End If
+    Dim DllMan As DllManager
+    Set DllMan = DllManager(DllPath)
+    #If WIN64 Then
+        DllMan.LoadMultiple "sqlite3.dll"
+    #Else
+        DllMan.LoadMultiple _
+            "icudt68.dll", _
+            "icuuc68.dll", _
+            "icuin68.dll", _
+            "icuio68.dll", _
+            "icutu68.dll", _
+            "sqlite3.dll"
+    #End If
 End Sub
 
 
 Private Sub SQLiteLoad()
-    Dim RelativePath As String
-    RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    Dim DllMan As DllManager
-    Set DllMan = DllManager(RelativePath)
+    Dim DllPath As String
     Dim DllNames As Variant
-    DllNames = Array( _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll" _
-    )
+    #If WIN64 Then
+        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllNames = Array("sqlite3.dll")
+    #Else
+        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllNames = Array( _
+            "icudt68.dll", _
+            "icuuc68.dll", _
+            "icuin68.dll", _
+            "icuio68.dll", _
+            "icutu68.dll", _
+            "sqlite3.dll" _
+        )
+    #End If
+    Dim DllMan As DllManager
+    Set DllMan = DllManager(DllPath)
     Dim DllNameIndex As Long
     For DllNameIndex = LBound(DllNames) To UBound(DllNames)
         Dim DllName As String
         DllName = DllNames(DllNameIndex)
-        DllMan.Load DllName, RelativePath
+        DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub

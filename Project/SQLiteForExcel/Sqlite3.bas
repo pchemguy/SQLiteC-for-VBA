@@ -16,8 +16,6 @@ Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSo
 ' SQLite StdCall Imports
 '-----------------------
 #If WIN64 Then
-' SQLite library version
-Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
 ' Database connections
 Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, ByVal iFlags As Long, ByVal zVfs As LongPtr) As Long ' PtrDb
@@ -79,7 +77,6 @@ Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal h
 #Else
 
 ' SQLite library version
-Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
 ' Database connections
 Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As Long ' PtrDb
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As Long ' PtrDb
@@ -141,15 +138,6 @@ Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup A
 #End If
 '=====================================================================================
 
-
-
-
-'=====================================================================================
-' SQLite library version
-
-Public Function SQLite3LibVersion() As String
-    SQLite3LibVersion = UTFlib.Utf8PtrToString(sqlite3_libversion())
-End Function
 
 
 '=====================================================================================
