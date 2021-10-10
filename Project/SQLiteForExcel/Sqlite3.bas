@@ -16,19 +16,6 @@ Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSo
 ' SQLite StdCall Imports
 '-----------------------
 #If WIN64 Then
-' Database connections
-Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As Long
-Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, ByVal iFlags As Long, ByVal zVfs As LongPtr) As Long ' PtrDb
-Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-' Database connection error info
-Private Declare PtrSafe Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf16String
-Private Declare PtrSafe Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-Private Declare PtrSafe Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-' Database connection change counts
-Private Declare PtrSafe Function sqlite3_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-
 ' Statements
 Private Declare PtrSafe Function sqlite3_prepare16_v2 Lib "SQLite3" _
     (ByVal hDb As LongPtr, ByVal pwsSql As LongPtr, ByVal nSqlLength As Long, ByRef hStmt As LongPtr, ByVal ppwsTailOut As LongPtr) As Long
@@ -68,7 +55,6 @@ Private Declare PtrSafe Function sqlite3_bind_value Lib "SQLite3" (ByVal hStmt A
 Private Declare PtrSafe Function sqlite3_clear_bindings Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 
 'Backup
-Private Declare PtrSafe Function sqlite3_sleep Lib "SQLite3" (ByVal msToSleep As Long) As Long
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As LongPtr, ByVal nPage As Long) As Long
 Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
@@ -129,7 +115,6 @@ Private Declare Function sqlite3_bind_value Lib "SQLite3" (ByVal hStmt As Long, 
 Private Declare Function sqlite3_clear_bindings Lib "SQLite3" (ByVal hStmt As Long) As Long
 
 'Backup
-Private Declare Function sqlite3_sleep Lib "SQLite3" (ByVal msToSleep As Long) As Long
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
 Private Declare Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As Long, ByVal nPage As Long) As Long
 Private Declare Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As Long) As Long
@@ -143,95 +128,95 @@ Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup A
 '=====================================================================================
 ' Database connections
 #If WIN64 Then
-Public Function SQLite3Open(ByVal FileName As String, ByRef dbHandle As LongPtr) As Long
+Public Function SQLite3Open(ByVal FileName As String, ByRef DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3Open(ByVal FileName As String, ByRef dbHandle As Long) As Long
+Public Function SQLite3Open(ByVal FileName As String, ByRef DbHandle As Long) As Long
 #End If
-    SQLite3Open = sqlite3_open16(StrPtr(FileName), dbHandle)
+    SQLite3Open = sqlite3_open16(StrPtr(FileName), DbHandle)
 End Function
 
 #If WIN64 Then
-Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As LongPtr, ByVal Flags As Long, ByVal vfsName As String) As Long
+Public Function SQLite3OpenV2(ByVal FileName As String, ByRef DbHandle As LongPtr, ByVal Flags As Long, ByVal vfsName As String) As Long
 #Else
-Public Function SQLite3OpenV2(ByVal FileName As String, ByRef dbHandle As Long, ByVal Flags As Long, ByVal vfsName As String) As Long
+Public Function SQLite3OpenV2(ByVal FileName As String, ByRef DbHandle As Long, ByVal Flags As Long, ByVal vfsName As String) As Long
 #End If
 
     Dim bufFileName() As Byte
     Dim bufVfsName() As Byte
     bufFileName = UTFlib.StringToUtf8Bytes(FileName)
     If vfsName = Empty Then
-        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, Flags, 0)
+        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), DbHandle, Flags, 0)
     Else
         bufVfsName = UTFlib.StringToUtf8Bytes(vfsName)
-        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), dbHandle, Flags, VarPtr(bufVfsName(0)))
+        SQLite3OpenV2 = sqlite3_open_v2(VarPtr(bufFileName(0)), DbHandle, Flags, VarPtr(bufVfsName(0)))
     End If
 
 End Function
 
 #If WIN64 Then
-Public Function SQLite3Close(ByVal dbHandle As LongPtr) As Long
+Public Function SQLite3Close(ByVal DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3Close(ByVal dbHandle As Long) As Long
+Public Function SQLite3Close(ByVal DbHandle As Long) As Long
 #End If
-    SQLite3Close = sqlite3_close(dbHandle)
+    SQLite3Close = sqlite3_close(DbHandle)
 End Function
 
 '=====================================================================================
 ' Error information
 
 #If WIN64 Then
-Public Function SQLite3ErrMsg(ByVal dbHandle As LongPtr) As String
+Public Function SQLite3ErrMsg(ByVal DbHandle As LongPtr) As String
 #Else
-Public Function SQLite3ErrMsg(ByVal dbHandle As Long) As String
+Public Function SQLite3ErrMsg(ByVal DbHandle As Long) As String
 #End If
-    SQLite3ErrMsg = UTFlib.Utf8PtrToString(sqlite3_errmsg(dbHandle))
+    SQLite3ErrMsg = UTFlib.Utf8PtrToString(sqlite3_errmsg(DbHandle))
 End Function
 
 #If WIN64 Then
-Public Function SQLite3ErrCode(ByVal dbHandle As LongPtr) As Long
+Public Function SQLite3ErrCode(ByVal DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3ErrCode(ByVal dbHandle As Long) As Long
+Public Function SQLite3ErrCode(ByVal DbHandle As Long) As Long
 #End If
-    SQLite3ErrCode = sqlite3_errcode(dbHandle)
+    SQLite3ErrCode = sqlite3_errcode(DbHandle)
 End Function
 
 #If WIN64 Then
-Public Function SQLite3ExtendedErrCode(ByVal dbHandle As LongPtr) As Long
+Public Function SQLite3ExtendedErrCode(ByVal DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3ExtendedErrCode(ByVal dbHandle As Long) As Long
+Public Function SQLite3ExtendedErrCode(ByVal DbHandle As Long) As Long
 #End If
-    SQLite3ExtendedErrCode = sqlite3_extended_errcode(dbHandle)
+    SQLite3ExtendedErrCode = sqlite3_extended_errcode(DbHandle)
 End Function
 
 '=====================================================================================
 ' Change Counts
 
 #If WIN64 Then
-Public Function SQLite3Changes(ByVal dbHandle As LongPtr) As Long
+Public Function SQLite3Changes(ByVal DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3Changes(ByVal dbHandle As Long) As Long
+Public Function SQLite3Changes(ByVal DbHandle As Long) As Long
 #End If
-    SQLite3Changes = sqlite3_changes(dbHandle)
+    SQLite3Changes = sqlite3_changes(DbHandle)
 End Function
 
 #If WIN64 Then
-Public Function SQLite3TotalChanges(ByVal dbHandle As LongPtr) As Long
+Public Function SQLite3TotalChanges(ByVal DbHandle As LongPtr) As Long
 #Else
-Public Function SQLite3TotalChanges(ByVal dbHandle As Long) As Long
+Public Function SQLite3TotalChanges(ByVal DbHandle As Long) As Long
 #End If
-    SQLite3TotalChanges = sqlite3_total_changes(dbHandle)
+    SQLite3TotalChanges = sqlite3_total_changes(DbHandle)
 End Function
 
 '=====================================================================================
 ' Statements
 
 #If WIN64 Then
-Public Function SQLite3PrepareV2(ByVal dbHandle As LongPtr, ByVal sql As String, ByRef stmtHandle As LongPtr) As Long
+Public Function SQLite3PrepareV2(ByVal DbHandle As LongPtr, ByVal sql As String, ByRef stmtHandle As LongPtr) As Long
 #Else
-Public Function SQLite3PrepareV2(ByVal dbHandle As Long, ByVal sql As String, ByRef stmtHandle As Long) As Long
+Public Function SQLite3PrepareV2(ByVal DbHandle As Long, ByVal sql As String, ByRef stmtHandle As Long) As Long
 #End If
     ' Only the first statement (up to ';') is prepared. Currently we don't retrieve the 'tail' pointer.
-    SQLite3PrepareV2 = sqlite3_prepare16_v2(dbHandle, StrPtr(sql), Len(sql) * 2, stmtHandle, 0)
+    SQLite3PrepareV2 = sqlite3_prepare16_v2(DbHandle, StrPtr(sql), Len(sql) * 2, stmtHandle, 0)
 End Function
 
 #If WIN64 Then
@@ -424,10 +409,6 @@ End Function
 
 '=====================================================================================
 ' Backup
-Public Function SQLite3Sleep(ByVal timeToSleepInMs As Long) As Long
-    SQLite3Sleep = sqlite3_sleep(timeToSleepInMs)
-End Function
-
 #If WIN64 Then
 Public Function SQLite3BackupInit(ByVal dbHandleDestination As LongPtr, ByVal destinationName As String, ByVal dbHandleSource As LongPtr, ByVal sourceName As String) As LongPtr
 #Else

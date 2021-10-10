@@ -36,7 +36,7 @@ Private Sub ModuleInitialize()
         DllPath = "Library\SQLiteCforVBA\dll\x32"
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
     #End If
-    Set this.DllMan = DllManager(DllPath, DllNames)
+    Set this.DllMan = DllManager.Create(DllPath, DllNames)
 End Sub
 
 
@@ -69,15 +69,15 @@ Arrange:
             DllPath = "Library\SQLiteCforVBA\dll\x32"
             DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
         #End If
-        Set this.DllMan = DllManager(DllPath, DllNames)
+        Set this.DllMan = DllManager.Create(DllPath, DllNames)
     End If
 Act:
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(vbNullString)
     Dim VersionS As String
-    VersionS = Replace(DbConn.SQLite3Version(False), ".", "0") & "0"
+    VersionS = Replace(DbConn.Version(False), ".", "0") & "0"
     Dim VersionN As String
-    VersionN = CStr(DbConn.SQLite3Version(True))
+    VersionN = CStr(DbConn.Version(True))
     Set this.DllMan = Nothing
 Assert:
     Assert.AreEqual VersionS, VersionN, "Unfolding error"

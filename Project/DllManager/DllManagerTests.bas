@@ -47,7 +47,7 @@ Arrange:
     DefaultPath = vbNullString
 Act:
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DefaultPath)
+    Set DllMan = DllManager.Create(DefaultPath)
 Assert:
     Assert.AreEqual ThisWorkbook.Path, DllMan.DefaultPath, "Empty default path mismatch"
 
@@ -67,7 +67,7 @@ Arrange:
     DefaultPath = "Project"
 Act:
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DefaultPath)
+    Set DllMan = DllManager.Create(DefaultPath)
 Assert:
     Assert.AreEqual ThisWorkbook.Path & "\" & "Project", DllMan.DefaultPath, "Relative default path mismatch"
 
@@ -87,7 +87,7 @@ Arrange:
     DefaultPath = ThisWorkbook.Path & "\" & "Library"
 Act:
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DefaultPath)
+    Set DllMan = DllManager.Create(DefaultPath)
 Assert:
     Assert.AreEqual DefaultPath, DllMan.DefaultPath, "Absolute default path mismatch"
 
@@ -102,7 +102,7 @@ End Sub
 Private Sub ztcCreate_ThrowsOnInvalidPath()
     On Error Resume Next
     Dim DllMan As DllManager
-    Set DllMan = DllManager("____INVALID PATH____")
+    Set DllMan = DllManager.Create("____INVALID PATH____")
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
 End Sub
 
@@ -116,7 +116,7 @@ Arrange:
     DefaultPath = "Project"
 Act:
     Dim DllMan As DllManager
-    Set DllMan = DllManager(vbNullString)
+    Set DllMan = DllManager.Create(vbNullString)
     DllMan.DefaultPath = DefaultPath
 Assert:
     Assert.AreEqual ThisWorkbook.Path & "\" & "Project", DllMan.DefaultPath, "Relative default path mismatch"
@@ -132,7 +132,7 @@ End Sub
 Private Sub ztcDefaultPath_ThrowsOnInvalidPath()
     On Error Resume Next
     Dim DllMan As DllManager
-    Set DllMan = DllManager(vbNullString)
+    Set DllMan = DllManager.Create(vbNullString)
     DllMan.DefaultPath = "____INVALID PATH____"
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
 End Sub
@@ -152,7 +152,7 @@ Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     DllName = "sqlite3.dll"
     
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath)
+    Set DllMan = DllManager.Create(DllPath)
     DllMan.Load DllName
     Const LoadingDllErr As Long = 48
     Guard.AssertExpectedError Assert, LoadingDllErr

@@ -26,6 +26,8 @@ Option Explicit
     Private Declare Function SetDllDirectory Lib "kernel32" Alias "SetDllDirectoryW" (ByVal lpPathName As String) As Boolean
 #End If
 
+Private Const VERBOUS As Boolean = False
+
 Private Const LOAD_OK As Long = -1
 Private Const LOAD_FAIL As Long = 0
 Private Const LOAD_ALREADY_LOADED As Long = 1
@@ -40,10 +42,8 @@ End Type
 Private this As TDllManager
 
 
-'@DefaultMember
 Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
                        Optional ByVal DllNames As Variant = Empty) As DllManager
-Attribute Create.VB_UserMemId = 0
     Dim Instance As DllManager
     Set Instance = New DllManager
     Instance.Init DefaultPath, DllNames
@@ -173,12 +173,11 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
     DllHandle = LoadLibrary(FilePathName)
     If DllHandle <> 0 Then
         this.Dlls(FileName) = DllHandle
-        Debug.Print "<" & DllName & "> loaded."
+        If VERBOUS Then Debug.Print "<" & DllName & "> loaded."
         Load = LOAD_OK
     Else
         LastDllError = Err.LastDllError
         Debug.Print "Library <" & FilePathName & "> loading error: " & CStr(LastDllError)
-        Load = LOAD_FAIL
         If LastDllError = ERROR_BAD_EXE_FORMAT Then
             '''' TODO: Make PE Format analyzer class to check target architechture
             ''''       and imports (dependencies).
@@ -186,6 +185,7 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
                       & FilePathName & ">" & vbNewLine & _
                       "Check that DLL bitness matches that of Office."
         End If
+        Load = LOAD_FAIL
     End If
 End Function
 
@@ -201,7 +201,7 @@ Public Function Free(Optional ByVal DllName As String) As Long
     Else
         Result = FreeLibrary(this.Dlls(FileName))
         If Result <> 0 Then
-            Debug.Print "<" & DllName & "> unloaded."
+            If VERBOUS Then Debug.Print "<" & DllName & "> unloaded."
             Free = LOAD_OK
             this.Dlls.Remove FileName
         Else
@@ -222,6 +222,7 @@ Public Function LoadMultiple(ParamArray DllNames() As Variant) As Long
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
         Result = Result And Load(FileNames(FileNameIndex))
     Next FileNameIndex
+    If -Abs(Result) = LOAD_OK Then Debug.Print "DLLs loaded"
     LoadMultiple = -Abs(Result)
 End Function
 
@@ -236,5 +237,7 @@ Public Function FreeMultiple(ParamArray DllNames() As Variant) As Long
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
         Result = Result And Free(FileNames(FileNameIndex))
     Next FileNameIndex
+    If Result = LOAD_OK Then Debug.Print "DLLs unloaded"
     FreeMultiple = Result
 End Function
+

@@ -55,7 +55,7 @@ Private Sub SQLiteLoadMultipleArray()
         )
     #End If
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath)
+    Set DllMan = DllManager.Create(DllPath)
     Set this.DllMan = DllMan
     DllMan.LoadMultiple DllNames
 End Sub
@@ -83,7 +83,7 @@ Private Sub SQLiteLoadMultipleArrayCompact()
         )
     #End If
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath, DllNames)
+    Set DllMan = DllManager.Create(DllPath, DllNames)
 End Sub
 
 
@@ -95,7 +95,7 @@ Private Sub SQLiteLoadMultipleParamArray()
         DllPath = "Library\SQLiteCforVBA\dll\x32"
     #End If
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath)
+    Set DllMan = DllManager.Create(DllPath)
     #If WIN64 Then
         DllMan.LoadMultiple "sqlite3.dll"
     #Else
@@ -128,7 +128,7 @@ Private Sub SQLiteLoad()
         )
     #End If
     Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath)
+    Set DllMan = DllManager.Create(DllPath)
     Dim DllNameIndex As Long
     For DllNameIndex = LBound(DllNames) To UBound(DllNames)
         Dim DllName As String

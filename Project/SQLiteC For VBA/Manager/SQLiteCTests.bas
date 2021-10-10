@@ -51,14 +51,14 @@ Arrange:
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
     #End If
     Dim dbm As SQLiteC
-    Set dbm = SQLiteC.Create(DllPath, DllNames)
+    Set dbm = SQLiteC(DllPath, DllNames)
 Act:
     Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.Connect(vbNullString)
+    Set DbConn = dbm.ConnectionMan(vbNullString)
     Dim VersionS As String
-    VersionS = Replace(DbConn.SQLite3Version(False), ".", "0") & "0"
+    VersionS = Replace(DbConn.Version(False), ".", "0") & "0"
     Dim VersionN As String
-    VersionN = CStr(DbConn.SQLite3Version(True))
+    VersionN = CStr(DbConn.Version(True))
 Assert:
     Assert.AreEqual VersionS, VersionN, "Unfolding error"
 
@@ -85,11 +85,11 @@ Arrange:
     Set dbm = SQLiteC(DllPath)
 Act:
     Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.Connect(vbNullString)
+    Set DbConn = dbm.ConnectionMan(vbNullString)
     Dim VersionS As String
-    VersionS = Replace(DbConn.SQLite3Version(False), ".", "0") & "0"
+    VersionS = Replace(DbConn.Version(False), ".", "0") & "0"
     Dim VersionN As String
-    VersionN = CStr(DbConn.SQLite3Version(True))
+    VersionN = CStr(DbConn.Version(True))
 Assert:
     Assert.AreEqual VersionS, VersionN, "Unfolding error"
 

@@ -6,28 +6,26 @@ Attribute VB_Name = "SQLiteC"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Attribute VB_Description = "Provides common workflows for SQLite db interactions"
 '@Folder "SQLiteC For VBA.Manager"
 '@ModuleDescription "Provides common workflows for SQLite db interactions"
 '@PredeclaredId
+'@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
+
+''''======================================================================''''
+'''' Overview
+'''' https://www.sqlite.org/cintro.html
+''''======================================================================''''
+
 Option Explicit
 
 Private Type TSQLiteC
     DllMan As DllManager
-    Connection As SQLiteCConnection
+    Connections As Scripting.Dictionary
 End Type
 Private this As TSQLiteC
-
-
-Friend Property Get DllMan() As DllManager
-    Set DllMan = this.DllMan
-End Property
-
-
-Friend Property Get Connection() As SQLiteCConnection
-    Set Connection = this.Connection
-End Property
 
 
 '@DefaultMember
@@ -55,12 +53,26 @@ Friend Sub Init(ByVal DllPath As String, _
         #End If
     End If
     '''' DllManager is responsible for DllPath validation/resolution
-    Set this.DllMan = DllManager(DllPath, FileNames)
+    Set this.DllMan = DllManager.Create(DllPath, FileNames)
+    Set this.Connections = New Scripting.Dictionary
+    this.Connections.CompareMode = TextCompare
 End Sub
 
 
-Public Function Connect(ByVal DbPathName As String) As SQLiteCConnection
+Friend Property Get DllMan() As DllManager
+    Set DllMan = this.DllMan
+End Property
+
+
+Public Function GetConnection(ByVal DbPathName As String) As SQLiteCConnection
+    Set GetConnection = this.Connections(DbPathName)
+End Function
+
+
+Public Function ConnectionMan(ByVal DbPathName As String) As SQLiteCConnection
     '''' SQLiteCConnection is responsible for DbPathName validation/resolution
-    Set this.Connection = SQLiteCConnection(DbPathName)
-    Set Connect = this.Connection
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = SQLiteCConnection(DbPathName)
+    Set this.Connections(DbPathName) = DbConn
+    Set ConnectionMan = DbConn
 End Function

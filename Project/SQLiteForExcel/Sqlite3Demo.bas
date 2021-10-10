@@ -1273,32 +1273,32 @@ End Sub
 
 ' SQLite3 Helper Functions
 #If WIN64 Then
-Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As LongPtr, ByVal SqlCommand As String) As Long
+Public Function SQLite3ExecuteNonQuery(ByVal DbHandle As LongPtr, ByVal SqlCommand As String) As Long
     Dim stmtHandle As LongPtr
 #Else
-Public Function SQLite3ExecuteNonQuery(ByVal dbHandle As Long, ByVal SqlCommand As String) As Long
+Public Function SQLite3ExecuteNonQuery(ByVal DbHandle As Long, ByVal SqlCommand As String) As Long
     Dim stmtHandle As Long
 #End If
     
-    SQLite3PrepareV2 dbHandle, SqlCommand, stmtHandle
+    SQLite3PrepareV2 DbHandle, SqlCommand, stmtHandle
     SQLite3Step stmtHandle
     SQLite3Finalize stmtHandle
     
-    SQLite3ExecuteNonQuery = SQLite3Changes(dbHandle)
+    SQLite3ExecuteNonQuery = SQLite3Changes(DbHandle)
 End Function
 
 #If WIN64 Then
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As LongPtr, ByVal SQLQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal DbHandle As LongPtr, ByVal SQLQuery As String)
     Dim stmtHandle As LongPtr
 #Else
-Public Sub SQLite3ExecuteQuery(ByVal dbHandle As Long, ByVal SQLQuery As String)
+Public Sub SQLite3ExecuteQuery(ByVal DbHandle As Long, ByVal SQLQuery As String)
     Dim stmtHandle As Long
 #End If
     ' Dumps a query to the debug window. No error checking
     
     Dim RetVal As Long
 
-    RetVal = SQLite3PrepareV2(dbHandle, SQLQuery, stmtHandle)
+    RetVal = SQLite3PrepareV2(DbHandle, SQLQuery, stmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement

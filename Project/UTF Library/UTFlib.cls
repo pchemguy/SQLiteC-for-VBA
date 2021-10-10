@@ -70,6 +70,7 @@ Public Function StringToUtf8Bytes(ByVal Text As String) As Variant
 End Function
 
 
+'@Ignore ProcedureNotUsed
 #If VBA7 Then
 Public Function Utf16PtrToString(ByVal pUtf16String As LongPtr) As String
 #Else

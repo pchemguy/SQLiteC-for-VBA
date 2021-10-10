@@ -36,7 +36,7 @@ End Sub
 Private Sub LoadDlls(ByVal DllPath As String)
     Dim DllMan As DllManager
     '@Ignore IndexedDefaultMemberAccess
-    Set DllMan = DllManager(DllPath)
+    Set DllMan = DllManager.Create(DllPath)
     Set this.DllMan = DllMan
     Dim DllNames As Variant
     DllNames = Array( _
