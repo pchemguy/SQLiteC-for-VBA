@@ -60,6 +60,7 @@ Private this As TSQLiteCStatement
 
 '@DefaultMember
 Public Function Create(ByVal DbConn As SQLiteCConnection) As SQLiteCStatement
+Attribute Create.VB_UserMemId = 0
     Dim Instance As SQLiteCStatement
     Set Instance = New SQLiteCStatement
     Instance.Init DbConn
@@ -71,6 +72,3 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Guard.NullReference DbConn
     Set this.DbConn = DbConn
 End Sub
-
-
-

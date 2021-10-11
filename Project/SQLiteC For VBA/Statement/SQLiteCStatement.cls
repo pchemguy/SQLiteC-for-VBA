@@ -63,6 +63,7 @@ Private this As TSQLiteCStatement
 
 '@DefaultMember
 Public Function Create(ByVal DbConn As SQLiteCConnection) As SQLiteCStatement
+Attribute Create.VB_UserMemId = 0
     Dim Instance As SQLiteCStatement
     Set Instance = New SQLiteCStatement
     Instance.Init DbConn
@@ -73,6 +74,11 @@ End Function
 Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Guard.NullReference DbConn
     Set this.DbConn = DbConn
+End Sub
+
+
+Private Sub Class_Terminate()
+    If this.StmtHandle <> 0 Then Finalize
 End Sub
 
 
@@ -93,8 +99,10 @@ Public Function Prepare16V2(ByVal SQLQuery As String) As Boolean
     If ResultCode = SQLITE_OK Then
         Prepare16V2 = True
     Else
-        this.DbConn.GetErrorInfo
-        this.DbConn.PrintErrorInfo
+        With this.DbConn.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
         Prepare16V2 = False
     End If
 End Function
@@ -106,8 +114,10 @@ Public Function Reset() As Boolean
     If ResultCode = SQLITE_OK Then
         Reset = True
     Else
-        this.DbConn.GetErrorInfo
-        this.DbConn.PrintErrorInfo
+        With this.DbConn.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
         Reset = False
     End If
 End Function
@@ -117,10 +127,13 @@ Public Function Finalize() As Boolean
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_finalize(this.StmtHandle)
     If ResultCode = SQLITE_OK Then
+        this.StmtHandle = 0
         Finalize = True
     Else
-        this.DbConn.GetErrorInfo
-        this.DbConn.PrintErrorInfo
+        With this.DbConn.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
         Finalize = False
     End If
 End Function
@@ -155,8 +168,10 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
                               CallbackRowsPtr, ArgPtr, ErrMsgUTF8Ptr)
     
     If ResultCode <> SQLITE_OK Then
-        this.DbConn.GetErrorInfo
-        this.DbConn.PrintErrorInfo
+        With this.DbConn.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
         Dim ErrMsg As String
         ErrMsg = UTFlib.StrFromUTF8Ptr(ErrMsgUTF8Ptr)
         Debug.Print ErrMsg
@@ -167,5 +182,3 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
     End If
     sqlite3_free ErrMsgUTF8Ptr
 End Function
-
-
