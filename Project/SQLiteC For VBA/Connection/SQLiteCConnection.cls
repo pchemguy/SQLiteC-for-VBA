@@ -47,13 +47,13 @@ Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb 
 Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
-Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteErrors ' PtrDb
-Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As SQLiteErrors ' PtrDb
+Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
+Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
 ' Database connection error info
 Private Declare Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf8String
 Private Declare Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf16String
-Private Declare Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteErrors) As Long ' PtrUtf8String
+Private Declare Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteResultCodes) As Long ' PtrUtf8String
 Private Declare Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
 Private Declare Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
 ' Database connection change counts
@@ -68,8 +68,8 @@ Private Type TSQLiteCConnection
     #Else
         DbHandle As Long
     #End If
-    ErrorStatus As SQLiteErrors
-    ErrorStatusEx As SQLiteErrors
+    ErrorCode As SQLiteResultCodes
+    ErrorCodeEx As SQLiteResultCodes
     ErrorMessage As String
     ErrorString As String
     ErrorName As String
@@ -108,20 +108,20 @@ Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
 
-Public Property Get ErrorStatus() As SQLiteErrors
-    ErrorStatus = this.ErrorStatus
+Public Property Get ErrorStatus() As SQLiteResultCodes
+    ErrorStatus = this.ErrorCode
 End Property
 
 Public Property Get ErrorStatusName() As String
-    ErrorStatusName = SQLiteErrorName(this.ErrorStatus)
+    ErrorStatusName = SQLiteResultCodeName(this.ErrorCode)
 End Property
 
-Public Property Get ErrorStatusEx() As SQLiteErrors
-    ErrorStatusEx = this.ErrorStatusEx
+Public Property Get ErrorStatusEx() As SQLiteResultCodes
+    ErrorStatusEx = this.ErrorCodeEx
 End Property
 
 Public Property Get ErrorStatusExName() As String
-    ErrorStatusExName = SQLiteErrorName(this.ErrorStatusEx)
+    ErrorStatusExName = SQLiteResultCodeName(this.ErrorCodeEx)
 End Property
 
 Public Property Get ErrorMessage() As String
@@ -141,16 +141,16 @@ Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
     If Numeric Then
         Version = sqlite3_libversion_number()
     Else
-        Version = UTFlib.Utf8PtrToString(sqlite3_libversion())
+        Version = UTFlib.StrFromUTF8Ptr(sqlite3_libversion())
     End If
 End Function
 
 
 Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
                   Optional ByVal vfsName As String = vbNullString)
-    Dim ErrorStatus As SQLiteErrors
+    Dim ErrorCode As SQLiteResultCodes
     If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
-        ErrorStatus = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
+        ErrorCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
     Else
         #If VBA7 Then
             Dim DbPathNamePtr As LongPtr
@@ -162,7 +162,7 @@ Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT,
         
         '@Ignore UseMeaningfulName
         Dim DbPathNameUTF8() As Byte
-        DbPathNameUTF8 = UTFlib.StringToUtf8Bytes(this.DbPathName)
+        DbPathNameUTF8 = UTFlib.UTF8BytesFromStr(this.DbPathName)
         DbPathNamePtr = VarPtr(DbPathNameUTF8(0))
         
         If Len(vfsName) = 0 Then
@@ -170,31 +170,31 @@ Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT,
         Else
             '@Ignore UseMeaningfulName
             Dim vfsNameUTF8() As Byte
-            vfsNameUTF8 = UTFlib.StringToUtf8Bytes(vfsName)
+            vfsNameUTF8 = UTFlib.UTF8BytesFromStr(vfsName)
             vfsNamePtr = VarPtr(vfsNameUTF8(0))
         End If
         
-        ErrorStatus = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
+        ErrorCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
-    this.ErrorStatus = ErrorStatus
-    If ErrorStatus <> SQLITE_OK Then
+    this.ErrorCode = ErrorCode
+    If ErrorCode <> SQLITE_OK Then
         GetErrorInfo
         PrintErrorInfo
     End If
-    If VERBOUS Then Debug.Print "Open db status: <" & SQLiteErrorName(ErrorStatus) & ">"
+    If VERBOUS Then Debug.Print "Open db status: <" & SQLiteResultCodeName(ErrorCode) & ">"
 End Sub
 
 
 Public Sub CloseDb()
-    Dim ErrorStatus As SQLiteErrors
-    ErrorStatus = sqlite3_close(this.DbHandle)
-    If ErrorStatus = SQLITE_OK Then this.DbHandle = 0
-    this.ErrorStatus = ErrorStatus
-    If ErrorStatus <> SQLITE_OK Then
+    Dim ErrorCode As SQLiteResultCodes
+    ErrorCode = sqlite3_close(this.DbHandle)
+    If ErrorCode = SQLITE_OK Then this.DbHandle = 0
+    this.ErrorCode = ErrorCode
+    If ErrorCode <> SQLITE_OK Then
         GetErrorInfo
         PrintErrorInfo
     End If
-    If VERBOUS Then Debug.Print "Close db status: <" & SQLiteErrorName(ErrorStatus) & ">"
+    If VERBOUS Then Debug.Print "Close db status: <" & SQLiteResultCodeName(ErrorCode) & ">"
 End Sub
 
 
@@ -209,11 +209,11 @@ End Function
 
 Public Sub GetErrorInfo()
     With this
-        .ErrorStatus = sqlite3_errcode(.DbHandle)
-        .ErrorStatusEx = sqlite3_extended_errcode(.DbHandle)
-        .ErrorMessage = UTFlib.Utf8PtrToString(sqlite3_errmsg(.DbHandle))
-        .ErrorName = SQLiteErrorName(.ErrorStatusEx)
-        .ErrorString = UTFlib.Utf8PtrToString(sqlite3_errstr(.ErrorStatus))
+        .ErrorCode = sqlite3_errcode(.DbHandle)
+        .ErrorCodeEx = sqlite3_extended_errcode(.DbHandle)
+        .ErrorMessage = UTFlib.StrFromUTF8Ptr(sqlite3_errmsg(.DbHandle))
+        .ErrorName = SQLiteResultCodeName(.ErrorCodeEx)
+        .ErrorString = UTFlib.StrFromUTF8Ptr(sqlite3_errstr(.ErrorCode))
     End With
 End Sub
 
@@ -221,8 +221,8 @@ End Sub
 Public Sub PrintErrorInfo()
     With this
         Debug.Print "========== Error Details ========== " & vbNewLine & _
-                    "ErrCode:          " & CStr(.ErrorStatus) & vbNewLine & _
-                    "ErrCode Extended: " & CStr(.ErrorStatusEx) & vbNewLine & _
+                    "ErrCode:          " & CStr(.ErrorCode) & vbNewLine & _
+                    "ErrCode Extended: " & CStr(.ErrorCodeEx) & vbNewLine & _
                     "Error Name:       " & .ErrorName & vbNewLine & _
                     "ErrStr:           " & .ErrorString & vbNewLine & _
                     "ErrMsg:           " & .ErrorMessage & vbNewLine

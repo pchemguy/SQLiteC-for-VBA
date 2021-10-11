@@ -15,7 +15,7 @@ Public Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
 Public Const SQLITE_STATIC      As Long = 0
 Public Const SQLITE_TRANSIENT   As Long = -1
 
-Public Enum SQLiteErrors
+Public Enum SQLiteResultCodes
     SQLITE_OK = 0&
     SQLITE_ERROR = 1&
     SQLITE_INTERNAL = 2&
@@ -121,8 +121,10 @@ Public Enum SQLiteErrors
     SQLITE_AUTH_USER = SQLITE_AUTH + 1 * 256
     SQLITE_OK_LOAD_PERMANENTLY = SQLITE_OK + 1 * 256
     SQLITE_OK_SYMLINK = SQLITE_OK + 2 * 256
+    SQLITE_0OK = -1&
 End Enum
-Private SQLiteErrorMap As Scripting.Dictionary
+
+Private SQLiteResultCodesMap As Scripting.Dictionary
 
 Public Enum SQLiteOpenFlags
     SQLITE_OPEN_READONLY = &H1&
@@ -163,18 +165,18 @@ Public Function SQLiteTypeName(ByVal SQLiteType As SQLiteTypes) As String
 End Function
 
 
-Public Function SQLiteErrorName(ByVal SQLiteError As SQLiteErrors) As String
-    If SQLiteErrorMap Is Nothing Then
-        Set SQLiteErrorMap = New Scripting.Dictionary
-        SQLiteErrorMap.CompareMode = TextCompare
+Public Function SQLiteResultCodeName(ByVal SQLiteResultCode As SQLiteResultCodes) As String
+    If SQLiteResultCodesMap Is Nothing Then
+        Set SQLiteResultCodesMap = New Scripting.Dictionary
+        SQLiteResultCodesMap.CompareMode = TextCompare
     End If
-    If SQLiteErrorMap(SQLITE_DONE) <> SQLITE_DONE Then SQLiteErrorMapInit
-    SQLiteErrorName = SQLiteErrorMap(SQLiteError)
+    If SQLiteResultCodesMap(SQLITE_DONE) <> SQLITE_DONE Then SQLiteResultCodeMapInit
+    SQLiteResultCodeName = SQLiteResultCodesMap(SQLiteResultCode)
 End Function
 
 
-Private Sub SQLiteErrorMapInit()
-    With SQLiteErrorMap
+Private Sub SQLiteResultCodeMapInit()
+    With SQLiteResultCodesMap
         .Item(SQLITE_OK) = "OK"
         .Item(SQLITE_ERROR) = "ERROR"
         .Item(SQLITE_INTERNAL) = "INTERNAL"

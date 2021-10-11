@@ -1,5 +1,6 @@
 Attribute VB_Name = "SQLiteCDemo"
 '@Folder "SQLiteC For VBA.Manager"
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 Option Private Module
 
@@ -7,7 +8,9 @@ Option Private Module
 Private Sub GetSQLiteVersionString()
     Dim ConnFix As SQLiteCConnDemoFix
     Set ConnFix = SQLiteCConnDemoFix.Create
+    '@Ignore VariableNotUsed
     Dim dbm As SQLiteC
+    '@Ignore AssignmentNotUsed
     Set dbm = ConnFix.dbm
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbRegular
@@ -54,4 +57,3 @@ Private Sub OpenCloseLockedDb()
     DbConn.OpenDb
     DbConn.CloseDb
 End Sub
-

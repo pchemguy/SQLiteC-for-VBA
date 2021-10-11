@@ -27,28 +27,25 @@ Public Function Create() As SQLiteCConnDemoFix
     Set Create = Instance
 End Function
 
-
 Friend Sub Init()
     Dim DllPath As String
     DllPath = "Library\SQLiteCforVBA\dll\" & ARCH
+    '@Ignore IndexedDefaultMemberAccess
     Set this.dbm = SQLiteC(DllPath)
     this.FixPath = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & "Fixtures" & PATH_SEP
 End Sub
-
 
 Public Property Get dbm() As SQLiteC
     Set dbm = this.dbm
 End Property
 
-
 Private Property Get ConnDb(ByVal DbPathName As String) As SQLiteCConnection
     Dim dbm As SQLiteC
     Set dbm = this.dbm
     Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.ConnectionMan(DbPathName)
+    Set DbConn = dbm.DbConnInit(DbPathName)
     Set ConnDb = DbConn
 End Property
-
 
 Public Property Get ConnDbRegular() As SQLiteCConnection
     Dim DbPathName As String
@@ -56,13 +53,11 @@ Public Property Get ConnDbRegular() As SQLiteCConnection
     Set ConnDbRegular = ConnDb(DbPathName)
 End Property
 
-
 Public Property Get ConnDbMemory() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
     Set ConnDbMemory = ConnDb(DbPathName)
 End Property
-
 
 Public Property Get ConnDbTemp() As SQLiteCConnection
     Dim DbPathName As String
@@ -70,13 +65,11 @@ Public Property Get ConnDbTemp() As SQLiteCConnection
     Set ConnDbTemp = ConnDb(DbPathName)
 End Property
 
-
 Public Property Get ConnDbInvalidPath() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = "_:_/\_BAD PATH_<>;"
     Set ConnDbInvalidPath = ConnDb(DbPathName)
 End Property
-
 
 Public Property Get ConnDbNotDb() As SQLiteCConnection
     Dim DbPathName As String
@@ -84,10 +77,8 @@ Public Property Get ConnDbNotDb() As SQLiteCConnection
     Set ConnDbNotDb = ConnDb(DbPathName)
 End Property
 
-
 Public Property Get ConnDbLockedDb() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = this.FixPath & "ACLLocked" & PATH_SEP & "LockedDb.db"
     Set ConnDbLockedDb = ConnDb(DbPathName)
 End Property
-

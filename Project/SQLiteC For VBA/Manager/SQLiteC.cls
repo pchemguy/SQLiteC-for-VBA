@@ -23,7 +23,8 @@ Option Explicit
 
 Private Type TSQLiteC
     DllMan As DllManager
-    Connections As Scripting.Dictionary
+    DbConn As SQLiteCConnection
+    DbStmt As SQLiteCStatement
 End Type
 Private this As TSQLiteC
 
@@ -54,25 +55,37 @@ Friend Sub Init(ByVal DllPath As String, _
     End If
     '''' DllManager is responsible for DllPath validation/resolution
     Set this.DllMan = DllManager.Create(DllPath, FileNames)
-    Set this.Connections = New Scripting.Dictionary
-    this.Connections.CompareMode = TextCompare
 End Sub
 
 
-Friend Property Get DllMan() As DllManager
+Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
 End Property
 
 
-Public Function GetConnection(ByVal DbPathName As String) As SQLiteCConnection
-    Set GetConnection = this.Connections(DbPathName)
-End Function
+Public Property Get DbConnGet() As SQLiteCConnection
+    Set DbConnGet = this.DbConn
+End Property
 
 
-Public Function ConnectionMan(ByVal DbPathName As String) As SQLiteCConnection
+Public Function DbConnInit(ByVal DbPathName As String) As SQLiteCConnection
     '''' SQLiteCConnection is responsible for DbPathName validation/resolution
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(DbPathName)
-    Set this.Connections(DbPathName) = DbConn
-    Set ConnectionMan = DbConn
+    Set this.DbConn = DbConn
+    Set DbConnInit = DbConn
+End Function
+
+
+Public Property Get DbStmtGet() As SQLiteCStatement
+    Set DbStmtGet = this.DbStmt
+End Property
+
+
+Public Function DbStmtInit() As SQLiteCStatement
+    Guard.NullReference this.DbConn
+    Dim DbStmt As SQLiteCStatement
+    Set DbStmt = SQLiteCStatement(this.DbConn)
+    Set this.DbStmt = DbStmt
+    Set DbStmtInit = DbStmt
 End Function

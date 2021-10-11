@@ -274,7 +274,7 @@ Public Sub TestSelect()
     ' Finalize (delete) the statement
     RetVal = SQLite3Finalize(myStmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
-    
+        
     '-------------------------
     ' Insert a record
     ' ===============
@@ -359,9 +359,9 @@ Public Sub TestSelect()
 End Sub
 
 #If WIN64 Then
-Sub PrintColumns(ByVal stmtHandle As LongPtr)
+Sub PrintColumns(ByVal StmtHandle As LongPtr)
 #Else
-Sub PrintColumns(ByVal stmtHandle As Long)
+Sub PrintColumns(ByVal StmtHandle As Long)
 #End If
     Dim colCount As Long
     Dim colName As String
@@ -371,31 +371,31 @@ Sub PrintColumns(ByVal stmtHandle As Long)
     
     Dim i As Long
     
-    colCount = SQLite3ColumnCount(stmtHandle)
+    colCount = SQLite3ColumnCount(StmtHandle)
     Debug.Print "Column count: " & colCount
     For i = 0 To colCount - 1
-        colName = SQLite3ColumnName(stmtHandle, i)
-        colType = SQLite3ColumnType(stmtHandle, i)
+        colName = SQLite3ColumnName(StmtHandle, i)
+        colType = SQLite3ColumnType(StmtHandle, i)
         colTypeName = TypeName(colType)
-        colValue = ColumnValue(stmtHandle, i, colType)
+        colValue = ColumnValue(StmtHandle, i, colType)
         Debug.Print "Column " & i & ":", colName, colTypeName, colValue
     Next
 End Sub
 
 #If WIN64 Then
-Sub PrintParameters(ByVal stmtHandle As LongPtr)
+Sub PrintParameters(ByVal StmtHandle As LongPtr)
 #Else
-Sub PrintParameters(ByVal stmtHandle As Long)
+Sub PrintParameters(ByVal StmtHandle As Long)
 #End If
     Dim paramCount As Long
     Dim paramName As String
     
     Dim i As Long
     
-    paramCount = SQLite3BindParameterCount(stmtHandle)
+    paramCount = SQLite3BindParameterCount(StmtHandle)
     Debug.Print "Parameter count: " & paramCount
     For i = 1 To paramCount
-        paramName = SQLite3BindParameterName(stmtHandle, i)
+        paramName = SQLite3BindParameterName(StmtHandle, i)
         Debug.Print "Parameter " & i & ":", paramName
     Next
 End Sub
@@ -416,19 +416,19 @@ Function TypeName(ByVal SQLiteType As Long) As String
 End Function
 
 #If WIN64 Then
-Function ColumnValue(ByVal stmtHandle As LongPtr, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
+Function ColumnValue(ByVal StmtHandle As LongPtr, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
 #Else
-Function ColumnValue(ByVal stmtHandle As Long, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
+Function ColumnValue(ByVal StmtHandle As Long, ByVal ZeroBasedColIndex As Long, ByVal SQLiteType As Long) As Variant
 #End If
     Select Case SQLiteType
         Case SQLITE_INTEGER:
-            ColumnValue = SQLite3ColumnInt32(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnInt32(StmtHandle, ZeroBasedColIndex)
         Case SQLITE_FLOAT:
-            ColumnValue = SQLite3ColumnDouble(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnDouble(StmtHandle, ZeroBasedColIndex)
         Case SQLITE_TEXT:
-            ColumnValue = SQLite3ColumnText(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnText(StmtHandle, ZeroBasedColIndex)
         Case SQLITE_BLOB:
-            ColumnValue = SQLite3ColumnText(stmtHandle, ZeroBasedColIndex)
+            ColumnValue = SQLite3ColumnText(StmtHandle, ZeroBasedColIndex)
         Case SQLITE_NULL:
             ColumnValue = Null
     End Select
@@ -1274,48 +1274,48 @@ End Sub
 ' SQLite3 Helper Functions
 #If WIN64 Then
 Public Function SQLite3ExecuteNonQuery(ByVal DbHandle As LongPtr, ByVal SqlCommand As String) As Long
-    Dim stmtHandle As LongPtr
+    Dim StmtHandle As LongPtr
 #Else
 Public Function SQLite3ExecuteNonQuery(ByVal DbHandle As Long, ByVal SqlCommand As String) As Long
-    Dim stmtHandle As Long
+    Dim StmtHandle As Long
 #End If
     
-    SQLite3PrepareV2 DbHandle, SqlCommand, stmtHandle
-    SQLite3Step stmtHandle
-    SQLite3Finalize stmtHandle
+    SQLite3PrepareV2 DbHandle, SqlCommand, StmtHandle
+    SQLite3Step StmtHandle
+    SQLite3Finalize StmtHandle
     
     SQLite3ExecuteNonQuery = SQLite3Changes(DbHandle)
 End Function
 
 #If WIN64 Then
 Public Sub SQLite3ExecuteQuery(ByVal DbHandle As LongPtr, ByVal SQLQuery As String)
-    Dim stmtHandle As LongPtr
+    Dim StmtHandle As LongPtr
 #Else
 Public Sub SQLite3ExecuteQuery(ByVal DbHandle As Long, ByVal SQLQuery As String)
-    Dim stmtHandle As Long
+    Dim StmtHandle As Long
 #End If
     ' Dumps a query to the debug window. No error checking
     
     Dim RetVal As Long
 
-    RetVal = SQLite3PrepareV2(DbHandle, SQLQuery, stmtHandle)
+    RetVal = SQLite3PrepareV2(DbHandle, SQLQuery, StmtHandle)
     Debug.Print "SQLite3PrepareV2 returned " & RetVal
     
     ' Start running the statement
-    RetVal = SQLite3Step(stmtHandle)
+    RetVal = SQLite3Step(StmtHandle)
     If RetVal = SQLITE_ROW Then
         Debug.Print "SQLite3Step Row Ready"
-        PrintColumns stmtHandle
+        PrintColumns StmtHandle
     Else
         Debug.Print "SQLite3Step returned " & RetVal
     End If
     
     ' Move to next row
-    RetVal = SQLite3Step(stmtHandle)
+    RetVal = SQLite3Step(StmtHandle)
     Do While RetVal = SQLITE_ROW
         Debug.Print "SQLite3Step Row Ready"
-        PrintColumns stmtHandle
-        RetVal = SQLite3Step(stmtHandle)
+        PrintColumns StmtHandle
+        RetVal = SQLite3Step(StmtHandle)
     Loop
 
     If RetVal = SQLITE_DONE Then
@@ -1325,6 +1325,6 @@ Public Sub SQLite3ExecuteQuery(ByVal DbHandle As Long, ByVal SQLQuery As String)
     End If
     
     ' Finalize (delete) the statement
-    RetVal = SQLite3Finalize(stmtHandle)
+    RetVal = SQLite3Finalize(StmtHandle)
     Debug.Print "SQLite3Finalize returned " & RetVal
 End Sub

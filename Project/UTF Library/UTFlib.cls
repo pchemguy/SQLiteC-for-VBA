@@ -30,56 +30,55 @@ Private Declare Function lstrcpynW Lib "kernel32" (ByVal pwsDest As Long, ByVal 
 
 
 #If VBA7 Then
-Public Function Utf8PtrToString(ByVal pUtf8String As LongPtr) As String
+Public Function StrFromUTF8Ptr(ByVal UTF8Ptr As LongPtr) As String
 #Else
-Public Function Utf8PtrToString(ByVal pUtf8String As Long) As String
+Public Function StrFromUTF8Ptr(ByVal UTF8Ptr As Long) As String
 #End If
     Dim Buffer As String
-    Buffer = vbNullString
     Dim Length As Long
-    Length = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, 0, 0)
+    Length = MultiByteToWideChar(CP_UTF8, 0, UTF8Ptr, -1, 0, 0)
     ' Length includes the terminating null character
     If Length > 1 Then
         Buffer = String(Length - 1, " ") ' and a termintating null char.
         Dim RetVal As Long
-        RetVal = MultiByteToWideChar(CP_UTF8, 0, pUtf8String, -1, StrPtr(Buffer), Length)
+        RetVal = MultiByteToWideChar(CP_UTF8, 0, UTF8Ptr, -1, StrPtr(Buffer), Length)
         If RetVal = 0 Then
-            Debug.Print "Utf8PtrToString Error:", Err.LastDllError
+            Debug.Print "StrFromUTF8Ptr Error:", Err.LastDllError
             Buffer = vbNullString
         End If
     End If
-    Utf8PtrToString = Buffer
+    StrFromUTF8Ptr = Buffer
 End Function
 
 
-Public Function StringToUtf8Bytes(ByVal Text As String) As Variant
+Public Function UTF8BytesFromStr(ByVal Str As String) As Variant
     Dim Length As Long
-    Length = WideCharToMultiByte(CP_UTF8, 0, StrPtr(Text), -1, 0, 0, 0, 0)
+    Length = WideCharToMultiByte(CP_UTF8, 0, StrPtr(Str), -1, 0, 0, 0, 0)
     If Length = 0 Then
         Exit Function
     End If
     Dim Buffer() As Byte
     ReDim Buffer(Length)
     Dim RetVal As Long
-    RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(Text), -1, VarPtr(Buffer(0)), Length, 0, 0)
+    RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(Str), -1, VarPtr(Buffer(0)), Length, 0, 0)
     If RetVal = 0 Then
-        Debug.Print "StringToUtf8Bytes Error:", Err.LastDllError
+        Debug.Print "UTF8BytesFromStr Error:", Err.LastDllError
         Exit Function
     End If
-    StringToUtf8Bytes = Buffer
+    UTF8BytesFromStr = Buffer
 End Function
 
 
 '@Ignore ProcedureNotUsed
 #If VBA7 Then
-Public Function Utf16PtrToString(ByVal pUtf16String As LongPtr) As String
+Public Function StrFromUTF16Ptr(ByVal UTF16Ptr As LongPtr) As String
 #Else
-Public Function Utf16PtrToString(ByVal pUtf16String As Long) As String
+Public Function StrFromUTF16Ptr(ByVal UTF16Ptr As Long) As String
 #End If
     Dim Length As Long
-    Length = lstrlenW(pUtf16String)
-    Utf16PtrToString = String(Length, " ")
-    lstrcpynW StrPtr(Utf16PtrToString), pUtf16String, Length
+    Length = lstrlenW(UTF16Ptr)
+    StrFromUTF16Ptr = String(Length, " ")
+    lstrcpynW StrPtr(StrFromUTF16Ptr), UTF16Ptr, Length
 End Function
 
 
