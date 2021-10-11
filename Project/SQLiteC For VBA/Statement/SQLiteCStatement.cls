@@ -16,16 +16,13 @@ Attribute VB_Description = "Wraps SQLite3 statement commands."
 ''''======================================================================''''
 '''' Statement
 '''' https://www.sqlite.org/c3ref/prepare.html
-'''' https://www.sqlite.org/c3ref/step.html
 '''' https://www.sqlite.org/c3ref/reset.html
 '''' https://www.sqlite.org/c3ref/finalize.html
-''''
 ''''======================================================================''''
 
 Option Explicit
 
 #If VBA7 Then
-' Statements
 Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" _
     (ByVal hDb As LongPtr, ByVal zSql As LongPtr, ByVal Callback As LongPtr, _
      ByVal pArg As LongPtr, ByRef pzErrMsg As LongPtr) As SQLiteResultCodes
@@ -37,7 +34,6 @@ Private Declare PtrSafe Function sqlite3_reset Lib "SQLite3" (ByVal hStmt As Lon
 Private Declare PtrSafe Function sqlite3_finalize Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As LongPtr)
 #Else
-' Statements
 Private Declare Function sqlite3_exec Lib "SQLite3" _
     (ByVal hDb As Long, ByVal zSql As Long, ByVal Callback As Long, _
      ByVal pArg As Long, ByRef pzErrMsg As Long) As SQLiteResultCodes
@@ -80,6 +76,11 @@ End Sub
 Private Sub Class_Terminate()
     If this.StmtHandle <> 0 Then Finalize
 End Sub
+
+
+Public Property Get DbConn() As SQLiteCConnection
+    Set DbConn = this.DbConn
+End Property
 
 
 #If VBA7 Then

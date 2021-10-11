@@ -387,16 +387,16 @@ Sub PrintParameters(ByVal StmtHandle As LongPtr)
 #Else
 Sub PrintParameters(ByVal StmtHandle As Long)
 #End If
-    Dim paramCount As Long
-    Dim paramName As String
+    Dim ParamCount As Long
+    Dim ParamName As String
     
     Dim i As Long
     
-    paramCount = SQLite3BindParameterCount(StmtHandle)
-    Debug.Print "Parameter count: " & paramCount
-    For i = 1 To paramCount
-        paramName = SQLite3BindParameterName(StmtHandle, i)
-        Debug.Print "Parameter " & i & ":", paramName
+    ParamCount = SQLite3BindParameterCount(StmtHandle)
+    Debug.Print "Parameter count: " & ParamCount
+    For i = 1 To ParamCount
+        ParamName = SQLite3BindParameterName(StmtHandle, i)
+        Debug.Print "Parameter " & i & ":", ParamName
     Next
 End Sub
 

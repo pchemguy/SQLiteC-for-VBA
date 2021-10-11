@@ -214,10 +214,10 @@ End Function
 
 
 Public Function LoadMultiple(ParamArray DllNames() As Variant) As Long
-    Dim Result As Long
-    Result = LOAD_OK
     Dim FileNames() As Variant
     FileNames = UnfoldParamArray(DllNames)
+    Dim Result As Long
+    Result = LOAD_OK
     Dim FileNameIndex As Long
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
         Result = Result And Load(FileNames(FileNameIndex))
@@ -228,10 +228,10 @@ End Function
 
 
 Public Function FreeMultiple(ParamArray DllNames() As Variant) As Long
-    Dim Result As Long
-    Result = LOAD_OK
     Dim FileNames() As Variant
     FileNames = UnfoldParamArray(DllNames)
+    Dim Result As Long
+    Result = LOAD_OK
     If UBound(FileNames) - LBound(FileNames) + 1 = 0 Then FileNames = this.Dlls.Keys
     Dim FileNameIndex As Long
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
@@ -240,4 +240,3 @@ Public Function FreeMultiple(ParamArray DllNames() As Variant) As Long
     If Result = LOAD_OK Then Debug.Print "DLLs unloaded"
     FreeMultiple = Result
 End Function
-
