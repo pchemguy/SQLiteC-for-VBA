@@ -34,8 +34,6 @@ Public Enum SQLiteTypes
 End Enum
 
 #If VBA7 Then
-Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSql As LongPtr, _
-    ByVal Callback As LongPtr, ByVal pArg As LongPtr, ByRef pzErrMsg As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_step Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 ' 0-based indices
 Private Declare PtrSafe Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
@@ -53,8 +51,6 @@ Private Declare PtrSafe Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt 
 Private Declare PtrSafe Function sqlite3_column_text16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrWString
 Private Declare PtrSafe Function sqlite3_column_value Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrSqlite3Value
 #Else
-Private Declare Function sqlite3_exec Lib "SQLite3" (ByVal hDb As Long, ByVal zSql As Long, _
-    ByVal Callback As Long, ByVal pArg As Long, ByRef pzErrMsg As Long) As SQLiteResultCodes
 Private Declare Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long) As Long
 ' 0-based indices
 Private Declare Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As Long) As Long
@@ -79,8 +75,11 @@ Private Type TSQLiteCCommand
     ColumnNames As Variant
     ColumnTypes As Variant
     ColumnMap As Scripting.Dictionary
+    PageSize As Long
+    RowCount As Long
 End Type
 Private this As TSQLiteCCommand
+Public ResultRows As Variant
 
 
 '@DefaultMember
@@ -98,6 +97,8 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Set this.DbStmt = DbStmt
     Set this.ColumnMap = New Scripting.Dictionary
     this.ColumnMap.CompareMode = TextCompare
+    this.RowCount = 0
+    this.PageSize = 10
 End Sub
 
 

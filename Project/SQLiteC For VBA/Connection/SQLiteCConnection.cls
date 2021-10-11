@@ -57,9 +57,13 @@ Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr 
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteErrors
-Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteErrors ' PtrDb
+Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
+    ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteErrors ' PtrDb
 Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
-' Database connection change counts
+'''' Query wrapper
+Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSql As LongPtr, _
+    ByVal Callback As LongPtr, ByVal pArg As LongPtr, ByRef pzErrMsg As LongPtr) As SQLiteResultCodes
+'''' Database connection change counts
 Private Declare PtrSafe Function sqlite3_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
@@ -68,9 +72,13 @@ Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8St
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
-Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
+Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
+    ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
-' Database connection change counts
+'''' Query wrapper
+Private Declare Function sqlite3_exec Lib "SQLite3" (ByVal hDb As Long, ByVal zSql As Long, _
+    ByVal Callback As Long, ByVal pArg As Long, ByRef pzErrMsg As Long) As SQLiteResultCodes
+'''' Database connection change counts
 Private Declare Function sqlite3_changes Lib "SQLite3" (ByVal hDb As Long) As Long
 Private Declare Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As Long) As Long
 #End If
@@ -139,9 +147,9 @@ End Function
 
 Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
                   Optional ByVal vfsName As String = vbNullString)
-    Dim ErrorCode As SQLiteResultCodes
+    Dim ResultCode As SQLiteResultCodes
     If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
-        ErrorCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
+        ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
     Else
         #If VBA7 Then
             Dim DbPathNamePtr As LongPtr
@@ -165,22 +173,22 @@ Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT,
             vfsNamePtr = VarPtr(vfsNameUTF8(0))
         End If
         
-        ErrorCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
+        ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
-    If ErrorCode <> SQLITE_OK Then
+    If ResultCode <> SQLITE_OK Then
         With this.ErrorInfo
             .GetErr
             .PrintErr
         End With
     End If
-    If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ErrorCode) & ">"
+    If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
 End Sub
 
 
 Public Sub CloseDb()
-    Dim ErrorCode As SQLiteResultCodes
-    ErrorCode = sqlite3_close(this.DbHandle)
-    If ErrorCode = SQLITE_OK Then
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_close(this.DbHandle)
+    If ResultCode = SQLITE_OK Then
         this.DbHandle = 0
     Else
         With this.ErrorInfo
@@ -188,7 +196,7 @@ Public Sub CloseDb()
             .PrintErr
         End With
     End If
-    If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ErrorCode) & ">"
+    If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
 End Sub
 
 
@@ -197,5 +205,28 @@ Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
         ChangesCount = sqlite3_total_changes(this.DbHandle)
     Else
         ChangesCount = sqlite3_changes(this.DbHandle)
+    End If
+End Function
+
+
+Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
+    Guard.EmptyString SQLQuery
+    
+    Dim AffectedRows As Long
+    AffectedRows = ChangesCount(True)
+    
+    Dim SQLQueryUTF8() As Byte
+    SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_exec(this.DbHandle, VarPtr(SQLQueryUTF8(0)), 0, 0, 0)
+    If ResultCode <> SQLITE_OK Then
+        With this.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
+        ExecuteNonQuery = -1&
+    Else
+        AffectedRows = ChangesCount(True) - AffectedRows
+        ExecuteNonQuery = AffectedRows
     End If
 End Function
