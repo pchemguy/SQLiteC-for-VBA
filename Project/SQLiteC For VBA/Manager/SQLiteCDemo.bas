@@ -16,6 +16,24 @@ Private Sub GetSQLiteVersionString()
     Set DbConn = ConnFix.ConnDbRegular
     Debug.Print DbConn.Version(False)
     Debug.Print CStr(DbConn.Version(True))
+    
+    '''' This test function is only available in a custom built SQLite library
+    On Error GoTo FUNCTION_NOT_AVAILABLE:
+    Debug.Print CStr(DbConn.VersionI64)
+    
+    On Error GoTo 0
+    Exit Sub
+    
+FUNCTION_NOT_AVAILABLE:
+    Const DllFunctionNotFoundErr As Long = 453
+    Const ErrorMessage As String = "Can't find DLL entry point sqlite3_libversion_number_i64"
+    If Err.Number = DllFunctionNotFoundErr And _
+       Left(Err.Description, Len(ErrorMessage)) = ErrorMessage Then
+        MsgBox "sqlite3_libversion_number_i64 is only available in a custom built SQLite library!"
+        Resume Next
+    Else
+        Err.Raise Err.Number, Err.Source, Err.Description
+    End If
 End Sub
 
 

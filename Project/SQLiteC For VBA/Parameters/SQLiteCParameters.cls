@@ -92,13 +92,8 @@ Public Function IndexFromName(ByVal ParamName As String) As Long
     '@Ignore UseMeaningfulName
     Dim ParamNameUTF8() As Byte
     ParamNameUTF8 = UTFlib.UTF8BytesFromStr(ParamName)
-    #If VBA7 Then
-        Dim ParamNamePtr As LongPtr
-    #Else
-        Dim ParamNamePtr As Long
-    #End If
-    ParamNamePtr = VarPtr(ParamNameUTF8(0))
-    IndexFromName = sqlite3_bind_parameter_index(this.DbStmt.StmtHandle, ParamNamePtr)
+    IndexFromName = sqlite3_bind_parameter_index(this.DbStmt.StmtHandle, _
+                                                 VarPtr(ParamNameUTF8(0)))
 End Function
 
 
@@ -177,15 +172,7 @@ Public Function BindSeq(ParamArray ParamValues() As Variant) As Boolean
         Result = Result And BindOne(ParamIndex, Values(ParamIndex - 1))
     Next ParamIndex
     Dim ResultCode As SQLiteResultCodes
-    If Not Result Then
-        ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)
-        If ResultCode <> SQLITE_OK Then
-            With this.DbStmt.DbConn.ErrorInfo
-                .GetErr
-                .PrintErr
-            End With
-        End If
-    End If
+    If Not Result Then BindClear
     BindSeq = Result
 End Function
 
@@ -200,15 +187,19 @@ Public Function BindMap(ByVal ParamValues As Scripting.Dictionary) As Boolean
         ParamIndex = IndexFromName(ParamName)
         Result = Result And BindOne(ParamIndex, ParamValues(ParamName))
     Next ParamName
-    Dim ResultCode As SQLiteResultCodes
-    If Not Result Then
-        ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)
-        If ResultCode <> SQLITE_OK Then
-            With this.DbStmt.DbConn.ErrorInfo
-                .GetErr
-                .PrintErr
-            End With
-        End If
-    End If
+    If Not Result Then BindClear
     BindMap = Result
 End Function
+
+
+Public Sub BindClear()
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)
+    If ResultCode <> SQLITE_OK Then
+        With this.DbStmt.DbConn.ErrorInfo
+            .GetErr
+            .PrintErr
+        End With
+    End If
+End Sub
+
