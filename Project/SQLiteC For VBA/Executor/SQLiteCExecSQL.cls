@@ -108,8 +108,8 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Set this.ColumnMap = New Scripting.Dictionary
     this.ColumnMap.CompareMode = TextCompare
     this.RowCount = 0
-    this.PageCount = 100
-    this.PageSize = 100
+    this.PageCount = 4
+    this.PageSize = 4
 End Sub
 
 
@@ -146,8 +146,7 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     #End If
     hStmt = this.DbStmt.StmtHandle
     Dim ColumnCount As Long
-    ColumnCount = sqlite3_column_count(hStmt)
-    this.ColumnCount = ColumnCount
+    ColumnCount = GetColumnCount
     If ColumnCount = 0 Then
         Debug.Print "No data avaialable"
         GetColumnMeta = SQLITE_ERROR
@@ -317,7 +316,13 @@ Public Function GetRowSet() As Variant
     Dim RowIndex As Long
     Dim Page As Variant
     With this
-        Dim Pages As Variant
+        GetColumnCount
+        If .ColumnCount = 0 Then
+            Debug.Print "No data avaialable"
+            GetRowSet = CVErr(SQLITE_ERROR)
+            Exit Function
+        End If
+        Dim Pages As Variant: Pages = Empty '''' RDVBA workaround
         ReDim Pages(0 To .PageCount - 1)
         .RowCount = 0
         .FilledPagesCount = 0
@@ -335,6 +340,7 @@ Public Function GetRowSet() As Variant
                         End If
                         .RowCount = .RowCount + 1
                     Case SQLITE_DONE
+                        Pages(PageIndex) = Page
                         .DbStmt.DbConn.ErrInfoRetrieve
                         GetRowSet = Pages
                         Exit Function

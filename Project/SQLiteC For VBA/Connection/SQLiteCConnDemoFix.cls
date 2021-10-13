@@ -15,6 +15,8 @@ Option Explicit
 
 Private Type TSQLiteCConnDemoFix
     dbm As SQLiteC
+    DbConn As SQLiteCConnection
+    DbStmt As SQLiteCStatement
     FixPath As String
 End Type
 Private this As TSQLiteCConnDemoFix
@@ -40,11 +42,29 @@ Public Property Get dbm() As SQLiteC
 End Property
 
 Private Property Get ConnDb(ByVal DbPathName As String) As SQLiteCConnection
-    Dim dbm As SQLiteC
-    Set dbm = this.dbm
-    Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.DbConnInit(DbPathName)
-    Set ConnDb = DbConn
+    If Not this.DbConn Is Nothing Then
+        Set ConnDb = this.DbConn
+    Else
+        Dim dbm As SQLiteC
+        Set dbm = this.dbm
+        Dim DbConn As SQLiteCConnection
+        Set DbConn = dbm.DbConnInit(DbPathName)
+        Set this.DbConn = DbConn
+        Set ConnDb = DbConn
+    End If
+End Property
+
+Public Property Get StmtDb(ByVal ConnDb As SQLiteCConnection) As SQLiteCStatement
+    If Not this.DbStmt Is Nothing Then
+        Set StmtDb = this.DbStmt
+    Else
+        Dim dbm As SQLiteC
+        Set dbm = this.dbm
+        Dim DbStmt As SQLiteCStatement
+        Set DbStmt = dbm.DbStmtInit(ConnDb)
+        Set this.DbStmt = DbStmt
+        Set StmtDb = DbStmt
+    End If
 End Property
 
 Public Property Get ConnDbRegular() As SQLiteCConnection

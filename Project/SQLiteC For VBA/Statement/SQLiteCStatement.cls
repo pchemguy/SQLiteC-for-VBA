@@ -71,6 +71,7 @@ End Function
 Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Guard.NullReference DbConn
     Set this.DbConn = DbConn
+    Set this.DbExec = SQLiteCExecSQL(Me)
 End Sub
 
 
@@ -81,6 +82,11 @@ End Sub
 
 Public Property Get DbConn() As SQLiteCConnection
     Set DbConn = this.DbConn
+End Property
+
+
+Public Property Get DbExec() As SQLiteCExecSQL
+    Set DbExec = this.DbExec
 End Property
 
 
@@ -154,7 +160,7 @@ End Function
 
 
 Friend Function ExecuteSetup(ByVal SQLQuery As String, _
-                    Optional ByVal QueryParameters As Variant) As SQLiteResultCodes
+            Optional ByVal QueryParameters As Variant = Empty) As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     Dim LenSQL As Long
     LenSQL = Len(SQLQuery)
@@ -185,8 +191,8 @@ End Function
 
 
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
-                       Optional ByRef AffectedRows As Long, _
-                       Optional ByVal QueryParameters As Variant) As SQLiteResultCodes
+            Optional ByRef AffectedRows As Long = -1, _
+            Optional ByVal QueryParameters As Variant = Empty) As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode <> SQLITE_OK Then
@@ -212,7 +218,7 @@ End Function
 
 
 Public Function GetScalar(ByVal SQLQuery As String, _
-                 Optional ByVal QueryParameters As Variant) As Variant
+                 Optional ByVal QueryParameters As Variant = Empty) As Variant
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
@@ -225,7 +231,7 @@ End Function
 
 
 Public Function GetRowSet(ByVal SQLQuery As String, _
-                 Optional ByVal QueryParameters As Variant) As Variant
+                 Optional ByVal QueryParameters As Variant = Empty) As Variant
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then

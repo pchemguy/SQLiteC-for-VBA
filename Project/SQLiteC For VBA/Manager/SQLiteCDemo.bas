@@ -75,3 +75,24 @@ Private Sub OpenCloseLockedDb()
     DbConn.OpenDb
     DbConn.CloseDb
 End Sub
+
+
+Private Sub TestDbRegular()
+    Dim ConnFix As SQLiteCConnDemoFix
+    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim dbm As SQLiteC
+    Set dbm = ConnFix.dbm
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = ConnFix.ConnDbRegular
+    Dim DbStmt As SQLiteCStatement
+    Set DbStmt = ConnFix.StmtDb(DbConn)
+    
+    Dim Result As Variant
+    Result = DbConn.Version
+    Result = DbConn.Version(False)
+    Result = DbConn.VersionI64
+    DbConn.OpenDb
+    Result = DbStmt.GetScalar("SELECT sqlite_version()")
+    Result = DbStmt.GetRowSet("SELECT * FROM pragma_module_list()")
+    DbConn.CloseDb
+End Sub
