@@ -84,6 +84,8 @@ Private Type TSQLiteCExecSQL
     ColumnDeclaredTypes As Variant
     ColumnMap As Scripting.Dictionary
     StepAPIError As Boolean
+    PageCount As Long
+    FilledPagesCount As Long
     PageSize As Long
     RowCount As Long
 End Type
@@ -106,13 +108,24 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Set this.ColumnMap = New Scripting.Dictionary
     this.ColumnMap.CompareMode = TextCompare
     this.RowCount = 0
-    this.PageSize = 10
+    this.PageCount = 100
+    this.PageSize = 100
 End Sub
 
 
 Public Function SQLiteTypeName(ByVal SQLiteType As SQLiteTypes) As String
     SQLiteTypeName = Array("INTEGER", "FLOAT", "TEXT", "BLOB", "NULL")(SQLiteType - 1)
 End Function
+
+
+Public Property Get FilledPagesCount() As Long
+    FilledPagesCount = this.FilledPagesCount
+End Property
+
+
+Public Property Get RowCount() As Long
+    RowCount = this.RowCount
+End Property
 
 
 '''' Reference: https://www.sqlite.org/c3ref/column_count.html
@@ -122,7 +135,7 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
 '@Description "Retrieves columns metadata."
-Public Function GetColumnMeta() As Boolean
+Public Function GetColumnMeta() As SQLiteResultCodes
 Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     #If VBA7 Then
         Dim hStmt As LongPtr
@@ -137,7 +150,7 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     this.ColumnCount = ColumnCount
     If ColumnCount = 0 Then
         Debug.Print "No data avaialable"
-        GetColumnMeta = False
+        GetColumnMeta = SQLITE_ERROR
         Exit Function
     End If
     Dim ColumnNames() As String
@@ -188,7 +201,7 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
         .ColumnDeclaredTypes = ColumnDeclaredTypes
     End With
     
-    GetColumnMeta = True
+    GetColumnMeta = SQLITE_OK
     Exit Function
     
 NULL_PTR:
@@ -211,6 +224,27 @@ Public Function Execute() As SQLiteResultCodes
             this.DbStmt.DbConn.ErrInfoRetrieve
     End Select
     Execute = ResultCode
+End Function
+
+
+'@Description "Retrieves a scalar value"
+Public Function GetScalar() As Variant
+Attribute GetScalar.VB_Description = "Retrieves a scalar value"
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = Execute
+    If ResultCode = SQLITE_ROW Then
+        GetScalar = GetColumnValue
+    Else
+        GetScalar = CVErr(ResultCode)
+    End If
+End Function
+
+
+Public Function GetColumnCount() As Long
+    Dim ColumnCount As Long
+    ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
+    this.ColumnCount = ColumnCount
+    GetColumnCount = ColumnCount
 End Function
 
 
@@ -262,17 +296,61 @@ Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Varian
 End Function
 
 
-'@Description "Retrieves a scalar value"
-Public Function GetScalar() As Variant
-Attribute GetScalar.VB_Description = "Retrieves a scalar value"
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = Execute
-    If ResultCode = SQLITE_ROW Then
-        GetScalar = GetColumnValue
-    Else
-        GetScalar = CVErr(ResultCode)
-    End If
+Public Function GetRow(ByVal ColumnCount As Long) As Variant
+    Dim ColumnIndex As Long
+    Dim RowValues As Variant
+    ReDim RowValues(0 To ColumnCount - 1)
+    For ColumnIndex = 0 To ColumnCount - 1
+        RowValues(ColumnIndex) = GetColumnValue(ColumnIndex)
+        If IsError(RowValues(ColumnIndex)) Then
+            RowValues = RowValues(ColumnIndex)
+            Exit Function
+        End If
+    Next ColumnIndex
+    GetRow = RowValues
 End Function
+
+
+Public Function GetRowSet() As Variant
+    Dim ResultCode As SQLiteResultCodes
+    Dim PageIndex As Long
+    Dim RowIndex As Long
+    Dim Page As Variant
+    With this
+        Dim Pages As Variant
+        ReDim Pages(0 To .PageCount - 1)
+        .RowCount = 0
+        .FilledPagesCount = 0
+        For PageIndex = 0 To .PageCount - 1
+            Page = Empty
+            ReDim Page(0 To .PageSize - 1)
+            For RowIndex = 0 To .PageSize - 1
+                ResultCode = Execute
+                Select Case ResultCode
+                    Case SQLITE_ROW
+                        Page(RowIndex) = GetRow(.ColumnCount)
+                        If IsError(Page(RowIndex)) Then
+                            GetRowSet = Page(RowIndex)
+                            Exit Function
+                        End If
+                        .RowCount = .RowCount + 1
+                    Case SQLITE_DONE
+                        .DbStmt.DbConn.ErrInfoRetrieve
+                        GetRowSet = Pages
+                        Exit Function
+                    Case Else
+                        GetRowSet = CVErr(ResultCode)
+                        Exit Function
+                End Select
+            Next RowIndex
+            Pages(PageIndex) = Page
+            .FilledPagesCount = .FilledPagesCount + 1
+        Next PageIndex
+    End With
+    GetRowSet = Pages
+End Function
+
+
 
 
 '#If VBA7 Then

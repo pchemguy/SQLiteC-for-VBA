@@ -53,6 +53,7 @@ Private Type TSQLiteCStatement
     #Else
         StmtHandle As Long
     #End If
+    AffectedRowsCount As Long
 End Type
 Private this As TSQLiteCStatement
 
@@ -89,6 +90,11 @@ Public Property Get StmtHandle() As LongPtr
 Public Property Get StmtHandle() As Long
 #End If
     StmtHandle = this.StmtHandle
+End Property
+
+
+Public Property Get AffectedRowsCount() As Long
+    AffectedRowsCount = this.AffectedRowsCount
 End Property
 
 
@@ -179,7 +185,7 @@ End Function
 
 
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
-                       Optional ByRef AffectedRowsCount As Long, _
+                       Optional ByRef AffectedRows As Long, _
                        Optional ByVal QueryParameters As Variant) As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
@@ -188,18 +194,19 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
         Exit Function
     End If
     
-    If AffectedRowsCount <> -1 Then AffectedRowsCount = this.DbConn.ChangesCount(True)
+    If AffectedRows <> -1 Then AffectedRows = this.DbConn.ChangesCount(True)
     ResultCode = this.DbExec.Execute
     If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
-        If AffectedRowsCount <> -1 Then
-            AffectedRowsCount = this.DbConn.ChangesCount(True) - AffectedRowsCount
+        If AffectedRows <> -1 Then
+            AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
         End If
         ResultCode = Reset
         ExecuteNonQuery = ResultCode
     Else
-        AffectedRowsCount = -1
+        AffectedRows = -1
     End If
     If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
+    this.AffectedRowsCount = AffectedRows
     ExecuteNonQuery = ResultCode
 End Function
 
@@ -208,11 +215,25 @@ Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant) As Variant
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
-    If ResultCode <> SQLITE_OK Then
-        GetScalar = CVErr(ResultCode)
-    Else
+    If ResultCode = SQLITE_OK Then
         If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
         GetScalar = this.DbExec.GetScalar
+    Else
+        GetScalar = CVErr(ResultCode)
+    End If
+End Function
+
+
+Public Function GetRowSet(ByVal SQLQuery As String, _
+                 Optional ByVal QueryParameters As Variant) As Variant
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    If ResultCode = SQLITE_OK Then
+        If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
+        GetRowSet = this.DbExec.GetRowSet
+        If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+    Else
+        GetRowSet = CVErr(ResultCode)
     End If
 End Function
 
