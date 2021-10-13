@@ -22,13 +22,11 @@ Option Explicit
 
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf16String
 Private Declare PtrSafe Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteErrors) As LongPtr ' PtrUtf8String
 Private Declare PtrSafe Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
 Private Declare Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf8String
-Private Declare Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf16String
 Private Declare Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteResultCodes) As Long ' PtrUtf8String
 Private Declare Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
 Private Declare Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
@@ -111,3 +109,9 @@ Public Sub PrintErr()
                     "ErrMsg:           " & .ErrorMessage & vbNewLine
     End With
 End Sub
+
+'#If VBA7 Then
+'Private Declare PtrSafe Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf16String
+'#Else
+'Private Declare Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf16String
+'#End If

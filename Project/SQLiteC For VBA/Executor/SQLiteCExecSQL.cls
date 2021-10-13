@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteCCommand"
+Attribute VB_Name = "SQLiteCExecSQL"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Executes statement and retrieves data"
-'@Folder "SQLiteC For VBA.Command"
+'@Folder "SQLiteC For VBA.Executor"
 '@ModuleDescription "Executes statement and retrieves data"
 '@PredeclaredId
 '@Exposed
@@ -24,8 +24,6 @@ Attribute VB_Description = "Executes statement and retrieves data"
 ''''======================================================================''''
 
 Option Explicit
-
-Const OutOfMemoryErr As Long = 7&
 
 Public Enum SQLiteTypes
     SQLITE_INTEGER = 1&
@@ -47,7 +45,6 @@ Private Declare PtrSafe Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long
 Private Declare PtrSafe Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_column_type Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_name Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
-Private Declare PtrSafe Function sqlite3_column_name16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrWString
 Private Declare PtrSafe Function sqlite3_column_database_name Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
 Private Declare PtrSafe Function sqlite3_column_table_name Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
 Private Declare PtrSafe Function sqlite3_column_origin_name Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
@@ -55,20 +52,15 @@ Private Declare PtrSafe Function sqlite3_column_decltype Lib "SQLite3" (ByVal hS
 
 Private Declare PtrSafe Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrData
 Private Declare PtrSafe Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
-Private Declare PtrSafe Function sqlite3_column_bytes16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_double Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Double
-Private Declare PtrSafe Function sqlite3_column_int Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_int64 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongLong
 Private Declare PtrSafe Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
-Private Declare PtrSafe Function sqlite3_column_text16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrWString
-Private Declare PtrSafe Function sqlite3_column_value Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrSqlite3Value
 #Else
 Private Declare Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long) As Long
 ' 0-based indices
 Private Declare Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As Long) As Long
 Private Declare Function sqlite3_column_type Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
 Private Declare Function sqlite3_column_name Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
-Private Declare Function sqlite3_column_name16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
 Private Declare Function sqlite3_column_database_name Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
 Private Declare Function sqlite3_column_table_name Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
 Private Declare Function sqlite3_column_origin_name Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
@@ -76,16 +68,12 @@ Private Declare Function sqlite3_column_decltype Lib "SQLite3" (ByVal hStmt As L
 
 Private Declare Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrData
 Private Declare Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
-Private Declare Function sqlite3_column_bytes16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
 Private Declare Function sqlite3_column_double Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Double
-Private Declare Function sqlite3_column_int Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
 Private Declare Function sqlite3_column_int64 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Currency
 Private Declare Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrString
-Private Declare Function sqlite3_column_text16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
-Private Declare Function sqlite3_column_value Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrSqlite3Value
 #End If
 
-Private Type TSQLiteCCommand
+Private Type TSQLiteCExecSQL
     DbStmt As SQLiteCStatement
     ColumnCount As Long
     ColumnNames As Variant
@@ -95,19 +83,18 @@ Private Type TSQLiteCCommand
     ColumnTypes As Variant
     ColumnDeclaredTypes As Variant
     ColumnMap As Scripting.Dictionary
-    FetchError As Boolean
+    StepAPIError As Boolean
     PageSize As Long
     RowCount As Long
 End Type
-Private this As TSQLiteCCommand
-Public ResultRows As Variant
+Private this As TSQLiteCExecSQL
 
 
 '@DefaultMember
-Public Function Create(ByVal DbStmt As SQLiteCStatement) As SQLiteCCommand
+Public Function Create(ByVal DbStmt As SQLiteCStatement) As SQLiteCExecSQL
 Attribute Create.VB_UserMemId = 0
-    Dim Instance As SQLiteCCommand
-    Set Instance = New SQLiteCCommand
+    Dim Instance As SQLiteCExecSQL
+    Set Instance = New SQLiteCExecSQL
     Instance.Init DbStmt
     Set Create = Instance
 End Function
@@ -123,22 +110,26 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 
-Public Property Get RollBackTx() As Boolean
-    RollBackTx = this.FetchError
-End Property
-
-
 Public Function SQLiteTypeName(ByVal SQLiteType As SQLiteTypes) As String
     SQLiteTypeName = Array("INTEGER", "FLOAT", "TEXT", "BLOB", "NULL")(SQLiteType - 1)
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/column_count.html
+'''' Reference: https://www.sqlite.org/c3ref/column_name.html
+'''' Reference: https://www.sqlite.org/c3ref/column_database_name.html
+'''' Reference: https://www.sqlite.org/c3ref/column_decltype.html
+'''' Reference: https://www.sqlite.org/c3ref/column_blob.html
+''''
+'@Description "Retrieves columns metadata."
 Public Function GetColumnMeta() As Boolean
-    Const OutOfMemoryErr As Long = 7
+Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     #If VBA7 Then
         Dim hStmt As LongPtr
+        Dim BufferPtr As LongPtr
     #Else
         Dim hStmt As Long
+        Dim BufferPtr As Long
     #End If
     hStmt = this.DbStmt.StmtHandle
     Dim ColumnCount As Long
@@ -161,11 +152,7 @@ Public Function GetColumnMeta() As Boolean
     ReDim ColumnTableNames(0 To ColumnCount - 1)
     ReDim ColumnOriginNames(0 To ColumnCount - 1)
     ReDim ColumnDeclaredTypes(0 To ColumnCount - 1)
-    #If VBA7 Then
-        Dim BufferPtr As LongPtr
-    #Else
-        Dim BufferPtr As Long
-    #End If
+    
     this.ColumnMap.RemoveAll
     Dim ColumnIndex As Long
     For ColumnIndex = 0 To ColumnCount - 1
@@ -206,38 +193,39 @@ Public Function GetColumnMeta() As Boolean
     
 NULL_PTR:
     '''' Possible "OutOfMemoryErr" / "Failed to allocate memory for column name"
-    GetColumnMeta = False
+    GetColumnMeta = this.DbStmt.DbConn.ErrInfoRetrieve
     Exit Function
 End Function
 
 
-Public Function GetScalar() As Variant
+'''' Reference: https://www.sqlite.org/c3ref/step.html
+''''
+Public Function Execute() As SQLiteResultCodes
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_step(this.DbStmt.StmtHandle)
+    Select Case ResultCode
+        Case SQLITE_DONE, SQLITE_OK, SQLITE_ROW
+            this.StepAPIError = False
+        Case Else
+            this.StepAPIError = True
+            this.DbStmt.DbConn.ErrInfoRetrieve
+    End Select
+    Execute = ResultCode
+End Function
+
+
+'''' Reference: https://www.sqlite.org/c3ref/column_blob.html
+''''
+Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Variant
     #If VBA7 Then
         Dim hStmt As LongPtr
+        Dim RemoteBufPtr As LongPtr
     #Else
         Dim hStmt As Long
+        Dim RemoteBufPtr As Long
     #End If
     hStmt = this.DbStmt.StmtHandle
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_step(hStmt)
-    Select Case ResultCode
-        Case SQLITE_DONE
-            this.FetchError = False
-            GetScalar = Empty
-            Exit Function
-        Case Is <> SQLITE_ROW
-            this.FetchError = True
-            With this.DbStmt.DbConn.ErrorInfo
-                .GetErr
-                .PrintErr
-            End With
-            GetScalar = Empty
-            Exit Function
-    End Select
     
-    '''' ResultCode = SQLITE_ROW
-    Dim ColumnIndex As Long
-    ColumnIndex = 0
     Dim ColumnType As SQLiteTypes
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
     Dim Value As Variant
@@ -245,25 +233,58 @@ Public Function GetScalar() As Variant
         Case SQLITE_INTEGER
             Value = sqlite3_column_int64(hStmt, ColumnIndex)
             If VarType(Value) = vbCurrency Then Value = Value * 10000
+            If Abs(Value) < &H7FFFFFFF Then Value = CLng(Value)
         Case SQLITE_FLOAT
             Value = sqlite3_column_double(hStmt, ColumnIndex)
         Case SQLITE_TEXT
-            Value = UTFlib.StrFromUTF8Ptr(sqlite3_column_text(hStmt, ColumnIndex))
+            RemoteBufPtr = sqlite3_column_text(hStmt, ColumnIndex)
+            If RemoteBufPtr > 0 Then
+                Value = UTFlib.StrFromUTF8Ptr(RemoteBufPtr)
+            Else
+                Value = CVErr(this.DbStmt.DbConn.ErrInfoRetrieve)
+            End If
         Case SQLITE_NULL
             Value = Null
         Case SQLITE_BLOB
-            #If VBA7 Then
-                Dim RemoteBufPtr As LongPtr
-            #Else
-                Dim RemoteBufPtr  As Long
-            #End If
             RemoteBufPtr = sqlite3_column_blob(hStmt, ColumnIndex)
             Dim Length As Long
             Length = sqlite3_column_bytes(hStmt, ColumnIndex)
-            Dim LocalBuffer() As Byte
-            ReDim LocalBuffer(Length - 1)
-            RtlCopyMemory VarPtr(LocalBuffer(0)), RemoteBufPtr, Length
-            Value = LocalBuffer
+            If Length > 0 Then
+                Dim LocalBuffer() As Byte
+                ReDim LocalBuffer(Length - 1)
+                RtlCopyMemory VarPtr(LocalBuffer(0)), RemoteBufPtr, Length
+                Value = LocalBuffer
+            Else
+                Value = CVErr(this.DbStmt.DbConn.ErrInfoRetrieve)
+            End If
     End Select
-    GetScalar = Value
+    GetColumnValue = Value
 End Function
+
+
+'@Description "Retrieves a scalar value"
+Public Function GetScalar() As Variant
+Attribute GetScalar.VB_Description = "Retrieves a scalar value"
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = Execute
+    If ResultCode = SQLITE_ROW Then
+        GetScalar = GetColumnValue
+    Else
+        GetScalar = CVErr(ResultCode)
+    End If
+End Function
+
+
+'#If VBA7 Then
+'Private Declare PtrSafe Function sqlite3_column_name16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrWString
+'Private Declare PtrSafe Function sqlite3_column_bytes16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
+'Private Declare PtrSafe Function sqlite3_column_int Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
+'Private Declare PtrSafe Function sqlite3_column_text16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrWString
+'Private Declare PtrSafe Function sqlite3_column_value Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrSqlite3Value
+'#Else
+'Private Declare Function sqlite3_column_name16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
+'Private Declare Function sqlite3_column_bytes16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+'Private Declare Function sqlite3_column_int Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
+'Private Declare Function sqlite3_column_text16 Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrWString
+'Private Declare Function sqlite3_column_value Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrSqlite3Value
+'#End If

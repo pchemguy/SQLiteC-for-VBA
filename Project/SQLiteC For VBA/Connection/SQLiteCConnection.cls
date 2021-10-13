@@ -7,9 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Attribute VB_Description = "Manages SQLite connectivity"
+Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO)"
 '@Folder "SQLiteC For VBA.Connection"
-'@ModuleDescription "Manages SQLite connectivity"
+'@ModuleDescription "Manages lifecycle of the SQLite Database object (DBO)"
 '@PredeclaredId
 '@Exposed
 
@@ -158,15 +158,20 @@ Public Property Get ErrorInfo() As SQLiteCErr
 End Property
 
 
-Public Sub ErrInfoRetrieve()
+Public Function ErrInfoRetrieve() As SQLiteResultCodes
     With this.ErrorInfo
         .GetErr
         .PrintErr
+        ErrInfoRetrieve = .ErrorCodeEx
     End With
-End Sub
+End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/libversion.html
+''''
+'@Description "Returns SQLite version. No database is necessary."
 Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
+Attribute Version.VB_Description = "Returns SQLite version. No database is necessary."
     If Numeric Then
         Version = sqlite3_libversion_number()
     Else
@@ -175,7 +180,12 @@ Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
 End Function
 
 
-Public Function VersionI64(Optional ByVal Numeric As Boolean = True) As Variant
+'''' This routine uses a non-standard export added to a the SQLite amalgamation
+'''' yielding a custom-built library. It returns SQLite version as a 64-bit int.
+'''' It can be used for testing purposes, especially for the x32 version.
+''''
+'@Ignore UseMeaningfulName
+Public Function VersionI64() As Variant
     Dim VerNum As Variant
     VerNum = sqlite3_libversion_number_i64()
     If VarType(VerNum) = vbCurrency Then VerNum = VerNum * 10000
@@ -183,8 +193,12 @@ Public Function VersionI64(Optional ByVal Numeric As Boolean = True) As Variant
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/open.html
+''''
+'@Description "Generates SQLite DBO instance."
 Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
                   Optional ByVal vfsName As String = vbNullString)
+Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
         ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
@@ -213,24 +227,35 @@ Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT,
         
         ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
+    '@Ignore FunctionReturnValueDiscarded
     If ResultCode <> SQLITE_OK Then ErrInfoRetrieve
     If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
 End Sub
 
 
+'''' Reference: https://www.sqlite.org/c3ref/close.html
+''''
+'@Description "Destructs SQLite DBO instance."
 Public Sub CloseDb()
+Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_close(this.DbHandle)
     If ResultCode = SQLITE_OK Then
         this.DbHandle = 0
     Else
+        '@Ignore FunctionReturnValueDiscarded
         ErrInfoRetrieve
     End If
     If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
 End Sub
 
 
+'''' Reference: https://www.sqlite.org/c3ref/changes.html
+'''' Reference: https://www.sqlite.org/c3ref/total_changes.html
+''''
+'@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
+Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
     Else
@@ -239,35 +264,49 @@ Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
 End Function
 
 
-Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
-                       Optional ByRef AffectedRowsCount As Long) As SQLiteResultCodes
+'''' Reference: https://www.sqlite.org/c3ref/exec.html
+''''
+'@Description "Executes a plain-text non-query via a convenience shortcut."
+Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
+            Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
+Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
     
-    AffectedRowsCount = ChangesCount(True)
+    If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
     SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_exec(this.DbHandle, VarPtr(SQLQueryUTF8(0)), 0, 0, 0)
     If ResultCode <> SQLITE_OK Then
+        '@Ignore FunctionReturnValueDiscarded
         ErrInfoRetrieve
-        AffectedRowsCount = -1
+        AffectedRows = -1
     Else
-        AffectedRowsCount = ChangesCount(True) - AffectedRowsCount
+        If AffectedRows <> -1 Then AffectedRows = ChangesCount(True) - AffectedRows
     End If
-    ExecuteNonQuery = ResultCode
+    ExecuteNonQueryPlain = ResultCode
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/c_txn_none.html
+''''
+'@Description "Queries transaction status for the current SQLite DBO."
 Public Function TxnState(Optional ByVal SchemaAlias As String = "main" _
                         ) As SQLiteTxnState
+Attribute TxnState.VB_Description = "Queries transaction status for the current SQLite DBO."
+    '@Ignore UseMeaningfulName
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaUTF8)
     TxnState = sqlite3_txn_state(this.DbHandle, VarPtr(SchemaUTF8(0)))
 End Function
 
 
+'''' Reference: https://www.sqlite.org/lang_transaction.html
+''''
+'@Description "Begins SQLite transaction."
 Public Function Begin(Optional ByVal Mode As SQLiteTxnMode = SQLITE_TXN_DEFERRED _
                      ) As SQLiteResultCodes
+Attribute Begin.VB_Description = "Begins SQLite transaction."
     Dim TxMode As String
     Select Case Mode
         Case SQLITE_TXN_DEFERRED
@@ -280,30 +319,47 @@ Public Function Begin(Optional ByVal Mode As SQLiteTxnMode = SQLITE_TXN_DEFERRED
             Err.Raise ErrNo.InvalidParameterErr, "SQLiteCConnection", _
                 "Invalid transaction mode: <" & CStr(Mode) & ">"
     End Select
-    Begin = ExecuteNonQuery("BEGIN" & TxMode)
+    Begin = ExecuteNonQueryPlain("BEGIN" & TxMode)
 End Function
 
 
+'''' Reference: https://www.sqlite.org/lang_transaction.html
+''''
+'@Description "Commits all SQLite DBO transactions."
 Public Function Commit() As SQLiteResultCodes
-    Commit = ExecuteNonQuery("COMMIT")
+Attribute Commit.VB_Description = "Commits all SQLite DBO transactions."
+    Commit = ExecuteNonQueryPlain("COMMIT")
 End Function
 
 
+'''' Reference: https://www.sqlite.org/lang_savepoint.html
+''''
+'@Description "Begins a named and nestable SQLite transaction."
 Public Function SavePoint(ByVal SavePointName As String) As SQLiteResultCodes
+Attribute SavePoint.VB_Description = "Begins a named and nestable SQLite transaction."
     Guard.EmptyString SavePointName
-    SavePoint = ExecuteNonQuery("SAVEPOINT " & SavePointName)
+    SavePoint = ExecuteNonQueryPlain("SAVEPOINT " & SavePointName)
 End Function
 
 
+'''' Reference: https://www.sqlite.org/lang_savepoint.html
+''''
+'@Description "Removes rollback savepoints from the transaction stack up to the first point with matching name."
 Public Function ReleasePoint(ByVal SavePointName As String) As SQLiteResultCodes
+Attribute ReleasePoint.VB_Description = "Removes rollback savepoints from the transaction stack up to the first point with matching name."
     Guard.EmptyString SavePointName
-    ReleasePoint = ExecuteNonQuery("RELEASE " & SavePointName)
+    ReleasePoint = ExecuteNonQueryPlain("RELEASE " & SavePointName)
 End Function
 
 
+'''' Reference: https://www.sqlite.org/lang_transaction.html
+'''' Reference: https://www.sqlite.org/lang_savepoint.html
+''''
+'@Description "Rollbacks savepoints from the transaction stack up to the first point with matching name or the entire transaction."
 Public Function Rollback(Optional ByVal SavePointName As String = vbNullString _
                         ) As SQLiteResultCodes
+Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction stack up to the first point with matching name or the entire transaction."
     Dim SPClause As String
     SPClause = IIf(Len(SavePointName) = 0, vbNullString, " TO " & SavePointName)
-    Rollback = ExecuteNonQuery("ROLLBACK" & SPClause)
+    Rollback = ExecuteNonQueryPlain("ROLLBACK" & SPClause)
 End Function

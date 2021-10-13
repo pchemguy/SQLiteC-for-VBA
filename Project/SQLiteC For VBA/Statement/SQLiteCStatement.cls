@@ -7,9 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Attribute VB_Description = "Wraps SQLite3 statement commands."
+Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
 '@Folder "SQLiteC For VBA.Statement"
-'@ModuleDescription "Wraps SQLite3 statement commands."
+'@ModuleDescription "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
 '@PredeclaredId
 '@Exposed
 
@@ -27,7 +27,6 @@ Const OutOfMemoryErr As Long = 7&
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As LongPtr, ByVal pwsSql As LongPtr, _
     ByVal nSqlLength As Long, ByRef hStmt As LongPtr, ByVal ppwsTailOut As LongPtr) As SQLiteResultCodes
-Private Declare PtrSafe Function sqlite3_step Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_reset Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_finalize Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_sql Lib "SQLite3" (ByVal hStmt As Long) As LongPtr ' PtrString
@@ -37,7 +36,6 @@ Private Declare PtrSafe Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As LongP
 #Else
 Private Declare Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As Long, ByVal pwsSql As Long, _
     ByVal nSqlLength As Long, ByRef hStmt As Long, ByVal ppwsTailOut As Long) As SQLiteResultCodes
-Private Declare Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long) As SQLiteResultCodes
 Private Declare Function sqlite3_reset Lib "SQLite3" (ByVal hStmt As Long) As SQLiteResultCodes
 Private Declare Function sqlite3_finalize Lib "SQLite3" (ByVal hStmt As Long) As SQLiteResultCodes
 Private Declare Function sqlite3_sql Lib "SQLite3" (ByVal hStmt As Long) As Long ' PtrString
@@ -48,7 +46,8 @@ Private Declare Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As Long)
 
 Private Type TSQLiteCStatement
     DbConn As SQLiteCConnection
-    DbCmd As SQLiteCCommand
+    DbExec As SQLiteCExecSQL
+    DbPara As SQLiteCParameters
     #If VBA7 Then
         StmtHandle As LongPtr
     #Else
@@ -93,15 +92,136 @@ Public Property Get StmtHandle() As Long
 End Property
 
 
-Public Sub ErrInfoRetrieve()
-    With this.DbConn.ErrorInfo
-        .GetErr
-        .PrintErr
-    End With
-End Sub
+'''' Reference: https://www.sqlite.org/c3ref/prepare.html
+''''
+'@Ignore UseMeaningfulName
+'@Description "Generates SQLite PSO."
+Friend Function Prepare16V2(ByVal SQLQuery As String) As SQLiteResultCodes
+Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_prepare16_v2(this.DbConn.DbHandle, StrPtr(SQLQuery), _
+                                      Len(SQLQuery) * 2 + 2, this.StmtHandle, 0)
+    If ResultCode <> SQLITE_OK Then
+        this.StmtHandle = 0
+        this.DbConn.ErrInfoRetrieve
+    End If
+    Prepare16V2 = ResultCode
+End Function
 
 
+'''' Reset should be called after execution before the statement object can be
+'''' reused (for example, with a new set of bound parameters).
+''''
+'''' Reference: https://www.sqlite.org/c3ref/reset.html
+''''
+'@Description "Resets SQLite PSO after execution."
+Friend Function Reset() As SQLiteResultCodes
+Attribute Reset.VB_Description = "Resets SQLite PSO after execution."
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_reset(this.StmtHandle)
+    If ResultCode <> SQLITE_OK Then this.DbConn.ErrInfoRetrieve
+    Reset = ResultCode
+End Function
+
+
+'''' sqlite3_finalize should only return an error if the the most recent
+'''' evaluation of the statement failed. At the same time, if Prepare16V2
+'''' returns an error, StmtHandle is set to 0 to prevent an error here. The
+'''' only remaining documented possibility is an error generated in course of
+'''' automatic recompilation (https://www.sqlite.org/c3ref/prepare.html).
+''''
+'''' Reference: https://www.sqlite.org/c3ref/finalize.html
+''''
+'@Description "Destructs SQLite PSO."
+Friend Function Finalize() As SQLiteResultCodes
+Attribute Finalize.VB_Description = "Destructs SQLite PSO."
+    If Not this.DbPara Is Nothing Then this.DbPara.BindClear
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_finalize(this.StmtHandle)
+    If ResultCode = SQLITE_OK Then
+        this.StmtHandle = 0
+    Else
+        this.DbConn.ErrInfoRetrieve
+    End If
+    Finalize = ResultCode
+End Function
+
+
+Friend Function ExecuteSetup(ByVal SQLQuery As String, _
+                    Optional ByVal QueryParameters As Variant) As SQLiteResultCodes
+    Dim ResultCode As SQLiteResultCodes
+    Dim LenSQL As Long
+    LenSQL = Len(SQLQuery)
+    If LenSQL > 0 Then
+        If this.StmtHandle <> 0 Then Finalize
+        ResultCode = Prepare16V2(SQLQuery)
+        If ResultCode <> SQLITE_OK Then
+            ExecuteSetup = ResultCode
+            Exit Function
+        End If
+    ElseIf this.StmtHandle <> 0 Then
+        ResultCode = Reset
+        If ResultCode <> SQLITE_OK Then
+            ResultCode = ExecuteSetup(SQLQueryOriginal, QueryParameters)
+            ExecuteSetup = ResultCode
+            Exit Function
+        End If
+    Else
+        Err.Raise ErrNo.InvalidParameterErr, "SQLiteCStatement", _
+                  "Blank query has been provided to an unprepared statement."
+    End If
+    If Not IsEmpty(QueryParameters) Then
+        If this.DbPara Is Nothing Then Set this.DbPara = SQLiteCParameters(Me)
+        ResultCode = this.DbPara.BindDictOrArray(QueryParameters)
+    End If
+    ExecuteSetup = ResultCode
+End Function
+
+
+Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
+                       Optional ByRef AffectedRowsCount As Long, _
+                       Optional ByVal QueryParameters As Variant) As SQLiteResultCodes
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    If ResultCode <> SQLITE_OK Then
+        ExecuteNonQuery = ResultCode
+        Exit Function
+    End If
+    
+    If AffectedRowsCount <> -1 Then AffectedRowsCount = this.DbConn.ChangesCount(True)
+    ResultCode = this.DbExec.Execute
+    If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
+        If AffectedRowsCount <> -1 Then
+            AffectedRowsCount = this.DbConn.ChangesCount(True) - AffectedRowsCount
+        End If
+        ResultCode = Reset
+        ExecuteNonQuery = ResultCode
+    Else
+        AffectedRowsCount = -1
+    End If
+    If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
+    ExecuteNonQuery = ResultCode
+End Function
+
+
+Public Function GetScalar(ByVal SQLQuery As String, _
+                 Optional ByVal QueryParameters As Variant) As Variant
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    If ResultCode <> SQLITE_OK Then
+        GetScalar = CVErr(ResultCode)
+    Else
+        If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
+        GetScalar = this.DbExec.GetScalar
+    End If
+End Function
+
+
+'''' Reference: https://www.sqlite.org/c3ref/expanded_sql.html
+''''
+'@Description "Returns SQL query supplied to the PSO factory with bound parameters expanded."
 Public Property Get SQLQueryExpanded() As String
+Attribute SQLQueryExpanded.VB_Description = "Returns SQL query supplied to the PSO factory with bound parameters expanded."
     #If VBA7 Then
         Dim SQLQueryPtr As LongPtr
     #Else
@@ -119,7 +239,11 @@ Public Property Get SQLQueryExpanded() As String
 End Property
 
 
-Public Function SQLQuery(Optional ByVal Normalized As Boolean = False) As String
+'''' Reference: https://www.sqlite.org/c3ref/expanded_sql.html
+''''
+'@Description "Returns original (optionally normalized) SQL query supplied to the PSO factory."
+Public Function SQLQueryOriginal(Optional ByVal Normalized As Boolean = False) As String
+Attribute SQLQueryOriginal.VB_Description = "Returns original (optionally normalized) SQL query supplied to the PSO factory."
     #If VBA7 Then
         Dim SQLQueryPtr As LongPtr
     #Else
@@ -134,44 +258,5 @@ Public Function SQLQuery(Optional ByVal Normalized As Boolean = False) As String
         Err.Raise OutOfMemoryErr, "SQLiteCStatement/SQLQuery", _
                   "SQLite DLL returned NULL pointer"
     End If
-    SQLQuery = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)
-End Function
-
-
-'@Ignore UseMeaningfulName
-Public Function Prepare16V2(ByVal SQLQuery As String) As Boolean
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_prepare16_v2(this.DbConn.DbHandle, StrPtr(SQLQuery), _
-                                      Len(SQLQuery) * 2 + 2, this.StmtHandle, 0)
-    If ResultCode = SQLITE_OK Then
-        Prepare16V2 = True
-    Else
-        ErrInfoRetrieve
-        Prepare16V2 = False
-    End If
-End Function
-
-
-Public Function Reset() As Boolean
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_reset(this.StmtHandle)
-    If ResultCode = SQLITE_OK Then
-        Reset = True
-    Else
-        ErrInfoRetrieve
-        Reset = False
-    End If
-End Function
-
-
-Public Function Finalize() As Boolean
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_finalize(this.StmtHandle)
-    If ResultCode = SQLITE_OK Then
-        this.StmtHandle = 0
-        Finalize = True
-    Else
-        ErrInfoRetrieve
-        Finalize = False
-    End If
+    SQLQueryOriginal = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)
 End Function
