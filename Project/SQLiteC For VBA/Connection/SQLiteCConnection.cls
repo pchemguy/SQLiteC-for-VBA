@@ -33,12 +33,8 @@ Private Const VERBOUS As Boolean = True
     #Else
     Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
     #End If
-Private Declare PtrSafe Function sqlite3_latin_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
 #Else
 Private Declare Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
-Private Declare Function sqlite3_latin_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
-Private Declare Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
 #End If
 
 #If VBA7 Then
@@ -151,30 +147,40 @@ Friend Sub Init(ByVal DbPathName As String)
 End Sub
 
 
+'''' vbNullString is an acceptable StmtName.
+'''' Raises an error if StmtName has already been used.
+'@Description "Creates a new SQLiteCStatement instance."
 Public Function CreateStatement(ByVal StmtName As String) As SQLiteCStatement
-    Const KeyAlreadyExistsErr As Long = 457
-    Guard.EmptyString StmtName
+Attribute CreateStatement.VB_Description = "Creates a new SQLiteCStatement instance."
     If this.Statements.Exists(StmtName) Then
         Err.Raise KeyAlreadyExistsErr, "SQLiteCConnection", _
                   "Statement name already exists!"
     End If
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = SQLiteCStatement(Me)
+    If DbStmt Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+        "SQLiteCConnection", "Failed to create an SQLiteCStatement instance."
     Set this.Statements(StmtName) = DbStmt
     Set CreateStatement = DbStmt
 End Function
 
 
-Public Function DbStmt(Optional ByVal StmtName As String = "main") As SQLiteCStatement
-    If Not this.Statements.Exists(StmtName) Then
-        Set DbStmt = CreateStatement(StmtName)
+'''' vbNullString is an acceptable StmtName (can be used as default).
+'@Description "Returns an existing SQLiteCStatement instance or Nothing."
+Public Function StmtDb(Optional ByVal StmtName As String = vbNullString _
+                      ) As SQLiteCStatement
+Attribute StmtDb.VB_Description = "Returns an existing SQLiteCStatement instance or Nothing."
+    If this.Statements.Exists(StmtName) Then
+        Set StmtDb = this.Statements(StmtName)
     Else
-        Set DbStmt = this.Statements(StmtName)
+        Set StmtDb = Nothing
     End If
 End Function
 
 
+'@Description "Finalizes all statement objects associated with connection."
 Friend Function Finalize() As SQLiteResultCodes
+Attribute Finalize.VB_Description = "Finalizes all statement objects associated with connection."
     Dim ResultCode As SQLiteResultCodes
     Dim StmtName As Variant
     Dim StmtDb As SQLiteCStatement
@@ -275,6 +281,7 @@ Public Sub CloseDb()
 Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
+    Debug.Assert ResultCode = SQLITE_OK
     ResultCode = sqlite3_close(this.DbHandle)
     If ResultCode = SQLITE_OK Then
         this.DbHandle = 0

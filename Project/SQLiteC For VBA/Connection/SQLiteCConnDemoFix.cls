@@ -13,6 +13,10 @@ Attribute VB_Description = "Provides fixtures for testing and as usage patterns"
 '@PredeclaredId
 Option Explicit
 
+Private Const LITE_LIB As String = "SQLiteCforVBA"
+Private Const PATH_SEP As String = "\"
+Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
+
 '''' Custom functions added to SQLite source for testing/verification purposes
 #If VBA7 Then
     #If WIN64 Then
@@ -63,14 +67,14 @@ Private Property Get ConnDb(ByVal DbPathName As String) As SQLiteCConnection
         Dim dbm As SQLiteC
         Set dbm = this.dbm
         Dim DbConn As SQLiteCConnection
-        Set DbConn = dbm.DbConnInit(DbPathName)
+        Set DbConn = dbm.CreateConnection(DbPathName)
         Set this.DbConn = DbConn
         Set ConnDb = DbConn
     End If
 End Property
 
-Public Property Get StmtDb(Optional ByVal StmtName As String = "main") As SQLiteCStatement
-    Set StmtDb = this.DbConn.DbStmt(StmtName)
+Public Property Get StmtDb(Optional ByVal StmtName As String = vbNullString) As SQLiteCStatement
+    Set StmtDb = this.DbConn.CreateStatement(StmtName)
 End Property
 
 Public Property Get ConnDbRegular() As SQLiteCConnection
@@ -116,10 +120,10 @@ Public Function LibVersionNumber() As Variant
     End If
 End Function
 
-Public Function LatinUTF8(Optional ByVal Numeric As Boolean = True) As String
+Public Function LatinUTF8() As String
     LatinUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_latin_utf8())
 End Function
 
-Public Function CyrillicUTF8(Optional ByVal Numeric As Boolean = True) As String
+Public Function CyrillicUTF8() As String
     CyrillicUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_cyrillic_utf8())
 End Function

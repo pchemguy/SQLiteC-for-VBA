@@ -19,22 +19,19 @@ Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDes
     ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As LongPtr, ByVal nPage As Long) As Long
 Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
-Private Declare PtrSafe Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
-Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 #Else
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, _
     ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
 Private Declare Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As Long, ByVal nPage As Long) As Long
 Private Declare Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As Long) As Long
-Private Declare Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As Long) As Long
-Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As Long) As Long
 #End If
 
 Option Explicit
 
 Private Type TSQLiteC
     DllMan As DllManager
-    DbConn As SQLiteCConnection
+    DbConnMan As Scripting.Dictionary
+    MainDb As Variant
 End Type
 Private this As TSQLiteC
 
@@ -57,15 +54,28 @@ Friend Sub Init(ByVal DllPath As String, _
         FileNames = DllNames
     Else
         #If WIN64 Then
+            '''' SQLite3.dll-x64 is built with MSYS2/MinGWx64
+            '''' LoadLibrary resolves/loads dependencies automatically.
             FileNames = "sqlite3.dll"
         #Else
+            '''' SQLite3.dll-x32 is built with MSVC and follows STDCALL
+            '''' LoadLibrary fails to resolve/load dependencies automatically,
+            '''' so loading them explicitly.
             FileNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
                               "icuio68.dll", "icutu68.dll", "sqlite3.dll")
         #End If
     End If
     '''' DllManager is responsible for DllPath validation/resolution
     Set this.DllMan = DllManager.Create(DllPath, FileNames)
+    Set this.DbConnMan = New Scripting.Dictionary
+    this.DbConnMan.CompareMode = TextCompare
+    this.MainDb = Null
 End Sub
+
+
+Public Property Get MainDbId() As Variant
+    MainDbId = this.MainDb
+End Property
 
 
 Public Property Get DllMan() As DllManager
@@ -73,27 +83,40 @@ Public Property Get DllMan() As DllManager
 End Property
 
 
-Public Property Get DbConnGet() As SQLiteCConnection
-    Set DbConnGet = this.DbConn
-End Property
-
-
-Public Function DbConnInit(ByVal DbPathName As String) As SQLiteCConnection
-    '''' SQLiteCConnection is responsible for DbPathName validation/resolution
+'''' vbNullString is an acceptable StmtName.
+'''' Raises an error if DbPathName (or resolved value) has already been used.
+'@Description "Creates a new SQLiteCConnection instance."
+Public Function CreateConnection(ByVal DbPathName As String) As SQLiteCConnection
+Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
+    If this.DbConnMan.Exists(DbPathName) Then Err.Raise KeyAlreadyExistsErr, _
+        "SQLiteC", "Connection pathname already exists!"
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(DbPathName)
-    Set this.DbConn = DbConn
-    Set DbConnInit = DbConn
+    If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+        "SQLiteC", "Failed to create an SQLiteCConnection instance."
+    Dim DbConnId As String
+    DbConnId = DbConn.DbPathName
+    If this.DbConnMan.Exists(DbConnId) Then Err.Raise KeyAlreadyExistsErr, _
+        "SQLiteC", "Connection pathname already exists!"
+    If IsNull(this.MainDb) Then this.MainDb = DbConnId
+    Set this.DbConnMan(DbConnId) = DbConn
+    Set CreateConnection = DbConn
 End Function
 
 
-Public Property Get DbStmtGet(Optional ByVal StmtName As String = "main") As SQLiteCStatement
-    Set DbStmtGet = this.DbConn.DbStmt(StmtName)
-End Property
-
-
-Public Function CreateStatement(ByVal StmtName As String) As SQLiteCStatement
-    Set CreateStatement = this.DbConn.CreateStatement(StmtName)
+'''' vbNullString is an acceptable DbPathName (should resolve to anon temp db).
+'@Description "Returns an existing SQLiteCConnection instance or Nothing."
+Public Function ConnDb(Optional ByVal DbPathName As String = vbNullString _
+                      ) As SQLiteCConnection
+Attribute ConnDb.VB_Description = "Returns an existing SQLiteCConnection instance or Nothing."
+    '''' SQLiteCConnection is responsible for DbPathName validation/resolution
+    If this.DbConnMan.Exists(DbPathName) Then
+        Set ConnDb = this.DbConnMan(DbPathName)
+    ElseIf Len(DbPathName) = 0 And this.DbConnMan.Exists(this.MainDb) Then
+        Set ConnDb = this.DbConnMan(this.MainDb)
+    Else
+        Set ConnDb = Nothing
+    End If
 End Function
 
 
@@ -102,13 +125,14 @@ End Function
 '''' Reference: https://www.sqlite.org/lang_vacuum.html#vacuuminto
 ''''
 '@Description "Performs online database backup."
-Public Function DupOnlineFull(ByVal DbConnDst As SQLiteCConnection, _
-                     Optional ByVal DstAlias As String = "main", _
-                     Optional ByVal DbConnSrc As SQLiteCConnection, _
-                     Optional ByVal SrcAlias As String = "main") As SQLiteResultCodes
-Attribute DupOnlineFull.VB_Description = "Performs online database backup."
+Public Function DupDbOnlineFull(ByVal DbConnDest As SQLiteCConnection, _
+                       Optional ByVal DstAlias As String = "main", _
+                       Optional ByVal DbConnSrc As SQLiteCConnection, _
+                       Optional ByVal SrcAlias As String = "main") As SQLiteResultCodes
+Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
     Guard.NullReference DbConnSrc
-    If DbConnDst Is Nothing Then Set DbConnDst = DbConnSrc
+    Dim DbConnDst As SQLiteCConnection
+    Set DbConnDst = IIf(DbConnDest Is Nothing, DbConnSrc, DbConnDest)
     #If VBA7 Then
         Dim DbHandleBak As LongPtr
     #Else
@@ -121,9 +145,19 @@ Attribute DupOnlineFull.VB_Description = "Performs online database backup."
     ResultCode = sqlite3_backup_step(DbHandleBak, -1)
     If ResultCode <> SQLITE_DONE Then GoTo RESULT_CODE:
     ResultCode = sqlite3_backup_finish(DbHandleBak)
+    Debug.Assert ResultCode = SQLITE_OK
     
 RESULT_CODE:
     ResultCode = DbConnDst.ErrInfoRetrieve
-    DupOnlineFull = ResultCode
+    DupDbOnlineFull = ResultCode
     Exit Function
 End Function
+
+
+'#If VBA7 Then
+'Private Declare PtrSafe Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
+'Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
+'#Else
+'Private Declare Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As Long) As Long
+'Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As Long) As Long
+'#End If

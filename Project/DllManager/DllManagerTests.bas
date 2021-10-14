@@ -7,6 +7,8 @@ Attribute VB_Name = "DllManagerTests"
 Option Explicit
 Option Private Module
 
+Public Const LoadingDllErr As Long = 48
+
 #Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
@@ -154,6 +156,5 @@ Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath)
     DllMan.Load DllName
-    Const LoadingDllErr As Long = 48
     Guard.AssertExpectedError Assert, LoadingDllErr
 End Sub

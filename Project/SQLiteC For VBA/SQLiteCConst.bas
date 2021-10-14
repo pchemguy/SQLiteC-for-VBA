@@ -1,6 +1,12 @@
 Attribute VB_Name = "SQLiteCConst"
 '@Folder "SQLiteC For VBA"
 '@IgnoreModule IndexedDefaultMemberAccess
+
+''''======================================================================''''
+'''' Acknowledgement
+'''' Some code from the https://github.com/govert/SQLiteForExcel project.
+''''======================================================================''''
+
 Option Explicit
 
 #If WIN64 Then
@@ -13,6 +19,5 @@ Option Explicit
     Public Const vbLongLong As Long = 20&
 #End If
 
-Public Const LITE_LIB As String = "SQLiteCforVBA"
-Public Const PATH_SEP As String = "\"
-Public Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
+Public Const KeyAlreadyExistsErr As Long = 457
+

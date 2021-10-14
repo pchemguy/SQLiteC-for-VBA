@@ -45,5 +45,7 @@ Private Sub LoadDlls(ByVal DllPath As String)
     DllNames = Array( _
         "sqlite3.dll" _
     )
+    '@Ignore FunctionReturnValueDiscarded
     DllMan.LoadMultiple DllNames
 End Sub
+

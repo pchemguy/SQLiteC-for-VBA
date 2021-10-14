@@ -84,6 +84,7 @@ Private Sub SQLiteLoadMultipleArrayCompact()
     #End If
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath, DllNames)
+    Debug.Assert Not DllMan Is Nothing
 End Sub
 
 

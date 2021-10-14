@@ -42,5 +42,7 @@ Private Sub LoadDlls(ByVal DllPath As String)
     DllNames = Array( _
         "AddLib.dll" _
     )
+    '@Ignore FunctionReturnValueDiscarded
     DllMan.LoadMultiple DllNames
 End Sub
+
