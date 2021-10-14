@@ -13,6 +13,21 @@ Attribute VB_Description = "Provides fixtures for testing and as usage patterns"
 '@PredeclaredId
 Option Explicit
 
+'''' Custom functions added to SQLite source for testing/verification purposes
+#If VBA7 Then
+    #If WIN64 Then
+    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As LongLong
+    #Else
+    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
+    #End If
+Private Declare PtrSafe Function sqlite3_latin_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
+#Else
+Private Declare Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
+Private Declare Function sqlite3_latin_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
+Private Declare Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
+#End If
+
 Private Type TSQLiteCConnDemoFix
     dbm As SQLiteC
     DbConn As SQLiteCConnection
@@ -54,17 +69,8 @@ Private Property Get ConnDb(ByVal DbPathName As String) As SQLiteCConnection
     End If
 End Property
 
-Public Property Get StmtDb(ByVal ConnDb As SQLiteCConnection) As SQLiteCStatement
-    If Not this.DbStmt Is Nothing Then
-        Set StmtDb = this.DbStmt
-    Else
-        Dim dbm As SQLiteC
-        Set dbm = this.dbm
-        Dim DbStmt As SQLiteCStatement
-        Set DbStmt = dbm.DbStmtInit(ConnDb)
-        Set this.DbStmt = DbStmt
-        Set StmtDb = DbStmt
-    End If
+Public Property Get StmtDb(Optional ByVal StmtName As String = "main") As SQLiteCStatement
+    Set StmtDb = this.DbConn.DbStmt(StmtName)
 End Property
 
 Public Property Get ConnDbRegular() As SQLiteCConnection
@@ -102,3 +108,18 @@ Public Property Get ConnDbLockedDb() As SQLiteCConnection
     DbPathName = this.FixPath & "ACLLocked" & PATH_SEP & "LockedDb.db"
     Set ConnDbLockedDb = ConnDb(DbPathName)
 End Property
+
+Public Function LibVersionNumber() As Variant
+    LibVersionNumber = sqlite3_libversion_number_i64()
+    If VarType(LibVersionNumber) = vbCurrency Then
+        LibVersionNumber = LibVersionNumber * 10000
+    End If
+End Function
+
+Public Function LatinUTF8(Optional ByVal Numeric As Boolean = True) As String
+    LatinUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_latin_utf8())
+End Function
+
+Public Function CyrillicUTF8(Optional ByVal Numeric As Boolean = True) As String
+    CyrillicUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_cyrillic_utf8())
+End Function

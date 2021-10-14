@@ -5,6 +5,16 @@ Option Explicit
 Option Private Module
 
 
+'''' Custom functions added to SQLite source for testing/verification purposes
+#If VBA7 Then
+Private Declare PtrSafe Function sqlite3_latin_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
+#Else
+Private Declare Function sqlite3_latin_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
+Private Declare Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
+#End If
+
+
 Private Sub GetSQLiteVersionString()
     Dim ConnFix As SQLiteCConnDemoFix
     Set ConnFix = SQLiteCConnDemoFix.Create
@@ -17,8 +27,11 @@ Private Sub GetSQLiteVersionString()
     Debug.Print DbConn.Version(False)
     Debug.Print CStr(DbConn.Version(True))
     
-    '''' This test function is only available in a custom built SQLite library
+    '''' This test functions are only available in a custom built SQLite library
     On Error GoTo FUNCTION_NOT_AVAILABLE:
+    Debug.Print CStr(ConnFix.LibVersionNumber)
+    Debug.Print ConnFix.LatinUTF8
+    Debug.Print ConnFix.CyrillicUTF8
     Debug.Print CStr(DbConn.VersionI64)
     
     On Error GoTo 0
@@ -85,7 +98,7 @@ Private Sub TestDbRegular()
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbRegular
     Dim DbStmt As SQLiteCStatement
-    Set DbStmt = ConnFix.StmtDb(DbConn)
+    Set DbStmt = ConnFix.StmtDb("main")
     
     Dim Result As Variant
     Result = DbConn.Version
