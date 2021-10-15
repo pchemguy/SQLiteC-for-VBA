@@ -137,6 +137,7 @@ Private this As TSQLiteCRC
 
 
 Public Function CodeToName(ByVal SQLiteResultCode As SQLiteResultCodes) As String
+    '@Ignore IndexedDefaultMemberAccess
     CodeToName = this.SQLiteRCMap(SQLiteResultCode)
 End Function
 

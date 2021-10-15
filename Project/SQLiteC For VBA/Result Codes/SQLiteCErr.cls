@@ -110,6 +110,7 @@ Public Sub PrintErr()
     End With
 End Sub
 
+
 '#If VBA7 Then
 'Private Declare PtrSafe Function sqlite3_errmsg16 Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf16String
 '#Else

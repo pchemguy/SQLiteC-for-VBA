@@ -24,15 +24,15 @@ Private Sub GetSQLiteVersionString()
     Set dbm = ConnFix.dbm
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbRegular
-    Debug.Print DbConn.Version(False)
-    Debug.Print CStr(DbConn.Version(True))
+    Debug.Print dbm.Version(False)
+    Debug.Print CStr(dbm.Version(True))
     
     '''' This test functions are only available in a custom built SQLite library
     On Error GoTo FUNCTION_NOT_AVAILABLE:
     Debug.Print CStr(ConnFix.LibVersionNumber)
     Debug.Print ConnFix.LatinUTF8
     Debug.Print ConnFix.CyrillicUTF8
-    Debug.Print CStr(DbConn.VersionI64)
+    Debug.Print CStr(dbm.VersionI64)
     
     On Error GoTo 0
     Exit Sub
@@ -101,9 +101,9 @@ Private Sub TestDbRegular()
     Set DbStmt = ConnFix.StmtDb("main")
     
     Dim Result As Variant
-    Result = DbConn.Version
-    Result = DbConn.Version(False)
-    Result = DbConn.VersionI64
+    Result = dbm.Version
+    Result = dbm.Version(False)
+    Result = dbm.VersionI64
     DbConn.OpenDb
     Result = DbStmt.GetScalar("SELECT sqlite_version()")
     Result = DbStmt.GetRowSet("SELECT * FROM pragma_module_list()")

@@ -1,8 +1,9 @@
 Attribute VB_Name = "SQLiteCTests"
 '@Folder "SQLiteC For VBA.Manager"
 '@TestModule
-'@IgnoreModule LineLabelNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
-'@IgnoreModule UseMeaningfulName
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule UnhandledOnErrorResumeNext
+'@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded, UseMeaningfulName
 Option Explicit
 Option Private Module
 
@@ -40,12 +41,12 @@ End Sub
 '===================== FIXTURES ====================='
 '===================================================='
 
+
 Private Function zfxGetDefaultDBM() As SQLiteC
     Dim DllPath As String
     DllPath = LITE_RPREFIX & "dll\" & ARCH
     Dim dbm As SQLiteC
     '''' Using default library names hardcoded in the SQLiteC constructor.
-    '@Ignore IndexedDefaultMemberAccess
     Set dbm = SQLiteC(DllPath)
     If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "SQLiteCTests", "Failed to create an SQLiteC instance."
@@ -100,10 +101,10 @@ Arrange:
     Dim DllPath As String
     Dim DllNames As Variant
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = LITE_RPREFIX & "dll\x64"
         DllNames = "sqlite3.dll"
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = LITE_RPREFIX & "dll\x32"
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
     #End If
     Dim dbm As SQLiteC
@@ -112,9 +113,9 @@ Act:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(vbNullString)
     Dim VersionS As String
-    VersionS = Replace(DbConn.Version(False), ".", "0") & "0"
+    VersionS = Replace(dbm.Version(False), ".", "0") & "0"
     Dim VersionN As String
-    VersionN = CStr(DbConn.Version(True))
+    VersionN = CStr(dbm.Version(True))
 Assert:
     Assert.AreEqual VersionS, VersionN, "Unfolding error"
 
@@ -126,16 +127,15 @@ End Sub
 
 
 '@TestMethod("SQLiteVersion")
-'@Ignore UseMeaningfulName
 Private Sub ztcSQLite3Version_VerifiesVersionInfoV2()
     On Error GoTo TestFail
 
 Arrange:
     Dim DllPath As String
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = LITE_RPREFIX & "dll\x64"
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = LITE_RPREFIX & "dll\x32"
     #End If
     Dim dbm As SQLiteC
     Set dbm = SQLiteC(DllPath)
@@ -143,9 +143,9 @@ Act:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(vbNullString)
     Dim VersionS As String
-    VersionS = Replace(DbConn.Version(False), ".", "0") & "0"
+    VersionS = Replace(dbm.Version(False), ".", "0") & "0"
     Dim VersionN As String
-    VersionN = CStr(DbConn.Version(True))
+    VersionN = CStr(dbm.Version(True))
 Assert:
     Assert.AreEqual VersionS, VersionN, "Unfolding error"
 
@@ -230,10 +230,10 @@ Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
     Dim DllPath As String
     Dim DllNames As Variant
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = LITE_RPREFIX & "dll\x32"
         DllNames = "sqlite3.dll"
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = LITE_RPREFIX & "dll\x64"
         DllNames = "sqlite3.dll"
     #End If
     Dim dbm As SQLiteC
@@ -283,6 +283,7 @@ Arrange:
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
     Assert.IsNotNothing DbConn, "Default SQLiteCConnection is not set."
+    Assert.AreEqual DbPathName, dbm.MainDbId
     Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
     
 CleanExit:
@@ -292,3 +293,45 @@ TestFail:
 End Sub
 
 
+'@TestMethod("Connection")
+Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = zfxGetDefaultDBM()
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = dbm.CreateConnection(DbPathName)
+Assert:
+    Assert.AreEqual DbPathName, dbm.MainDbId
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Connection")
+Private Sub ztcGetDbConn_VerifiesTempMainDb()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = zfxGetDefaultDBM()
+    Dim DbPathName As String
+    DbPathName = vbNullString
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = dbm.CreateConnection(DbPathName)
+Assert:
+    Assert.AreEqual DbPathName, dbm.MainDbId
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

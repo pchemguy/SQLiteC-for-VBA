@@ -1,6 +1,6 @@
 Attribute VB_Name = "DllManagerDemo"
 '@Folder "DllManager"
-'@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess
+'@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
 Option Explicit
 Option Private Module
 
@@ -137,3 +137,4 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub
+

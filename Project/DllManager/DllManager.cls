@@ -28,9 +28,11 @@ Option Explicit
 
 Private Const VERBOUS As Boolean = False
 
-Private Const LOAD_OK As Long = -1
-Private Const LOAD_FAIL As Long = 0
-Private Const LOAD_ALREADY_LOADED As Long = 1
+Public Enum DllLoadStatus
+    LOAD_OK = -1
+    LOAD_FAIL = 0
+    LOAD_ALREADY_LOADED = 1
+End Enum
 
 Private Const ERROR_BAD_EXE_FORMAT As Long = 193
 Private Const LoadingDllErr As Long = 48
@@ -66,11 +68,12 @@ End Sub
 
 Private Sub Class_Terminate()
     ResetDllSearchPath
-    FreeMultiple
+    Dim ResultCode As DllLoadStatus
+    ResultCode = FreeMultiple
+    Debug.Assert ResultCode = LOAD_OK
 End Sub
 
 
-'@Ignore ProcedureNotUsed
 Public Property Get Dlls() As Scripting.Dictionary
     Set Dlls = this.Dlls
 End Property
@@ -120,7 +123,7 @@ Public Sub ResetDllSearchPath()
 End Sub
 
 
-Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vbNullString) As Long
+Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vbNullString) As DllLoadStatus
     Guard.EmptyString DllName
     
     Dim fso As New Scripting.FileSystemObject
@@ -190,7 +193,7 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
 End Function
 
 
-Public Function Free(Optional ByVal DllName As String) As Long
+Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
     FileName = fso.GetFileName(DllName)
@@ -213,7 +216,7 @@ Public Function Free(Optional ByVal DllName As String) As Long
 End Function
 
 
-Public Function LoadMultiple(ParamArray DllNames() As Variant) As Long
+Public Function LoadMultiple(ParamArray DllNames() As Variant) As DllLoadStatus
     Dim FileNames() As Variant
     FileNames = UnfoldParamArray(DllNames)
     Dim Result As Long
@@ -227,7 +230,8 @@ Public Function LoadMultiple(ParamArray DllNames() As Variant) As Long
 End Function
 
 
-Public Function FreeMultiple(ParamArray DllNames() As Variant) As Long
+'@Ignore FunctionReturnValueAlwaysDiscarded
+Public Function FreeMultiple(ParamArray DllNames() As Variant) As DllLoadStatus
     Dim FileNames() As Variant
     FileNames = UnfoldParamArray(DllNames)
     Dim Result As Long

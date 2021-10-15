@@ -26,21 +26,7 @@ Option Explicit
 
 Private Const VERBOUS As Boolean = True
 
-'''' Custom functions added to SQLite source for testing/verification purposes
 #If VBA7 Then
-    #If WIN64 Then
-    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As LongLong
-    #Else
-    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
-    #End If
-#Else
-Private Declare Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
-#End If
-
-#If VBA7 Then
-'''' Engine test, no db is necessary
-Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteErrors
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
@@ -55,9 +41,6 @@ Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPt
 Private Declare PtrSafe Function sqlite3_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
-'''' Engine test, no db is necessary
-Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
-Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
@@ -147,6 +130,11 @@ Friend Sub Init(ByVal DbPathName As String)
 End Sub
 
 
+Private Sub Class_Terminate()
+    CloseDb
+End Sub
+
+
 '''' vbNullString is an acceptable StmtName.
 '''' Raises an error if StmtName has already been used.
 '@Description "Creates a new SQLiteCStatement instance."
@@ -221,19 +209,6 @@ Public Function ErrInfoRetrieve() As SQLiteResultCodes
 End Function
 
 
-'''' Reference: https://www.sqlite.org/c3ref/libversion.html
-''''
-'@Description "Returns SQLite version. No database is necessary."
-Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
-Attribute Version.VB_Description = "Returns SQLite version. No database is necessary."
-    If Numeric Then
-        Version = sqlite3_libversion_number()
-    Else
-        Version = UTFlib.StrFromUTF8Ptr(sqlite3_libversion())
-    End If
-End Function
-
-
 '''' Reference: https://www.sqlite.org/c3ref/open.html
 ''''
 '@Description "Generates SQLite DBO instance."
@@ -282,12 +257,14 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
     Debug.Assert ResultCode = SQLITE_OK
-    ResultCode = sqlite3_close(this.DbHandle)
-    If ResultCode = SQLITE_OK Then
-        this.DbHandle = 0
-    Else
-        '@Ignore FunctionReturnValueDiscarded
-        ErrInfoRetrieve
+    If this.DbHandle <> 0 Then
+        ResultCode = sqlite3_close(this.DbHandle)
+        If ResultCode = SQLITE_OK Then
+            this.DbHandle = 0
+        Else
+            '@Ignore FunctionReturnValueDiscarded
+            ErrInfoRetrieve
+        End If
     End If
     If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
 End Sub
@@ -405,17 +382,4 @@ Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction s
     Dim SPClause As String
     SPClause = IIf(Len(SavePointName) = 0, vbNullString, " TO " & SavePointName)
     Rollback = ExecuteNonQueryPlain("ROLLBACK" & SPClause)
-End Function
-
-
-'''' This routine uses a non-standard export added to a the SQLite amalgamation
-'''' yielding a custom-built library. It returns SQLite version as a 64-bit int.
-'''' It can be used for testing purposes, especially for the x32 version.
-''''
-'@Ignore UseMeaningfulName
-Public Function VersionI64() As Variant
-    Dim VerNum As Variant
-    VerNum = sqlite3_libversion_number_i64()
-    If VarType(VerNum) = vbCurrency Then VerNum = VerNum * 10000
-    VersionI64 = VerNum
 End Function

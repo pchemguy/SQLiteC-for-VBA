@@ -14,12 +14,31 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
+'''' Custom functions added to SQLite source for testing/verification purposes
 #If VBA7 Then
+    #If WIN64 Then
+    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As LongLong
+    #Else
+    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
+    #End If
+#Else
+Private Declare Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
+#End If
+
+#If VBA7 Then
+'''' Engine test, no db is necessary
+Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
+'''' Backup
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, _
     ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As LongPtr, ByVal nPage As Long) As Long
 Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 #Else
+'''' Engine test, no db is necessary
+Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
+Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
+'''' Backup
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, _
     ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
 Private Declare Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As Long, ByVal nPage As Long) As Long
@@ -151,6 +170,32 @@ RESULT_CODE:
     ResultCode = DbConnDst.ErrInfoRetrieve
     DupDbOnlineFull = ResultCode
     Exit Function
+End Function
+
+
+'''' Reference: https://www.sqlite.org/c3ref/libversion.html
+''''
+'@Description "Returns SQLite version. No database is necessary."
+Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
+Attribute Version.VB_Description = "Returns SQLite version. No database is necessary."
+    If Numeric Then
+        Version = sqlite3_libversion_number()
+    Else
+        Version = UTFlib.StrFromUTF8Ptr(sqlite3_libversion())
+    End If
+End Function
+
+
+'''' This routine uses a non-standard export added to a the SQLite amalgamation
+'''' yielding a custom-built library. It returns SQLite version as a 64-bit int.
+'''' It can be used for testing purposes, especially for the x32 version.
+''''
+'@Ignore UseMeaningfulName
+Public Function VersionI64() As Variant
+    Dim VerNum As Variant
+    VerNum = sqlite3_libversion_number_i64()
+    If VarType(VerNum) = vbCurrency Then VerNum = VerNum * 10000
+    VersionI64 = VerNum
 End Function
 
 
