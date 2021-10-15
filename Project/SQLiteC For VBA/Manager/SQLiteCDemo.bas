@@ -22,8 +22,6 @@ Private Sub GetSQLiteVersionString()
     Dim dbm As SQLiteC
     '@Ignore AssignmentNotUsed
     Set dbm = ConnFix.dbm
-    Dim DbConn As SQLiteCConnection
-    Set DbConn = ConnFix.ConnDbRegular
     Debug.Print dbm.Version(False)
     Debug.Print CStr(dbm.Version(True))
     
@@ -102,10 +100,15 @@ Private Sub TestDbRegular()
     
     Dim Result As Variant
     Result = dbm.Version
+    Debug.Print Result
     Result = dbm.Version(False)
+    Debug.Print Result
     Result = dbm.VersionI64
+    Debug.Print Result
     DbConn.OpenDb
     Result = DbStmt.GetScalar("SELECT sqlite_version()")
+    Debug.Print Result
     Result = DbStmt.GetRowSet("SELECT * FROM pragma_module_list()")
+    Debug.Print Result(0)(0)(0)
     DbConn.CloseDb
 End Sub

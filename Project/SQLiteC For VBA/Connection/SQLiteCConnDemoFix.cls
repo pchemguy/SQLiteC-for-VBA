@@ -83,12 +83,14 @@ Public Property Get ConnDbRegular() As SQLiteCConnection
     Set ConnDbRegular = ConnDb(DbPathName)
 End Property
 
+'@Ignore ProcedureNotUsed
 Public Property Get ConnDbMemory() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
     Set ConnDbMemory = ConnDb(DbPathName)
 End Property
 
+'@Ignore ProcedureNotUsed
 Public Property Get ConnDbTemp() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = vbNullString
