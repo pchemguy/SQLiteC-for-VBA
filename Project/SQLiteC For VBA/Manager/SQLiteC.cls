@@ -14,17 +14,6 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
-'''' Custom functions added to SQLite source for testing/verification purposes
-#If VBA7 Then
-    #If WIN64 Then
-    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As LongLong
-    #Else
-    Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
-    #End If
-#Else
-Private Declare Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency
-#End If
-
 #If VBA7 Then
 '''' Engine test, no db is necessary
 Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
@@ -183,19 +172,6 @@ Attribute Version.VB_Description = "Returns SQLite version. No database is neces
     Else
         Version = UTFlib.StrFromUTF8Ptr(sqlite3_libversion())
     End If
-End Function
-
-
-'''' This routine uses a non-standard export added to a the SQLite amalgamation
-'''' yielding a custom-built library. It returns SQLite version as a 64-bit int.
-'''' It can be used for testing purposes, especially for the x32 version.
-''''
-'@Ignore UseMeaningfulName
-Public Function VersionI64() As Variant
-    Dim VerNum As Variant
-    VerNum = sqlite3_libversion_number_i64()
-    If VarType(VerNum) = vbCurrency Then VerNum = VerNum * 10000
-    VersionI64 = VerNum
 End Function
 
 

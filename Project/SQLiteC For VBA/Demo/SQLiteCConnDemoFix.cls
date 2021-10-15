@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Provides fixtures for testing and as usage patterns"
-'@Folder "SQLiteC For VBA.Connection"
+'@Folder "SQLiteC For VBA.Demo"
 '@ModuleDescription "Provides fixtures for testing and as usage patterns"
 '@PredeclaredId
 Option Explicit
@@ -122,10 +122,26 @@ Public Function LibVersionNumber() As Variant
     End If
 End Function
 
+
+'''' =========================================================================== ''''
+'''' This routine uses a non-standard export added to a the SQLite amalgamation  ''''
+'''' yielding a custom-built library. It returns SQLite version as a 64-bit int. ''''
+'''' It can be used for testing purposes, especially for the x32 version.        ''''
+'''' =========================================================================== ''''
+
+
 Public Function LatinUTF8() As String
     LatinUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_latin_utf8())
 End Function
 
 Public Function CyrillicUTF8() As String
     CyrillicUTF8 = UTFlib.StrFromUTF8Ptr(sqlite3_cyrillic_utf8())
+End Function
+
+'@Ignore UseMeaningfulName
+Public Function VersionI64() As Variant
+    Dim VerNum As Variant
+    VerNum = sqlite3_libversion_number_i64()
+    If VarType(VerNum) = vbCurrency Then VerNum = VerNum * 10000
+    VersionI64 = VerNum
 End Function

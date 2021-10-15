@@ -1,18 +1,8 @@
 Attribute VB_Name = "SQLiteCDemo"
-'@Folder "SQLiteC For VBA.Manager"
+'@Folder "SQLiteC For VBA.Demo"
 '@IgnoreModule ProcedureNotUsed
 Option Explicit
 Option Private Module
-
-
-'''' Custom functions added to SQLite source for testing/verification purposes
-#If VBA7 Then
-Private Declare PtrSafe Function sqlite3_latin_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As LongPtr ' PtrUtf8String
-#Else
-Private Declare Function sqlite3_latin_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
-Private Declare Function sqlite3_cyrillic_utf8 Lib "SQLite3" () As Long ' PtrUtf8String
-#End If
 
 
 Private Sub GetSQLiteVersionString()
@@ -30,7 +20,7 @@ Private Sub GetSQLiteVersionString()
     Debug.Print CStr(ConnFix.LibVersionNumber)
     Debug.Print ConnFix.LatinUTF8
     Debug.Print ConnFix.CyrillicUTF8
-    Debug.Print CStr(dbm.VersionI64)
+    Debug.Print CStr(ConnFix.VersionI64)
     
     On Error GoTo 0
     Exit Sub
@@ -53,8 +43,11 @@ Private Sub OpenCloseDbRegular()
     Set ConnFix = SQLiteCConnDemoFix.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbRegular
-    DbConn.OpenDb
-    DbConn.CloseDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = DbConn.OpenDb
+    Debug.Assert ResultCode = SQLITE_OK
+    ResultCode = DbConn.CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 
@@ -63,8 +56,11 @@ Private Sub OpenCloseDbInvalidPath()
     Set ConnFix = SQLiteCConnDemoFix.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbInvalidPath
-    DbConn.OpenDb
-    DbConn.CloseDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = DbConn.OpenDb
+    Debug.Assert ResultCode = SQLITE_OK
+    ResultCode = DbConn.CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 
@@ -73,8 +69,11 @@ Private Sub OpenCloseDbNotDb()
     Set ConnFix = SQLiteCConnDemoFix.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbNotDb
-    DbConn.OpenDb
-    DbConn.CloseDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = DbConn.OpenDb
+    Debug.Assert ResultCode = SQLITE_OK
+    ResultCode = DbConn.CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 
@@ -83,8 +82,11 @@ Private Sub OpenCloseLockedDb()
     Set ConnFix = SQLiteCConnDemoFix.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbLockedDb
-    DbConn.OpenDb
-    DbConn.CloseDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = DbConn.OpenDb
+    Debug.Assert ResultCode = SQLITE_OK
+    ResultCode = DbConn.CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 
@@ -103,12 +105,16 @@ Private Sub TestDbRegular()
     Debug.Print Result
     Result = dbm.Version(False)
     Debug.Print Result
-    Result = dbm.VersionI64
+    Result = ConnFix.VersionI64
     Debug.Print Result
-    DbConn.OpenDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = DbConn.OpenDb
+    Debug.Assert ResultCode = SQLITE_OK
     Result = DbStmt.GetScalar("SELECT sqlite_version()")
     Debug.Print Result
     Result = DbStmt.GetRowSet("SELECT * FROM pragma_module_list()")
     Debug.Print Result(0)(0)(0)
-    DbConn.CloseDb
+    ResultCode = DbConn.CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
+

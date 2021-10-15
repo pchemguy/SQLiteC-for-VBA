@@ -12,6 +12,7 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 '@ModuleDescription "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
 '@PredeclaredId
 '@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
 
 ''''======================================================================''''
 '''' Statement
@@ -76,6 +77,7 @@ End Sub
 
 
 Private Sub Class_Terminate()
+    '@Ignore FunctionReturnValueDiscarded
     If this.StmtHandle <> 0 Then Finalize
 End Sub
 
@@ -115,7 +117,7 @@ Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
                                       Len(SQLQuery) * 2 + 2, this.StmtHandle, 0)
     If ResultCode <> SQLITE_OK Then
         this.StmtHandle = 0
-        this.DbConn.ErrInfoRetrieve
+        ResultCode = this.DbConn.ErrInfoRetrieve
     End If
     Prepare16V2 = ResultCode
 End Function
@@ -131,7 +133,7 @@ Friend Function Reset() As SQLiteResultCodes
 Attribute Reset.VB_Description = "Resets SQLite PSO after execution."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_reset(this.StmtHandle)
-    If ResultCode <> SQLITE_OK Then this.DbConn.ErrInfoRetrieve
+    If ResultCode <> SQLITE_OK Then ResultCode = this.DbConn.ErrInfoRetrieve
     Reset = ResultCode
 End Function
 
@@ -153,7 +155,7 @@ Attribute Finalize.VB_Description = "Destructs SQLite PSO."
     If ResultCode = SQLITE_OK Then
         this.StmtHandle = 0
     Else
-        this.DbConn.ErrInfoRetrieve
+        ResultCode = this.DbConn.ErrInfoRetrieve
     End If
     Finalize = ResultCode
 End Function
@@ -165,6 +167,7 @@ Friend Function ExecuteSetup(ByVal SQLQuery As String, _
     Dim LenSQL As Long
     LenSQL = Len(SQLQuery)
     If LenSQL > 0 Then
+        '@Ignore FunctionReturnValueDiscarded
         If this.StmtHandle <> 0 Then Finalize
         ResultCode = Prepare16V2(SQLQuery)
         If ResultCode <> SQLITE_OK Then

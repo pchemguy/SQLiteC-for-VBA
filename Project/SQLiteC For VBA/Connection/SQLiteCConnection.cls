@@ -12,6 +12,7 @@ Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO
 '@ModuleDescription "Manages lifecycle of the SQLite Database object (DBO)"
 '@PredeclaredId
 '@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
 
 ''''======================================================================''''
 '''' Connection
@@ -32,6 +33,7 @@ Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
     ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteErrors ' PtrDb
 Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteDbAccess
 '''' Transactions
 Private Declare PtrSafe Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteTxnState
 '''' Query wrapper
@@ -46,6 +48,7 @@ Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
     ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
+Private Declare Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteDbAccess
 '''' Transactions
 Private Declare Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteTxnState
 '''' Query wrapper
@@ -88,9 +91,17 @@ Public Enum SQLiteTxnMode
 End Enum
 
 Public Enum SQLiteTxnState
+    SQLITE_TXN_NULL = -1&
     SQLITE_TXN_NONE = 0&
     SQLITE_TXN_READ = 1&
     SQLITE_TXN_WRITE = 2&
+End Enum
+
+Public Enum SQLiteDbAccess
+    SQLITE_DB_NULL = -2
+    SQLITE_DB_NONE = -1
+    SQLITE_DB_FULL = 0
+    SQLITE_DB_READ = 1
 End Enum
 
 Private Type TSQLiteCConnection
@@ -131,7 +142,9 @@ End Sub
 
 
 Private Sub Class_Terminate()
-    CloseDb
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = CloseDb
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 
@@ -175,7 +188,7 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
     For Each StmtName In this.Statements.Keys
         Set StmtDb = this.Statements(StmtName)
         ResultCode = StmtDb.Finalize
-        If ResultCode <> SQLITE_OK Then ErrInfoRetrieve
+        If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
     Next StmtName
     Finalize = ResultCode
 End Function
@@ -212,8 +225,9 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/open.html
 ''''
 '@Description "Generates SQLite DBO instance."
-Public Sub OpenDb(Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
-                  Optional ByVal vfsName As String = vbNullString)
+Public Function OpenDb( _
+            Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
+            Optional ByVal vfsName As String = vbNullString) As SQLiteResultCodes
 Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
@@ -227,32 +241,30 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
             Dim vfsNamePtr As Long
         #End If
         
-        '@Ignore UseMeaningfulName
-        Dim DbPathNameUTF8() As Byte
-        DbPathNameUTF8 = UTFlib.UTF8BytesFromStr(this.DbPathName)
-        DbPathNamePtr = VarPtr(DbPathNameUTF8(0))
+        Dim DbPathNameUTF8B() As Byte
+        DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
+        DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
         
         If Len(vfsName) = 0 Then
             vfsNamePtr = 0
         Else
-            '@Ignore UseMeaningfulName
-            Dim vfsNameUTF8() As Byte
-            vfsNameUTF8 = UTFlib.UTF8BytesFromStr(vfsName)
-            vfsNamePtr = VarPtr(vfsNameUTF8(0))
+            Dim vfsNameUTF8B() As Byte
+            vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
+            vfsNamePtr = VarPtr(vfsNameUTF8B(0))
         End If
         
         ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
-    '@Ignore FunctionReturnValueDiscarded
-    If ResultCode <> SQLITE_OK Then ErrInfoRetrieve
+    If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
     If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
-End Sub
+    OpenDb = ResultCode
+End Function
 
 
 '''' Reference: https://www.sqlite.org/c3ref/close.html
 ''''
 '@Description "Destructs SQLite DBO instance."
-Public Sub CloseDb()
+Public Function CloseDb() As SQLiteResultCodes
 Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
@@ -262,12 +274,24 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
         If ResultCode = SQLITE_OK Then
             this.DbHandle = 0
         Else
-            '@Ignore FunctionReturnValueDiscarded
-            ErrInfoRetrieve
+            ResultCode = ErrInfoRetrieve
         End If
     End If
     If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
-End Sub
+    CloseDb = ResultCode
+End Function
+
+
+'''' Reference: https://www.sqlite.org/c3ref/db_readonly.html
+''''
+'@Description "Queries database access mode."
+Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
+                          ) As SQLiteDbAccess
+Attribute AccessMode.VB_Description = "Queries database access mode."
+    Dim SchemaUTF8() As Byte
+    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
+    AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
+End Function
 
 
 '''' Reference: https://www.sqlite.org/c3ref/changes.html
@@ -298,8 +322,7 @@ Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_exec(this.DbHandle, VarPtr(SQLQueryUTF8(0)), 0, 0, 0)
     If ResultCode <> SQLITE_OK Then
-        '@Ignore FunctionReturnValueDiscarded
-        ErrInfoRetrieve
+        ResultCode = ErrInfoRetrieve
         AffectedRows = -1
     Else
         If AffectedRows <> -1 Then AffectedRows = ChangesCount(True) - AffectedRows
@@ -314,9 +337,8 @@ End Function
 Public Function TxnState(Optional ByVal SchemaAlias As String = "main" _
                         ) As SQLiteTxnState
 Attribute TxnState.VB_Description = "Queries transaction status for the current SQLite DBO."
-    '@Ignore UseMeaningfulName
     Dim SchemaUTF8() As Byte
-    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaUTF8)
+    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     TxnState = sqlite3_txn_state(this.DbHandle, VarPtr(SchemaUTF8(0)))
 End Function
 

@@ -12,6 +12,7 @@ Attribute VB_Description = "Handles query parameters"
 '@ModuleDescription "Handles query parameters"
 '@PredeclaredId
 '@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
 
 ''''======================================================================''''
 '''' Parameters
@@ -164,7 +165,7 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             Debug.Print "Unsupported array type: " & CStr(VarType(Value))
             ResultCode = SQLITE_ERROR
     End Select
-    If ResultCode > SQLITE_ERROR Then this.DbStmt.DbConn.ErrInfoRetrieve
+    If ResultCode > SQLITE_ERROR Then ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
     BindOne = ResultCode
 End Function
 
@@ -233,6 +234,7 @@ End Function
 Public Sub BindClear()
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)
+    '@Ignore FunctionReturnValueDiscarded
     If ResultCode <> SQLITE_OK Then this.DbStmt.DbConn.ErrInfoRetrieve
 End Sub
 

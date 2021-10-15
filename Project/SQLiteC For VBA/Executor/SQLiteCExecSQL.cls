@@ -12,6 +12,7 @@ Attribute VB_Description = "Executes statement and retrieves data"
 '@ModuleDescription "Executes statement and retrieves data"
 '@PredeclaredId
 '@Exposed
+'@IgnoreModule IndexedDefaultMemberAccess
 
 ''''======================================================================''''
 '''' Execute and retrieve
@@ -220,7 +221,7 @@ Public Function Execute() As SQLiteResultCodes
             this.StepAPIError = False
         Case Else
             this.StepAPIError = True
-            this.DbStmt.DbConn.ErrInfoRetrieve
+            ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
     End Select
     Execute = ResultCode
 End Function
@@ -316,7 +317,7 @@ Public Function GetRowSet() As Variant
     Dim RowIndex As Long
     Dim Page As Variant
     With this
-        GetColumnCount
+        .ColumnCount = GetColumnCount
         If .ColumnCount = 0 Then
             Debug.Print "No data avaialable"
             GetRowSet = CVErr(SQLITE_ERROR)
@@ -341,7 +342,7 @@ Public Function GetRowSet() As Variant
                         .RowCount = .RowCount + 1
                     Case SQLITE_DONE
                         Pages(PageIndex) = Page
-                        .DbStmt.DbConn.ErrInfoRetrieve
+                        ResultCode = .DbStmt.DbConn.ErrInfoRetrieve
                         GetRowSet = Pages
                         Exit Function
                     Case Else
@@ -355,7 +356,6 @@ Public Function GetRowSet() As Variant
     End With
     GetRowSet = Pages
 End Function
-
 
 
 
