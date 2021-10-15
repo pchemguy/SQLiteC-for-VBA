@@ -17,6 +17,7 @@ Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SE
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
+Private Fixtures As SQLiteCTestFixtures
 
 
 'This method runs once per module.
@@ -27,6 +28,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    Set Fixtures = New SQLiteCTestFixtures
 End Sub
 
 
@@ -35,39 +37,6 @@ End Sub
 Private Sub ModuleCleanup()
     Set Assert = Nothing
 End Sub
-
-
-'===================================================='
-'===================== FIXTURES ====================='
-'===================================================='
-
-
-Private Function zfxGetDefaultDBM() As SQLiteC
-    Dim DllPath As String
-    DllPath = LITE_RPREFIX & "dll\" & ARCH
-    Dim dbm As SQLiteC
-    '''' Using default library names hardcoded in the SQLiteC constructor.
-    Set dbm = SQLiteC(DllPath)
-    If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "SQLiteCTests", "Failed to create an SQLiteC instance."
-    Set zfxGetDefaultDBM = dbm
-End Function
-
-Private Function zfxGetConnection(ByVal DbPathName As String) As SQLiteCConnection
-    Dim dbm As SQLiteC
-    Set dbm = zfxGetDefaultDBM()
-    Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.CreateConnection(DbPathName)
-    If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "SQLiteCTests", "Failed to create an SQLiteCConnection instance."
-    Set zfxGetConnection = DbConn
-End Function
-
-Private Function zfxGetConnDbRegular() As SQLiteCConnection
-    Dim DbPathName As String
-    DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
-    Set zfxGetConnDbRegular = zfxGetConnection(DbPathName)
-End Function
 
 
 '===================================================='
@@ -90,7 +59,7 @@ Private Sub ztcCreate_VerifiesProperties()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = zfxGetConnDbRegular
+    Set dbc = Fixtures.zfxGetConnDbRegular
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo
 Act:
@@ -117,7 +86,7 @@ Private Sub ztcGetErr_VerifiesErrorInfo()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = zfxGetConnDbRegular
+    Set dbc = Fixtures.zfxGetConnDbRegular
     dbc.ErrInfoRetrieve
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo

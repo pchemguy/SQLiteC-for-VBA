@@ -11,7 +11,7 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCConnectionTestFixtures
+Private Fixtures As SQLiteCTestFixtures
 
 
 'This method runs once per module.
@@ -22,7 +22,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCConnectionTestFixtures
+    Set Fixtures = New SQLiteCTestFixtures
 End Sub
 
 
@@ -39,7 +39,7 @@ End Sub
 '===================================================='
 
 
-'@TestMethod("DbConnection")
+'@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesDefaultAccess()
     On Error GoTo TestFail
 
@@ -65,7 +65,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("DbConnection")
+'@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesReadAccess()
     On Error GoTo TestFail
 
@@ -91,7 +91,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("DbConnection")
+'@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesDefaultAccessReadOnlyFile()
     On Error GoTo TestFail
 

@@ -1,4 +1,4 @@
-Attribute VB_Name = "SQLiteCConnectionOpenCloseTests"
+Attribute VB_Name = "SQLiteCConnectionQueryTests"
 '@Folder "SQLiteC For VBA.Connection"
 '@TestModule
 '@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
@@ -39,82 +39,34 @@ End Sub
 '===================================================='
 
 
-'@TestMethod("Connection")
-Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
     On Error GoTo TestFail
 
 Arrange:
 Act:
-    Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbRegular
-Assert:
-    Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
-    Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
-    Assert.IsNotNothing dbc.ErrorInfo, "ErrorInfo must be set."
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Connection")
-Private Sub ztcGetDbPathName_VerifiesMemoryDbPathName()
-    On Error GoTo TestFail
-
-Arrange:
-Act:
-    Dim DbPathName As String
-    DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
-Assert:
-    Assert.AreEqual DbPathName, dbc.DbPathName
-    
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Connection")
-Private Sub ztcGetDbPathName_VerifiesTempDbPathName()
-    On Error GoTo TestFail
-
-Arrange:
-Act:
-    Dim DbPathName As String
-    DbPathName = vbNullString
-    Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbTemp
-Assert:
-    Assert.AreEqual DbPathName, dbc.DbPathName
-    
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("DbConnection")
-Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
-    On Error GoTo TestFail
-
-Arrange:
-Act:
-    Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbRegular
+    Dim SQLQuery As String
+    SQLQuery = Fixtures.zfxGetStmtCreateTableIRBNT
+    Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
+    Dim TxnStateCode As SQLiteTxnState
 Assert:
         ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
+        ResultCode = dbc.SavePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
+        ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected query error"
+    Assert.AreEqual 5, AffectedRecords, "AffectedRecords mismatch"
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+    Assert.IsTrue TxnStateCode = SQLITE_TXN_WRITE, "Unexpected Txn state"
+        ResultCode = dbc.ReleasePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
         ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
-    Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
 CleanExit:
     Exit Sub
@@ -123,22 +75,36 @@ TestFail:
 End Sub
 
 
-'@TestMethod("DbConnection")
-Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
     On Error GoTo TestFail
 
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbTemp
+    Set dbc = Fixtures.zfxGetConnDbMemory
+    Dim SQLQuery As String
+    SQLQuery = Fixtures.zfxGetStmtCreateTableIRBNT
+    Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
+    Dim TxnStateCode As SQLiteTxnState
 Assert:
         ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
+        ResultCode = dbc.SavePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
+        ResultCode = dbc.ExecuteNonQueryPlain("PRAGMA query_only=1")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected query error"
+        ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    Assert.AreEqual SQLITE_READONLY, ResultCode, "Expected SQLITE_READONLY error"
+    Assert.AreEqual -1, AffectedRecords, "AffectedRecords mismatch"
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+    Assert.IsTrue TxnStateCode = SQLITE_TXN_READ, "Unexpected Txn state"
+        ResultCode = dbc.ReleasePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
         ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
-    Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
 CleanExit:
     Exit Sub
@@ -147,8 +113,8 @@ TestFail:
 End Sub
 
 
-'@TestMethod("DbConnection")
-Private Sub ztcOpenDbCloseDb_VerifiesWithMemoryDb()
+'@TestMethod("DbStatement")
+Private Sub ztcCreateStatement_VerifiesNewStatement()
     On Error GoTo TestFail
 
 Arrange:
@@ -156,16 +122,20 @@ Act:
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
+    Dim DbStmt As SQLiteCStatement
 Assert:
         ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
+        Set DbStmt = dbc.CreateStatement(vbNullString)
+    Assert.IsNotNothing DbStmt, "DbStmt is not set."
+    Assert.AreSame DbStmt, dbc.StmtDb(vbNullString), "Statement object mismatch"
+    Assert.AreSame DbStmt, dbc.StmtDb, "Statement object mismatch (default name)"
         ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
-    Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
 CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+

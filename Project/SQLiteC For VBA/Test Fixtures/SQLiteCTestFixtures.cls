@@ -2,12 +2,12 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteCConnectionTestFixtures"
+Attribute VB_Name = "SQLiteCTestFixtures"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder "SQLiteC For VBA.Connection"
+'@Folder "SQLiteC For VBA.Test Fixtures"
 '@PredeclaredId
 '@IgnoreModule MoveFieldCloserToUsage, ProcedureNotUsed, IndexedDefaultMemberAccess
 Option Explicit
@@ -85,13 +85,12 @@ Public Function zfxGetStmtCreateTableIRBNT() As String
         "    xn NUMERIC," & vbNewLine & _
         "    xt Text" & vbNewLine & _
         ");" & vbNewLine & _
-        "INSERT INTO t1(rowid, xi, xr, xb, xn,  xt) " & vbNewLine & _
-        "VALUES        (    1, .1,  1,  1,  1, 'A')," & vbNewLine & _
-        "              (    2, .1,  1,  1,  1, 'B')," & vbNewLine & _
-        "              (    3, .1,  1,  1,  1, 'C')," & vbNewLine & _
-        "              (    4, .1,  1,  1,  1, 'D')," & vbNewLine & _
-        "              (    5, .1,  1,  1,  1, 'E');" & vbNewLine
+        "INSERT INTO t1(rowid, xi, xr, xb, xn,    xt) " & vbNewLine & _
+        "VALUES        (    1, 10, .1,  1,  7, 'AAA')," & vbNewLine & _
+        "              (    2, 20, .3,  1, .2, 'BBB')," & vbNewLine & _
+        "              (    3,  8, .2,  1, 10, 'AAA')," & vbNewLine & _
+        "              (    4, 27, .3,  1, .9, 'DDD')," & vbNewLine & _
+        "              (    5,  2, .8,  1,  1, 'BBB');" & vbNewLine
     zfxGetStmtCreateTableIRBNT = TEST_STMT_CREATE_TABLE_IRBNT
 End Function
-
 

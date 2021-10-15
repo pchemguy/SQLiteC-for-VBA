@@ -107,6 +107,7 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_name.html
 ''''
+'@Ignore ProcedureNotUsed
 '@Description "Retrieves named parameter name."
 Public Function NameFromIndex(ByVal ParamIndex As Long) As String
 Attribute NameFromIndex.VB_Description = "Retrieves named parameter name."

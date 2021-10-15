@@ -11,7 +11,7 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCConnectionTestFixtures
+Private Fixtures As SQLiteCTestFixtures
 
 
 'This method runs once per module.
@@ -22,7 +22,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCConnectionTestFixtures
+    Set Fixtures = New SQLiteCTestFixtures
 End Sub
 
 
@@ -168,9 +168,9 @@ Assert:
         ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
         ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Rollback error"
-        ResultCode = dbc.Commit
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
+        ResultCode = dbc.Commit
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
         ResultCode = dbc.Rollback
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
         ResultCode = dbc.CloseDb
@@ -213,7 +213,6 @@ Private Sub ztcSaveRelease_VerifiesTxnState()
 
 Arrange:
 Act:
-    Set Fixtures = New SQLiteCConnectionTestFixtures
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
@@ -237,3 +236,30 @@ TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
+
+'@TestMethod("Transactions")
+Private Sub ztcSavepointBeginCommit_VerifiesError()
+    On Error GoTo TestFail
+
+Arrange:
+Act:
+    Dim dbc As SQLiteCConnection
+    Set dbc = Fixtures.zfxGetConnDbMemory
+    Dim ResultCode As SQLiteResultCodes
+Assert:
+        ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+        ResultCode = dbc.SavePoint("ABCD")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
+        ResultCode = dbc.Begin
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
+        ResultCode = dbc.Commit
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
+        ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
