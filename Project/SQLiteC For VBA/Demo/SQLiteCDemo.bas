@@ -117,4 +117,3 @@ Private Sub TestDbRegular()
     ResultCode = DbConn.CloseDb
     Debug.Assert ResultCode = SQLITE_OK
 End Sub
-
