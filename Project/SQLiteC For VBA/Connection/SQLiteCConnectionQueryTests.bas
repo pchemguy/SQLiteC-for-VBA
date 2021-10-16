@@ -121,21 +121,15 @@ Arrange:
 Act:
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim ResultCode As SQLiteResultCodes
     Dim DbStmt As SQLiteCStatement
+    Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:
-        ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        Set DbStmt = dbc.CreateStatement(vbNullString)
     Assert.IsNotNothing DbStmt, "DbStmt is not set."
     Assert.AreSame DbStmt, dbc.StmtDb(vbNullString), "Statement object mismatch"
     Assert.AreSame DbStmt, dbc.StmtDb, "Statement object mismatch (default name)"
-        ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-

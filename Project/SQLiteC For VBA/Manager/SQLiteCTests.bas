@@ -61,8 +61,6 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = SQLiteC(DllPath, DllNames)
 Act:
-    Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.CreateConnection(vbNullString)
     Dim VersionS As String
     VersionS = Replace(dbm.Version(False), ".", "0") & "0"
     Dim VersionN As String
@@ -91,8 +89,6 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = SQLiteC(DllPath)
 Act:
-    Dim DbConn As SQLiteCConnection
-    Set DbConn = dbm.CreateConnection(vbNullString)
     Dim VersionS As String
     VersionS = Replace(dbm.Version(False), ".", "0") & "0"
     Dim VersionN As String

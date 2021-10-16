@@ -63,28 +63,17 @@ Public Enum SQLiteOpenFlags
     SQLITE_OPEN_READONLY = &H1&
     SQLITE_OPEN_READWRITE = &H2&
     SQLITE_OPEN_CREATE = &H4&
-    SQLITE_OPEN_DELETEONCLOSE = &H8&
-    SQLITE_OPEN_EXCLUSIVE = &H10&
-    SQLITE_OPEN_AUTOPROXY = &H20&
     SQLITE_OPEN_URI = &H40&
     SQLITE_OPEN_MEMORY = &H80&
-    SQLITE_OPEN_MAIN_DB = &H100&
-    SQLITE_OPEN_TEMP_DB = &H200&
-    SQLITE_OPEN_TRANSIENT_DB = &H400&
-    SQLITE_OPEN_MAIN_JOURNAL = &H800&
-    SQLITE_OPEN_TEMP_JOURNAL = &H1000&
-    SQLITE_OPEN_SUBJOURNAL = &H2000&
-    SQLITE_OPEN_SUPER_JOURNAL = &H4000&
     SQLITE_OPEN_NOMUTEX = &H8000&
     SQLITE_OPEN_FULLMUTEX = &H10000
     SQLITE_OPEN_SHAREDCACHE = &H20000
     SQLITE_OPEN_PRIVATECACHE = &H40000
-    SQLITE_OPEN_WAL = &H80000
     SQLITE_OPEN_NOFOLLOW = &H1000000
     SQLITE_OPEN_DEFAULT = SQLITE_OPEN_READWRITE Or SQLITE_OPEN_CREATE
 End Enum
 
-Public Enum SQLiteTxnMode
+Public Enum SQLiteTxnLockMode
     SQLITE_TXN_DEFERRED = 0&
     SQLITE_TXN_IMMEDIATE = 1&
     SQLITE_TXN_EXCLUSIVE = 2&
@@ -102,6 +91,15 @@ Public Enum SQLiteDbAccess
     SQLITE_DB_NONE = -1
     SQLITE_DB_FULL = 0
     SQLITE_DB_READ = 1
+End Enum
+
+Public Enum SQLiteJournalMode
+    SQLITE_PAGER_JOURNALMODE_DELETE = 0     '/* Commit by deleting journal file */
+    SQLITE_PAGER_JOURNALMODE_PERSIST = 1    '/* Commit by zeroing journal header */
+    SQLITE_PAGER_JOURNALMODE_OFF = 2        '/* Journal omitted.  */
+    SQLITE_PAGER_JOURNALMODE_TRUNCATE = 3   '/* Commit by truncating journal */
+    SQLITE_PAGER_JOURNALMODE_MEMORY = 4     '/* In-memory journal file */
+    SQLITE_PAGER_JOURNALMODE_WAL = 5        '/* Use write-ahead logging */
 End Enum
 
 Private Type TSQLiteCConnection
@@ -184,10 +182,10 @@ Friend Function Finalize() As SQLiteResultCodes
 Attribute Finalize.VB_Description = "Finalizes all statement objects associated with connection."
     Dim ResultCode As SQLiteResultCodes
     Dim StmtName As Variant
-    Dim StmtDb As SQLiteCStatement
+    Dim DbStmt As SQLiteCStatement
     For Each StmtName In this.Statements.Keys
-        Set StmtDb = this.Statements(StmtName)
-        ResultCode = StmtDb.Finalize
+        Set DbStmt = this.Statements(StmtName)
+        ResultCode = DbStmt.Finalize
         If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
     Next StmtName
     Finalize = ResultCode
@@ -308,6 +306,26 @@ Attribute ChangesCount.VB_Description = "Queries the number of changes occured d
 End Function
 
 
+'@Description "Sets SQLite journal mode."
+Public Function JournalModeSet(ByVal JournalModeCode As SQLiteJournalMode, _
+                      Optional ByVal SchemaAlias As String = "main" _
+                      ) As SQLiteResultCodes
+Attribute JournalModeSet.VB_Description = "Sets SQLite journal mode."
+    Dim DbSchemaPrefix As String
+    If Len(SchemaAlias) > 0 And SchemaAlias <> "main" Then
+        DbSchemaPrefix = SchemaAlias & "."
+    Else
+        DbSchemaPrefix = vbNullString
+    End If
+    Dim JournalMode As String
+    JournalMode = Array("DELETE", "PERSIST", "OFF", _
+                        "TRUNCATE", "MEMORY", "WAL")(JournalModeCode)
+    Dim SQLQuery As String
+    SQLQuery = "PRAGMA " & DbSchemaPrefix & "journal_mode = '" & JournalMode & "'"
+    JournalModeSet = ExecuteNonQueryPlain(SQLQuery)
+End Function
+
+
 '''' Reference: https://www.sqlite.org/c3ref/exec.html
 ''''
 '@Description "Executes a plain-text non-query via a convenience shortcut."
@@ -346,7 +364,7 @@ End Function
 '''' Reference: https://www.sqlite.org/lang_transaction.html
 ''''
 '@Description "Begins SQLite transaction."
-Public Function Begin(Optional ByVal Mode As SQLiteTxnMode = SQLITE_TXN_DEFERRED _
+Public Function Begin(Optional ByVal Mode As SQLiteTxnLockMode = SQLITE_TXN_DEFERRED _
                      ) As SQLiteResultCodes
 Attribute Begin.VB_Description = "Begins SQLite transaction."
     Dim TxMode As String

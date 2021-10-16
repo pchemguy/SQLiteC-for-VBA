@@ -20,3 +20,6 @@ Option Explicit
 #End If
 
 Public Const KeyAlreadyExistsErr As Long = 457
+Public Const OutOfMemoryErr As Long = 7&
+Public Const ConnectionNotOpenedErr As Long = vbObjectError + 3000
+Public Const StatementNotPreparedErr As Long = vbObjectError + 3001

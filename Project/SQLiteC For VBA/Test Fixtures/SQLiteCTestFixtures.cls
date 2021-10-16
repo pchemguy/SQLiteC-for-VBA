@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '@Folder "SQLiteC For VBA.Test Fixtures"
 '@PredeclaredId
-'@IgnoreModule MoveFieldCloserToUsage, ProcedureNotUsed, IndexedDefaultMemberAccess
+'@IgnoreModule MoveFieldCloserToUsage, ProcedureNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
 Option Explicit
 
 Private Const LITE_LIB As String = "SQLiteCforVBA"
@@ -29,7 +29,7 @@ Public Function zfxGetDefaultDBM() As SQLiteC
     '''' Using default library names hardcoded in the SQLiteC constructor.
     Set dbm = SQLiteC(DllPath)
     If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "SQLiteCTests", "Failed to create an SQLiteC instance."
+        "SQLiteCTestFixtures", "Failed to create an SQLiteC instance."
     Set zfxGetDefaultDBM = dbm
 End Function
 
@@ -41,7 +41,7 @@ Public Function zfxGetConnection(ByVal DbPathName As String) As SQLiteCConnectio
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
     If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "SQLiteCTests", "Failed to create an SQLiteCConnection instance."
+        "SQLiteCTestFixtures", "Failed to create an SQLiteCConnection instance."
     Set zfxGetConnection = DbConn
 End Function
 
@@ -75,6 +75,13 @@ Public Function zfxGetConnDbInvalidPath() As SQLiteCConnection
     Set zfxGetConnDbInvalidPath = zfxGetConnection(DbPathName)
 End Function
 
+Public Function zfxGetConnDbMemoryWithTable() As SQLiteCConnection
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Set zfxGetConnDbMemoryWithTable = zfxGetConnection(DbPathName)
+    zfxGetConnDbMemoryWithTable.ExecuteNonQueryPlain zfxGetStmtCreateTableIRBNT2V
+End Function
+
 Public Function zfxGetStmtCreateTableIRBNT() As String
     Const TEST_STMT_CREATE_TABLE_IRBNT As String = _
         "DROP TABLE IF EXISTS t1;" & vbNewLine & _
@@ -92,5 +99,25 @@ Public Function zfxGetStmtCreateTableIRBNT() As String
         "              (    4, 27, .3,  1, .9, 'DDD')," & vbNewLine & _
         "              (    5,  2, .8,  1,  1, 'BBB');" & vbNewLine
     zfxGetStmtCreateTableIRBNT = TEST_STMT_CREATE_TABLE_IRBNT
+End Function
+
+Public Function zfxGetStmtCreateTableIRBNT2V() As String
+    Const TEST_STMT_CREATE_TABLE_IRBNT As String = _
+        "CREATE TABLE t1(" & vbNewLine & _
+        "    xi INTEGER," & vbNewLine & _
+        "    xr REAL," & vbNewLine & _
+        "    xb BLOB," & vbNewLine & _
+        "    xn NUMERIC," & vbNewLine & _
+        "    xt Text" & vbNewLine & _
+        ");" & vbNewLine
+    zfxGetStmtCreateTableIRBNT2V = TEST_STMT_CREATE_TABLE_IRBNT
+End Function
+
+Public Function zfxGetStmtSQLiteVersion() As String
+    zfxGetStmtSQLiteVersion = "SELECT sqlite_version()"
+End Function
+
+Public Function zfxGetStmtSELECTt1() As String
+    zfxGetStmtSELECTt1 = "SELECT * FROM t1"
 End Function
 
