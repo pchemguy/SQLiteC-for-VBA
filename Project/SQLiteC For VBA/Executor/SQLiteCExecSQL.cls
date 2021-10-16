@@ -109,8 +109,8 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Set this.ColumnMap = New Scripting.Dictionary
     this.ColumnMap.CompareMode = TextCompare
     this.RowCount = 0
-    this.PageCount = 4
-    this.PageSize = 4
+    this.PageCount = 10
+    this.PageSize = 100
 End Sub
 
 
@@ -325,47 +325,55 @@ Public Function GetRowSet() As Variant
         Exit Function
     End If
     Dim ResultCode As SQLiteResultCodes
-    Dim PageIndex As Long
-    Dim RowIndex As Long
+        
+    Dim ColumnCount As Long
+    ColumnCount = GetColumnCount
+    If ColumnCount = 0 Then
+        Debug.Print "No data avaialable"
+        GetRowSet = CVErr(SQLITE_ERROR)
+        Exit Function
+    End If
     Dim Page As Variant
-    With this
-        .ColumnCount = GetColumnCount
-        If .ColumnCount = 0 Then
-            Debug.Print "No data avaialable"
-            GetRowSet = CVErr(SQLITE_ERROR)
-            Exit Function
-        End If
-        Dim Pages As Variant: Pages = Empty '''' RDVBA workaround
-        ReDim Pages(0 To .PageCount - 1)
-        .RowCount = 0
-        .FilledPagesCount = 0
-        For PageIndex = 0 To .PageCount - 1
-            Page = Empty
-            ReDim Page(0 To .PageSize - 1)
-            For RowIndex = 0 To .PageSize - 1
-                ResultCode = Execute
-                Select Case ResultCode
-                    Case SQLITE_ROW
-                        Page(RowIndex) = GetRow(.ColumnCount)
-                        If IsError(Page(RowIndex)) Then
-                            GetRowSet = Page(RowIndex)
-                            Exit Function
-                        End If
-                        .RowCount = .RowCount + 1
-                    Case SQLITE_DONE
-                        Pages(PageIndex) = Page
-                        ResultCode = .DbStmt.DbConn.ErrInfoRetrieve
-                        GetRowSet = Pages
+    Dim RowValues As Variant
+    Dim Pages As Variant: Pages = Empty '''' RDVBA workaround
+    ReDim Pages(0 To this.PageCount - 1)
+    Dim RowCount As Long
+    RowCount = 0
+    this.FilledPagesCount = 0
+    Dim RowIndex As Long
+    Dim ColumnIndex As Long
+    Dim PageIndex As Long
+    For PageIndex = 0 To this.PageCount - 1
+        Page = Empty
+        ReDim Page(0 To this.PageSize - 1, 0 To ColumnCount - 1)
+        For RowIndex = 0 To this.PageSize - 1
+            ResultCode = Execute
+            Select Case ResultCode
+                Case SQLITE_ROW
+                    RowValues = GetRow(ColumnCount)
+                    If IsError(RowValues) Then
+                        GetRowSet = RowValues
                         Exit Function
-                    Case Else
-                        GetRowSet = CVErr(ResultCode)
-                        Exit Function
-                End Select
-            Next RowIndex
-            Pages(PageIndex) = Page
-            .FilledPagesCount = .FilledPagesCount + 1
-        Next PageIndex
-    End With
+                    End If
+                    For ColumnIndex = 0 To ColumnCount - 1
+                        Page(RowIndex, ColumnIndex) = RowValues(ColumnIndex)
+                    Next ColumnIndex
+                    RowCount = RowCount + 1
+                Case SQLITE_DONE
+                    Pages(PageIndex) = Page
+                    this.RowCount = RowCount
+                    ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
+                    GetRowSet = Pages
+                    Exit Function
+                Case Else
+                    GetRowSet = CVErr(ResultCode)
+                    Exit Function
+            End Select
+        Next RowIndex
+        Pages(PageIndex) = Page
+        this.FilledPagesCount = this.FilledPagesCount + 1
+    Next PageIndex
+    this.RowCount = RowCount
     GetRowSet = Pages
 End Function
 

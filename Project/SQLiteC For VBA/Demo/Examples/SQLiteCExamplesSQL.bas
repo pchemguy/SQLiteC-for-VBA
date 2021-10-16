@@ -3,6 +3,20 @@ Attribute VB_Name = "SQLiteCExamplesSQL"
 Option Explicit
 
 
+Public Function SQLforGetSQLiteVersion() As String
+    SQLforGetSQLiteVersion = Join(Array( _
+        "SELECT sqlite_version();" _
+    ), vbNewLine)
+End Function
+
+
+Public Function SQLforGetDbPath() As String
+    SQLforGetDbPath = Join(Array( _
+        "SELECT file FROM pragma_database_list;" _
+    ), vbNewLine)
+End Function
+
+
 Public Function SQLforFunctionsTable() As String
     SQLforFunctionsTable = Join(Array( _
         "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
@@ -56,4 +70,3 @@ Public Function SQLforInsertTestRows() As String
         "              (    5,  2, .8,  1,  1, 'BBB');" _
     ), vbNewLine)
 End Function
-

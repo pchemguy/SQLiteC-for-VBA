@@ -36,7 +36,7 @@ Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongP
 Private Declare PtrSafe Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteDbAccess
 '''' Transactions
 Private Declare PtrSafe Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteTxnState
-'''' Query wrapper
+'''' Statements
 Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSql As LongPtr, _
     ByVal Callback As LongPtr, ByVal pArg As LongPtr, ByRef pzErrMsg As LongPtr) As SQLiteResultCodes
 '''' Database connection change counts
@@ -51,7 +51,7 @@ Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
 Private Declare Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteDbAccess
 '''' Transactions
 Private Declare Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteTxnState
-'''' Query wrapper
+'''' Statements
 Private Declare Function sqlite3_exec Lib "SQLite3" (ByVal hDb As Long, ByVal zSql As Long, _
     ByVal Callback As Long, ByVal pArg As Long, ByRef pzErrMsg As Long) As SQLiteResultCodes
 '''' Database connection change counts
@@ -146,6 +146,25 @@ Private Sub Class_Terminate()
 End Sub
 
 
+#If VBA7 Then
+Public Property Get DbHandle() As LongPtr
+#Else
+Public Property Get DbHandle() As Long
+#End If
+    DbHandle = this.DbHandle
+End Property
+
+
+Public Property Get DbPathName() As String
+    DbPathName = this.DbPathName
+End Property
+
+
+Public Property Get ErrorInfo() As SQLiteCErr
+    Set ErrorInfo = this.ErrorInfo
+End Property
+
+
 '''' vbNullString is an acceptable StmtName.
 '''' Raises an error if StmtName has already been used.
 '@Description "Creates a new SQLiteCStatement instance."
@@ -188,27 +207,9 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
         ResultCode = DbStmt.Finalize
         If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
     Next StmtName
+    ResultCode = SQLiteCStatement.PreparedStatementsGet(Me, True)
     Finalize = ResultCode
 End Function
-
-
-#If VBA7 Then
-Public Property Get DbHandle() As LongPtr
-#Else
-Public Property Get DbHandle() As Long
-#End If
-    DbHandle = this.DbHandle
-End Property
-
-
-Public Property Get DbPathName() As String
-    DbPathName = this.DbPathName
-End Property
-
-
-Public Property Get ErrorInfo() As SQLiteCErr
-    Set ErrorInfo = this.ErrorInfo
-End Property
 
 
 Public Function ErrInfoRetrieve() As SQLiteResultCodes
@@ -267,6 +268,7 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
     Debug.Assert ResultCode = SQLITE_OK
+
     If this.DbHandle <> 0 Then
         ResultCode = sqlite3_close(this.DbHandle)
         If ResultCode = SQLITE_OK Then

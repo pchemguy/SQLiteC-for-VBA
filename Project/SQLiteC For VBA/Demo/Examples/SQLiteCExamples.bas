@@ -26,8 +26,20 @@ Attribute Main.VB_Description = "Main entry point"
     CheckFunctionality
     CreateTestTable
     InsertTestRows
+    Dim Result As Variant
+    Result = GetScalarDbVersion
+    Result = GetScalarDbPath
+    Result = GetRowSetFunctions
+    'PrepareStatementGetScalar
     CloseDb
     Cleanup
+End Sub
+
+
+Private Sub Cleanup()
+    Set this.dbs = Nothing
+    Set this.dbc = Nothing
+    Set this.dbm = Nothing
 End Sub
 
 
@@ -289,8 +301,52 @@ Private Sub InsertTestRows()
 End Sub
 
 
-Private Sub Cleanup()
-    Set this.dbs = Nothing
-    Set this.dbc = Nothing
-    Set this.dbm = Nothing
+Private Function GetScalarDbVersion() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforGetSQLiteVersion
+    
+    GetScalarDbVersion = dbs.GetScalar(SQLQuery)
+End Function
+
+
+Private Function GetScalarDbPath() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforGetDbPath
+    
+    GetScalarDbPath = dbs.GetScalar(SQLQuery)
+End Function
+
+
+Private Function GetRowSetFunctions() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
+    
+    GetRowSetFunctions = dbs.GetRowSet(SQLQuery)
+End Function
+
+
+Private Sub PrepareStatementGetScalar()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforGetSQLiteVersion
+    
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to prepare statement."
+    Else
+        Debug.Print "Statement is prepared."
+    End If
 End Sub

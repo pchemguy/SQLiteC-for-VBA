@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
-'@Folder "SQLiteC For VBA.Statement"
+    '@Folder "SQLiteC For VBA.Statement"
 '@ModuleDescription "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
 '@PredeclaredId
 '@Exposed
@@ -28,9 +28,11 @@ Private Declare PtrSafe Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb A
     ByVal nSqlLength As Long, ByRef hStmt As LongPtr, ByVal ppwsTailOut As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_reset Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_finalize Lib "SQLite3" (ByVal hStmt As LongPtr) As SQLiteResultCodes
-Private Declare PtrSafe Function sqlite3_sql Lib "SQLite3" (ByVal hStmt As Long) As LongPtr ' PtrString
-Private Declare PtrSafe Function sqlite3_expanded_sql Lib "SQLite3" (ByVal hStmt As Long) As LongPtr ' PtrString
-Private Declare PtrSafe Function sqlite3_normalized_sql Lib "SQLite3" (ByVal hStmt As Long) As LongPtr ' PtrString
+Private Declare PtrSafe Function sqlite3_sql Lib "SQLite3" (ByVal hStmt As LongPtr) As LongPtr ' PtrString
+Private Declare PtrSafe Function sqlite3_expanded_sql Lib "SQLite3" (ByVal hStmt As LongPtr) As LongPtr ' PtrString
+Private Declare PtrSafe Function sqlite3_normalized_sql Lib "SQLite3" (ByVal hStmt As LongPtr) As LongPtr ' PtrString
+Private Declare PtrSafe Function sqlite3_next_stmt Lib "SQLite3" (ByVal hDb As LongPtr, ByVal hStmt As LongPtr) As LongPtr ' PtrStmt
+Private Declare PtrSafe Function sqlite3_stmt_busy Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 Private Declare PtrSafe Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As LongPtr)
 #Else
 Private Declare Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As Long, ByVal pwsSql As Long, _
@@ -40,6 +42,8 @@ Private Declare Function sqlite3_finalize Lib "SQLite3" (ByVal hStmt As Long) As
 Private Declare Function sqlite3_sql Lib "SQLite3" (ByVal hStmt As Long) As Long ' PtrString
 Private Declare Function sqlite3_expanded_sql Lib "SQLite3" (ByVal hStmt As Long) As Long ' PtrString
 Private Declare Function sqlite3_normalized_sql Lib "SQLite3" (ByVal hStmt As Long) As Long ' PtrString
+Private Declare Function sqlite3_next_stmt Lib "SQLite3" (ByVal hDb As Long, ByVal hStmt As Long) As Long ' PtrStmt
+Private Declare Function sqlite3_stmt_busy Lib "SQLite3" (ByVal hStmt As Long) As Long
 Private Declare Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As Long)
 #End If
 
@@ -154,10 +158,67 @@ Attribute Finalize.VB_Description = "Destructs SQLite PSO."
     ResultCode = sqlite3_finalize(this.StmtHandle)
     If ResultCode = SQLITE_OK Then
         this.StmtHandle = 0
+        Debug.Print "Statement is finalized"
     Else
         ResultCode = this.DbConn.ErrInfoRetrieve
     End If
     Finalize = ResultCode
+End Function
+
+
+'''' Args:
+''''   DbConn (SQLiteCConnection):
+''''     Connection object
+''''
+''''   FinStmt (optional, boolean, true):
+''''     If true, finalize statements
+''''
+'''' Reference: https://www.sqlite.org/c3ref/stmt_busy.html
+'''' Reference: https://www.sqlite.org/c3ref/next_stmt.html
+''''
+'''' @ClassMethod "Call on the predeclared instance"
+'@Description "Enumerates prepared statements with buys status."
+Friend Function PreparedStatementsGet(ByVal DbConn As SQLiteCConnection, _
+                             Optional ByVal FinStmt As Boolean = True) As Variant
+Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with buys status."
+    #If VBA7 Then
+        Dim hStmt As LongPtr
+    #Else
+        Dim hStmt As Long
+    #End If
+    hStmt = 0
+    hStmt = sqlite3_next_stmt(DbConn.DbHandle, hStmt)
+    If hStmt = 0 Then
+        If FinStmt Then
+            PreparedStatementsGet = SQLITE_OK
+        Else
+            Set PreparedStatementsGet = Nothing
+        End If
+        Exit Function
+    End If
+    
+    Dim PrepStmts As Scripting.Dictionary
+    Set PrepStmts = New Scripting.Dictionary
+    PrepStmts.CompareMode = TextCompare
+    Dim ResultCode As SQLiteResultCodes
+    
+    Do While hStmt <> 0
+        If FinStmt Then
+            ResultCode = sqlite3_finalize(hStmt)
+            If ResultCode = SQLITE_OK Then
+                Debug.Print "Statement is finalized"
+            Else
+                ResultCode = DbConn.ErrInfoRetrieve
+            End If
+        End If
+        PrepStmts(hStmt) = sqlite3_stmt_busy(hStmt)
+        hStmt = sqlite3_next_stmt(DbConn.DbHandle, hStmt)
+    Loop
+    If FinStmt Then
+        PreparedStatementsGet = ResultCode
+    Else
+        Set PreparedStatementsGet = PrepStmts
+    End If
 End Function
 
 
