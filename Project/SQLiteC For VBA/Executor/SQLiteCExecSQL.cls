@@ -146,6 +146,10 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
         Dim BufferPtr As Long
     #End If
     hStmt = this.DbStmt.StmtHandle
+    If hStmt = 0 Then
+        GetColumnMeta = SQLITE_ERROR
+        Exit Function
+    End If
     Dim ColumnCount As Long
     ColumnCount = GetColumnCount
     If ColumnCount = 0 Then
@@ -230,6 +234,10 @@ End Function
 '@Description "Retrieves a scalar value"
 Public Function GetScalar() As Variant
 Attribute GetScalar.VB_Description = "Retrieves a scalar value"
+    If this.DbStmt.StmtHandle = 0 Then
+        GetScalar = CVErr(SQLITE_ERROR)
+        Exit Function
+    End If
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Execute
     If ResultCode = SQLITE_ROW Then
@@ -312,6 +320,10 @@ End Function
 
 
 Public Function GetRowSet() As Variant
+    If this.DbStmt.StmtHandle = 0 Then
+        GetRowSet = CVErr(SQLITE_ERROR)
+        Exit Function
+    End If
     Dim ResultCode As SQLiteResultCodes
     Dim PageIndex As Long
     Dim RowIndex As Long

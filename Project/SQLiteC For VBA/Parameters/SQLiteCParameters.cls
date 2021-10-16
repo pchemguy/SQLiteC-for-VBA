@@ -224,6 +224,8 @@ End Function
 
 
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
+    If this.DbStmt.StmtHandle = 0 Then Err.Raise StatementNotPreparedErr, _
+        "SQLiteCParameters", "Statement is not prepared."
     If TypeName(ParamValues) = "Dictionary" Then
         BindDictOrArray = BindDict(ParamValues)
     Else

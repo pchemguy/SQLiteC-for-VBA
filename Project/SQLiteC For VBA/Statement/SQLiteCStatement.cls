@@ -23,8 +23,6 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 
 Option Explicit
 
-Const OutOfMemoryErr As Long = 7&
-
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As LongPtr, ByVal pwsSql As LongPtr, _
     ByVal nSqlLength As Long, ByRef hStmt As LongPtr, ByVal ppwsTailOut As LongPtr) As SQLiteResultCodes
@@ -112,6 +110,8 @@ End Property
 '@Description "Generates SQLite PSO."
 Friend Function Prepare16V2(ByVal SQLQuery As String) As SQLiteResultCodes
 Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
+    If this.DbConn.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCStatement", "Database connection is not opened!"
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_prepare16_v2(this.DbConn.DbHandle, StrPtr(SQLQuery), _
                                       Len(SQLQuery) * 2 + 2, this.StmtHandle, 0)
@@ -252,6 +252,10 @@ End Function
 '@Description "Returns SQL query supplied to the PSO factory with bound parameters expanded."
 Public Property Get SQLQueryExpanded() As String
 Attribute SQLQueryExpanded.VB_Description = "Returns SQL query supplied to the PSO factory with bound parameters expanded."
+    If this.StmtHandle = 0 Then
+        SQLQueryExpanded = vbNullString
+        Exit Function
+    End If
     #If VBA7 Then
         Dim SQLQueryPtr As LongPtr
     #Else
@@ -274,6 +278,10 @@ End Property
 '@Description "Returns original (optionally normalized) SQL query supplied to the PSO factory."
 Public Function SQLQueryOriginal(Optional ByVal Normalized As Boolean = False) As String
 Attribute SQLQueryOriginal.VB_Description = "Returns original (optionally normalized) SQL query supplied to the PSO factory."
+    If this.StmtHandle = 0 Then
+        SQLQueryOriginal = vbNullString
+        Exit Function
+    End If
     #If VBA7 Then
         Dim SQLQueryPtr As LongPtr
     #Else
