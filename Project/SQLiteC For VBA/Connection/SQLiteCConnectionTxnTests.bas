@@ -11,7 +11,7 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCTestFixtures
+Private FixObj As SQLiteCTestFixObj
 
 
 'This method runs once per module.
@@ -22,7 +22,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCTestFixtures
+    Set FixObj = New SQLiteCTestFixObj
 End Sub
 
 
@@ -30,7 +30,7 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set Fixtures = Nothing
+    Set FixObj = Nothing
 End Sub
 
 
@@ -48,7 +48,7 @@ Private Sub ztcBeginCommit_VerifiesTxnState()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Assert:
@@ -101,7 +101,7 @@ Private Sub ztcBeginRollback_VerifiesTxnState()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Assert:
@@ -134,7 +134,7 @@ Private Sub ztcBeginRollbackCommit_VerifiesError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -162,7 +162,7 @@ Private Sub ztcBeginCommitRollback_VerifiesError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -190,7 +190,7 @@ Private Sub ztcReleasePoint_VerifiesError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -214,7 +214,7 @@ Private Sub ztcSaveRelease_VerifiesTxnState()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Assert:
@@ -244,7 +244,7 @@ Private Sub ztcSavepointBeginCommit_VerifiesError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb

@@ -17,7 +17,7 @@ Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SE
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCTestFixtures
+Private FixObj As SQLiteCTestFixObj
 
 
 'This method runs once per module.
@@ -28,7 +28,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCTestFixtures
+    Set FixObj = New SQLiteCTestFixObj
 End Sub
 
 
@@ -109,7 +109,7 @@ Private Sub ztcCreate_VerifiesDefaultManager()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM
+    Set dbm = FixObj.zfxGetDefaultDBM
 Assert:
     Assert.IsNotNothing dbm, "Default manager is not set."
 
@@ -126,7 +126,7 @@ Private Sub ztcGetMainDbId_VerifiesIsNull()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM
+    Set dbm = FixObj.zfxGetDefaultDBM
 Assert:
     Assert.IsTrue IsNull(dbm.MainDbId), "Main db is not null."
 
@@ -143,7 +143,7 @@ Private Sub ztcGetDllMan_VerifiesIsSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM
+    Set dbm = FixObj.zfxGetDefaultDBM
 Assert:
     Assert.IsNotNothing dbm.DllMan, "Dll manager is not set"
 
@@ -160,7 +160,7 @@ Private Sub ztcConnDb_VerifiesIsNotSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM
+    Set dbm = FixObj.zfxGetDefaultDBM
 Assert:
     Assert.IsNothing dbm.ConnDb(vbNullString), "Connection should be nothing"
 
@@ -206,7 +206,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbRegular
+    Set dbc = FixObj.zfxGetConnDbRegular
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
 
@@ -223,7 +223,7 @@ Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM()
+    Set dbm = FixObj.zfxGetDefaultDBM()
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
     Dim DbConn As SQLiteCConnection
@@ -246,7 +246,7 @@ Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM()
+    Set dbm = FixObj.zfxGetDefaultDBM()
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim DbConn As SQLiteCConnection
@@ -268,7 +268,7 @@ Private Sub ztcGetDbConn_VerifiesTempMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = Fixtures.zfxGetDefaultDBM()
+    Set dbm = FixObj.zfxGetDefaultDBM()
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim DbConn As SQLiteCConnection

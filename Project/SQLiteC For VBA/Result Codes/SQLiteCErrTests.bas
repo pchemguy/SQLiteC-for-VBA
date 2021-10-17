@@ -13,7 +13,7 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCTestFixtures
+Private FixObj As SQLiteCTestFixObj
 
 
 'This method runs once per module.
@@ -24,7 +24,7 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCTestFixtures
+    Set FixObj = New SQLiteCTestFixObj
 End Sub
 
 
@@ -55,7 +55,7 @@ Private Sub ztcCreate_VerifiesProperties()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbRegular
+    Set dbc = FixObj.zfxGetConnDbRegular
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo
 Act:
@@ -82,7 +82,7 @@ Private Sub ztcGetErr_VerifiesErrorInfo()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbRegular
+    Set dbc = FixObj.zfxGetConnDbRegular
     dbc.ErrInfoRetrieve
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo

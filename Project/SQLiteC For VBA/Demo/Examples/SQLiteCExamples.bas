@@ -39,6 +39,8 @@ Attribute Main.VB_Description = "Main entry point"
     BindParamDict
     FinalizeStatement
     
+    GetFirstFunctionName
+
     Result = Empty
     Result = RunFunctionsQuery
     
@@ -500,4 +502,15 @@ Private Function RunFunctionsQueryWithParamDict() As Variant
     Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
     
     RunFunctionsQueryWithParamDict = dbs.GetRowSet(SQLQuery, ParamsDict)
+End Function
+
+
+Private Function GetFirstFunctionName() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
+    
+    GetFirstFunctionName = dbs.GetScalar(SQLQuery)
 End Function

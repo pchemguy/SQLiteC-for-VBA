@@ -136,8 +136,7 @@ End Property
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
 '@Description "Retrieves columns metadata."
-Public Function GetColumnMeta() As SQLiteResultCodes
-Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
+Public Function GetColumnMetaAPI() As SQLiteResultCodes
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim BufferPtr As LongPtr
@@ -147,14 +146,14 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     #End If
     hStmt = this.DbStmt.StmtHandle
     If hStmt = 0 Then
-        GetColumnMeta = SQLITE_ERROR
+        GetColumnMetaAPI = SQLITE_ERROR
         Exit Function
     End If
     Dim ColumnCount As Long
     ColumnCount = GetColumnCount
     If ColumnCount = 0 Then
         Debug.Print "No data avaialable"
-        GetColumnMeta = SQLITE_ERROR
+        GetColumnMetaAPI = SQLITE_ERROR
         Exit Function
     End If
     Dim ColumnNames() As String
@@ -205,19 +204,19 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
         .ColumnDeclaredTypes = ColumnDeclaredTypes
     End With
     
-    GetColumnMeta = SQLITE_OK
+    GetColumnMetaAPI = SQLITE_OK
     Exit Function
     
 NULL_PTR:
     '''' Possible "OutOfMemoryErr" / "Failed to allocate memory for column name"
-    GetColumnMeta = this.DbStmt.DbConnection.ErrInfoRetrieve
+    GetColumnMetaAPI = this.DbStmt.DbConnection.ErrInfoRetrieve
     Exit Function
 End Function
 
 
 '''' Reference: https://www.sqlite.org/c3ref/step.html
 ''''
-Public Function Execute() As SQLiteResultCodes
+Public Function ExecuteStepAPI() As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_step(this.DbStmt.StmtHandle)
     Select Case ResultCode
@@ -227,7 +226,7 @@ Public Function Execute() As SQLiteResultCodes
             this.StepAPIError = True
             ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
     End Select
-    Execute = ResultCode
+    ExecuteStepAPI = ResultCode
 End Function
 
 
@@ -239,9 +238,9 @@ Attribute GetScalar.VB_Description = "Retrieves a scalar value"
         Exit Function
     End If
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = Execute
+    ResultCode = ExecuteStepAPI
     If ResultCode = SQLITE_ROW Then
-        GetScalar = GetColumnValue
+        GetScalar = GetColumnValueAPI
     Else
         GetScalar = CVErr(ResultCode)
     End If
@@ -249,6 +248,10 @@ End Function
 
 
 Public Function GetColumnCount() As Long
+    If this.DbStmt.StmtHandle = 0 Then
+        GetColumnCount = 0
+        Exit Function
+    End If
     Dim ColumnCount As Long
     ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     this.ColumnCount = ColumnCount
@@ -258,7 +261,7 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
-Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Variant
+Public Function GetColumnValueAPI(Optional ByVal ColumnIndex As Long = 0) As Variant
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim RemoteBufPtr As LongPtr
@@ -300,7 +303,7 @@ Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Varian
                 Value = CVErr(this.DbStmt.DbConnection.ErrInfoRetrieve)
             End If
     End Select
-    GetColumnValue = Value
+    GetColumnValueAPI = Value
 End Function
 
 
@@ -309,7 +312,7 @@ Public Function GetRow(ByVal ColumnCount As Long) As Variant
     Dim RowValues As Variant
     ReDim RowValues(0 To ColumnCount - 1)
     For ColumnIndex = 0 To ColumnCount - 1
-        RowValues(ColumnIndex) = GetColumnValue(ColumnIndex)
+        RowValues(ColumnIndex) = GetColumnValueAPI(ColumnIndex)
         If IsError(RowValues(ColumnIndex)) Then
             RowValues = RowValues(ColumnIndex)
             Exit Function
@@ -347,7 +350,7 @@ Public Function GetRowSet() As Variant
         Page = Empty
         ReDim Page(0 To this.PageSize - 1, 0 To ColumnCount - 1)
         For RowIndex = 0 To this.PageSize - 1
-            ResultCode = Execute
+            ResultCode = ExecuteStepAPI
             Select Case ResultCode
                 Case SQLITE_ROW
                     RowValues = GetRow(ColumnCount)

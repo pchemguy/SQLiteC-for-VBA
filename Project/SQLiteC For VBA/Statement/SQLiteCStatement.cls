@@ -113,6 +113,15 @@ Public Property Get AffectedRowsCount() As Long
 End Property
 
 
+Public Property Get Busy() As Boolean
+    If this.StmtHandle = 0 Then
+        Busy = False
+    Else
+        Busy = sqlite3_stmt_busy(this.StmtHandle)
+    End If
+End Property
+
+
 '''' Reference: https://www.sqlite.org/c3ref/prepare.html
 ''''
 '@Ignore UseMeaningfulName
@@ -276,18 +285,10 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
         If IsNull(QueryParameters) Or IsEmpty(QueryParameters) Then
             ErrMsg = "Either query or parameters must be provided."
         ElseIf Not (VarType(QueryParameters) > vbArray Or _
-                    TypeName(QueryParameters)) = "Dictionary" Then
+                    TypeName(QueryParameters) = "Dictionary") Then
             ErrMsg = "QueryParameters must be an array or dictionary."
         ElseIf this.StmtHandle = 0 Then
             ErrMsg = "Blank query has been provided to an unprepared statement."
-        Else
-            If this.DbPara Is Nothing Then
-                ErrMsg = "New query is not provided and existing query is " & _
-                         "not parameterized."
-            ElseIf this.DbPara.ParameterCount = 0 Then
-                ErrMsg = "New query is not provided and existing query is " & _
-                         "not parameterized."
-            End If
         End If
         If Len(ErrMsg) > 0 Then Err.Raise ErrNo.InvalidParameterErr, _
                                           "SQLiteCStatement", ErrMsg
@@ -342,7 +343,7 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
     End If
     
     If AffectedRows <> -1 Then AffectedRows = this.DbConn.ChangesCount(True)
-    ResultCode = this.DbExec.Execute
+    ResultCode = this.DbExec.ExecuteStepAPI
     If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
         If AffectedRows <> -1 Then
             AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
@@ -352,8 +353,8 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
     Else
         AffectedRows = -1
     End If
-    If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
     this.AffectedRowsCount = AffectedRows
+    this.DbPara.BindClear
     ExecuteNonQuery = ResultCode
 End Function
 

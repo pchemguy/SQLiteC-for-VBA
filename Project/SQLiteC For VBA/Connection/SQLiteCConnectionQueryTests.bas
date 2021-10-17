@@ -11,7 +11,8 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCTestFixtures
+Private FixObj As SQLiteCTestFixObj
+Private FixSQL As SQLiteCTestFixSQL
 
 
 'This method runs once per module.
@@ -22,7 +23,8 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCTestFixtures
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
 End Sub
 
 
@@ -30,7 +32,7 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set Fixtures = Nothing
+    Set FixObj = Nothing
 End Sub
 
 
@@ -46,9 +48,9 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim SQLQuery As String
-    SQLQuery = Fixtures.zfxGetStmtCreateTableIRBNT
+    SQLQuery = FixSQL.CREATETableINSERTValuesIRBNT
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
@@ -82,9 +84,9 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim SQLQuery As String
-    SQLQuery = Fixtures.zfxGetStmtCreateTableIRBNT
+    SQLQuery = FixSQL.CREATETableINSERTValuesIRBNT
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
@@ -100,7 +102,7 @@ Assert:
     Assert.AreEqual -1, AffectedRecords, "AffectedRecords mismatch"
         TxnStateCode = SQLITE_TXN_NULL
         TxnStateCode = dbc.TxnState("main")
-    Assert.IsTrue TxnStateCode = SQLITE_TXN_READ, "Unexpected Txn state"
+    Assert.IsTrue TxnStateCode = SQLITE_TXN_NONE, "Unexpected Txn state"
         ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
         ResultCode = dbc.CloseDb
@@ -120,7 +122,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
+    Set dbc = FixObj.zfxGetConnDbMemory
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:

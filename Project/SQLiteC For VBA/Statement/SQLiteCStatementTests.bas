@@ -11,7 +11,8 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private Fixtures As SQLiteCTestFixtures
+Private FixObj As SQLiteCTestFixObj
+Private FixSQL As SQLiteCTestFixSQL
 
 
 'This method runs once per module.
@@ -22,7 +23,8 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set Fixtures = New SQLiteCTestFixtures
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
 End Sub
 
 
@@ -30,7 +32,7 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set Fixtures = Nothing
+    Set FixObj = Nothing
 End Sub
 
 
@@ -46,23 +48,22 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
 Assert:
-    Assert.IsNotNothing DbStmt, "DbStmt is not set."
-    Assert.IsNotNothing DbStmt.DbConnection, "Connection object not set."
-    Assert.IsNotNothing DbStmt.DbExecutor, "Executor object not set."
-    Assert.IsNothing DbStmt.DbParameters, "Parameters object should not be set."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
-    Assert.AreSame dbc, DbStmt.DbConnection, "Connection object mismatch."
+    Assert.IsNotNothing dbs, "DbStmt is not set."
+    Assert.IsNotNothing dbs.DbConnection, "Connection object not set."
+    Assert.IsNotNothing dbs.DbExecutor, "Executor object not set."
+    Assert.IsNothing dbs.DbParameters, "Parameters object should not be set."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
+    Assert.AreSame dbc, dbs.DbConnection, "Connection object mismatch."
 
 CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
 
 
 '@TestMethod("Query")
@@ -70,30 +71,29 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQuery As String
-    SQLQuery = Fixtures.zfxGetStmtSQLiteVersion
+    SQLQuery = FixSQL.SELECTSQLiteVersion
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
     Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
 End Sub
 
 
 '@TestMethod("Query")
-Private Sub ztcPrepare16V2_VerifiesStatementVersionPeraration()
+Private Sub ztcPrepare16V2_VerifiesPrepareSQLiteVersion()
     On Error GoTo TestFail
-    Set Fixtures = New SQLiteCTestFixtures
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
 Act:
     Dim ResultCode As SQLiteResultCodes
 Assert:
@@ -101,18 +101,18 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = Fixtures.zfxGetStmtSQLiteVersion
+    SQLQuery = FixSQL.SELECTSQLiteVersion
     
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreNotEqual 0, DbStmt.StmtHandle, "StmtHandle should not be zero."
-    Assert.IsNotNothing DbStmt.DbParameters, "Parameters object should be set."
-    Assert.AreEqual SQLQuery, DbStmt.SQLQueryOriginal, "Original query mismatch"
-    Assert.AreEqual SQLQuery, DbStmt.SQLQueryExpanded, "Expanded query mismatch"
+    Assert.AreNotEqual 0, dbs.StmtHandle, "StmtHandle should not be zero."
+    Assert.IsNotNothing dbs.DbParameters, "Parameters object should be set."
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+    Assert.AreEqual SQLQuery, dbs.SQLQueryExpanded, "Expanded query mismatch"
     
-    ResultCode = DbStmt.Finalize
+    ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
@@ -125,14 +125,14 @@ End Sub
 
 
 '@TestMethod("Query")
-Private Sub ztcPrepare16V2_VerifiesStatementCreateTablePeraration()
+Private Sub ztcPrepare16V2_VerifiesPrepareOfCreateTable()
     On Error GoTo TestFail
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
 Act:
 Assert:
@@ -140,17 +140,17 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = Fixtures.zfxGetStmtCreateTableIRBNT2V
+    SQLQuery = FixSQL.CREATETableIRBNT
     
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreNotEqual 0, DbStmt.StmtHandle, "StmtHandle should not be zero."
-    Assert.AreEqual SQLQuery, DbStmt.SQLQueryOriginal, "Original query mismatch"
-    Assert.AreEqual SQLQuery, DbStmt.SQLQueryExpanded, "Expanded query mismatch"
+    Assert.AreNotEqual 0, dbs.StmtHandle, "StmtHandle should not be zero."
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+    Assert.AreEqual SQLQuery, dbs.SQLQueryExpanded, "Expanded query mismatch"
     
-    ResultCode = DbStmt.Finalize
+    ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
@@ -163,14 +163,14 @@ End Sub
 
 
 '@TestMethod("Query")
-Private Sub ztcPrepare16V2_VerifiesInvalidSQLHandling()
+Private Sub ztcPrepare16V2_VerifiesErrorOnInvalidSQL()
     On Error GoTo TestFail
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemory
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
 Act:
 Assert:
@@ -180,28 +180,28 @@ Assert:
     Dim SQLQuery As String
     
     SQLQuery = "SELECT --"
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "-- SELECT --"
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Expected SQLITE_OK result: '" & SQLQuery & "'."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "ABC SELECT --"
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "SELECT * FROM ABC"
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
-    ResultCode = DbStmt.Finalize
+    ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
@@ -214,14 +214,14 @@ End Sub
 
 
 '@TestMethod("Query")
-Private Sub ztcPrepare16V2_VerifiesValidSelect()
+Private Sub ztcPrepare16V2_VerifiesErrorWithSelectFromFakeTable()
     On Error GoTo TestFail
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = Fixtures.zfxGetConnDbMemoryWithTable
-    Dim DbStmt As SQLiteCStatement
-    Set DbStmt = dbc.CreateStatement(vbNullString)
+    Set dbc = FixObj.zfxGetConnDbMemoryWithTable
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
 Act:
 Assert:
@@ -230,14 +230,14 @@ Assert:
     
     Dim SQLQuery As String
     
-    SQLQuery = Fixtures.zfxGetStmtSELECTt1
-    ResultCode = DbStmt.Prepare16V2(SQLQuery)
+    SQLQuery = FixSQL.SELECTt1
+    ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
-    ResultCode = DbStmt.Finalize
+    ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
@@ -247,3 +247,166 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcGetBusy_VerifiesBusyStatus()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+Act:
+    Dim ResultCode As SQLiteResultCodes
+    Dim Result As Variant
+Assert:
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTCollations
+    
+        ResultCode = dbs.Prepare16V2(SQLQuery)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual False, dbs.Busy, "Busy status should be False"
+        Result = dbs.GetScalar(SQLQuery)
+    Assert.AreEqual True, dbs.Busy, "Busy status should be True"
+        ResultCode = dbs.Reset
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Reset error."
+    Assert.AreEqual False, dbs.Busy, "Busy status should be False"
+    
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcPrepare16V2_VerifiesGetScalar()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = FixObj.zfxGetDefaultDBM
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+Act:
+    Dim ResultCode As SQLiteResultCodes
+    Dim Result As Variant
+Assert:
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTSQLiteVersion
+    
+    Result = dbs.GetScalar(SQLQuery)
+    Assert.AreEqual dbm.Version(False), Result, "GetScalar mismatch."
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
+    On Error Resume Next
+    
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+    
+    Dim SQLQueryDummy As String
+    SQLQueryDummy = FixSQL.SELECTSQLiteVersion
+    Dim SQLQuery As String
+    SQLQuery = vbNullString
+    Dim AffectedRows As Long
+    AffectedRows = 0
+    Dim QueryParams As Variant
+    QueryParams = Null
+    Dim ResultCode As SQLiteResultCodes
+    
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    ResultCode = dbs.Prepare16V2(SQLQueryDummy)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    
+    Dim Result As Variant
+    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+
+    Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
+    On Error Resume Next
+    
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+    
+    Dim SQLQueryDummy As String
+    SQLQueryDummy = FixSQL.SELECTSQLiteVersion
+    Dim SQLQuery As String
+    SQLQuery = vbNullString
+    Dim AffectedRows As Long
+    AffectedRows = 0
+    Dim QueryParams As Variant
+    QueryParams = "ABC"
+    Dim ResultCode As SQLiteResultCodes
+    
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    ResultCode = dbs.Prepare16V2(SQLQueryDummy)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    
+    Dim Result As Variant
+    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+
+    Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
+    On Error Resume Next
+    
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+    
+    Dim SQLQuery As String
+    SQLQuery = vbNullString
+    Dim AffectedRows As Long
+    AffectedRows = 0
+    Dim QueryParams As Variant
+    QueryParams = Array("ABC")
+    Dim ResultCode As SQLiteResultCodes
+    
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    
+    Dim Result As Variant
+    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+
+    Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
+End Sub
+

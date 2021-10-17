@@ -9,13 +9,17 @@ Public Function SQLforGetSQLiteVersion() As String
     ), vbNewLine)
 End Function
 
-
 Public Function SQLforGetDbPath() As String
     SQLforGetDbPath = Join(Array( _
         "SELECT file FROM pragma_database_list;" _
     ), vbNewLine)
 End Function
 
+Public Function SQLforGetCollations() As String
+    SQLforGetCollations = Join(Array( _
+        "SELECT name FROM pragma_collation_list AS collations ORDER BY name;" _
+    ), vbNewLine)
+End Function
 
 Public Function SQLforFunctionsTable() As String
     SQLforFunctionsTable = Join(Array( _
@@ -23,7 +27,6 @@ Public Function SQLforFunctionsTable() As String
         "SELECT * FROM functions ORDER BY name;" _
     ), vbNewLine)
 End Function
-
 
 Public Function SQLforFunctionsTableFiltered() As String
     SQLforFunctionsTableFiltered = Join(Array( _
@@ -35,7 +38,6 @@ Public Function SQLforFunctionsTableFiltered() As String
     ), vbNewLine)
 End Function
 
-
 Public Function SQLforFunctionsTableFilteredNamedParams() As String
     SQLforFunctionsTableFilteredNamedParams = Join(Array( _
         "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
@@ -45,7 +47,6 @@ Public Function SQLforFunctionsTableFilteredNamedParams() As String
         "ORDER BY name;" _
     ), vbNewLine)
 End Function
-
 
 Public Function SQLforFunctionsTableFilteredNamedParamsArray() As Variant
     SQLforFunctionsTableFilteredNamedParamsArray = Array( _
@@ -57,7 +58,6 @@ Public Function SQLforFunctionsTableFilteredNamedParamsArray() As Variant
         "s" _
     )
 End Function
-
 
 Public Function SQLforFunctionsTableFilteredNamedParamsDict() As Scripting.Dictionary
     Dim QueryParams As Scripting.Dictionary
@@ -74,7 +74,6 @@ Public Function SQLforFunctionsTableFilteredNamedParamsDict() As Scripting.Dicti
     Set SQLforFunctionsTableFilteredNamedParamsDict = QueryParams
 End Function
 
-
 Public Function SQLforCreateTestTable() As String
     SQLforCreateTestTable = Join(Array( _
         "CREATE TABLE t1(", _
@@ -86,7 +85,6 @@ Public Function SQLforCreateTestTable() As String
         ");" _
     ), vbNewLine)
 End Function
-
 
 Public Function SQLforInsertTestRows() As String
     SQLforInsertTestRows = Join(Array( _
