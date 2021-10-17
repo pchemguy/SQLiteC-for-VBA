@@ -210,7 +210,7 @@ Attribute GetColumnMeta.VB_Description = "Retrieves columns metadata."
     
 NULL_PTR:
     '''' Possible "OutOfMemoryErr" / "Failed to allocate memory for column name"
-    GetColumnMeta = this.DbStmt.DbConn.ErrInfoRetrieve
+    GetColumnMeta = this.DbStmt.DbConnection.ErrInfoRetrieve
     Exit Function
 End Function
 
@@ -225,7 +225,7 @@ Public Function Execute() As SQLiteResultCodes
             this.StepAPIError = False
         Case Else
             this.StepAPIError = True
-            ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
+            ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
     End Select
     Execute = ResultCode
 End Function
@@ -283,7 +283,7 @@ Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Varian
             If RemoteBufPtr > 0 Then
                 Value = UTFlib.StrFromUTF8Ptr(RemoteBufPtr)
             Else
-                Value = CVErr(this.DbStmt.DbConn.ErrInfoRetrieve)
+                Value = CVErr(this.DbStmt.DbConnection.ErrInfoRetrieve)
             End If
         Case SQLITE_NULL
             Value = Null
@@ -297,7 +297,7 @@ Public Function GetColumnValue(Optional ByVal ColumnIndex As Long = 0) As Varian
                 RtlCopyMemory VarPtr(LocalBuffer(0)), RemoteBufPtr, Length
                 Value = LocalBuffer
             Else
-                Value = CVErr(this.DbStmt.DbConn.ErrInfoRetrieve)
+                Value = CVErr(this.DbStmt.DbConnection.ErrInfoRetrieve)
             End If
     End Select
     GetColumnValue = Value
@@ -362,7 +362,7 @@ Public Function GetRowSet() As Variant
                 Case SQLITE_DONE
                     Pages(PageIndex) = Page
                     this.RowCount = RowCount
-                    ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
+                    ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
                     GetRowSet = Pages
                     Exit Function
                 Case Else

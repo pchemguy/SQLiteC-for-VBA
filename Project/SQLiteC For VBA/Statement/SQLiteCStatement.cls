@@ -84,13 +84,18 @@ Private Sub Class_Terminate()
 End Sub
 
 
-Public Property Get DbConn() As SQLiteCConnection
-    Set DbConn = this.DbConn
+Friend Property Get DbConnection() As SQLiteCConnection
+    Set DbConnection = this.DbConn
 End Property
 
 
-Public Property Get DbExec() As SQLiteCExecSQL
-    Set DbExec = this.DbExec
+Friend Property Get DbExecutor() As SQLiteCExecSQL
+    Set DbExecutor = this.DbExec
+End Property
+
+
+Friend Property Get DbParameters() As SQLiteCParameters
+    Set DbParameters = this.DbPara
 End Property
 
 
@@ -122,6 +127,14 @@ Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
     If ResultCode <> SQLITE_OK Then
         this.StmtHandle = 0
         ResultCode = this.DbConn.ErrInfoRetrieve
+    Else
+        If this.DbPara Is Nothing Then
+            Set this.DbPara = SQLiteCParameters(Me)
+            If this.DbPara Is Nothing Then
+                Err.Raise ErrNo.InvalidParameterErr, "SQLiteCStatement", _
+                          "Failed to instantiate SQLiteCParameters."
+            End If
+        End If
     End If
     Prepare16V2 = ResultCode
 End Function
@@ -222,33 +235,97 @@ Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements
 End Function
 
 
+'''' ExecuteSetup prepares statement and/or binds parameters.
+''''
+'''' If non-blank SQLQuery is provided, a new query is prepared. If the
+'''' statement has already been prerared, reset is called.
+''''
+'''' If query parameters are provided (as either an array or Name->Value
+'''' dictionary map), bind is called.
+''''
+'''' Args:
+''''   SQLQuery (string):
+''''     SQL Query. Required parameter, but may be set to vbNullString.
+''''
+''''   QueryParameters (variant, optional, null):
+''''     Parameters for a parameterized query.
+''''
+'''' Returns:
+''''   SQLITE_OK, if successful; if not, other SQLiteResultCodes.
+''''
+'''' Raises:
+''''   InvalidParameterErr
+''''     If SQLQuery = vbNullString and either
+''''       - the statement is not prepared,
+''''       - QueryParameters is Null/Empty, or
+''''       - QueryParameters is not an array or dictionary, or
+''''       - existing query is not parameterized.
+''''
+'@Description "Prepares statement and/or binds parameters."
 Friend Function ExecuteSetup(ByVal SQLQuery As String, _
-            Optional ByVal QueryParameters As Variant = Empty) As SQLiteResultCodes
+                    Optional ByVal QueryParameters As Variant = Null _
+                    ) As SQLiteResultCodes
+Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds parameters."
     Dim ResultCode As SQLiteResultCodes
     Dim LenSQL As Long
     LenSQL = Len(SQLQuery)
+    
+    If LenSQL = 0 Then
+        Dim ErrMsg As String
+        ErrMsg = vbNullString
+        If IsNull(QueryParameters) Or IsEmpty(QueryParameters) Then
+            ErrMsg = "Either query or parameters must be provided."
+        ElseIf Not (VarType(QueryParameters) > vbArray Or _
+                    TypeName(QueryParameters)) = "Dictionary" Then
+            ErrMsg = "QueryParameters must be an array or dictionary."
+        ElseIf this.StmtHandle = 0 Then
+            ErrMsg = "Blank query has been provided to an unprepared statement."
+        Else
+            If this.DbPara Is Nothing Then
+                ErrMsg = "New query is not provided and existing query is " & _
+                         "not parameterized."
+            ElseIf this.DbPara.ParameterCount = 0 Then
+                ErrMsg = "New query is not provided and existing query is " & _
+                         "not parameterized."
+            End If
+        End If
+        If Len(ErrMsg) > 0 Then Err.Raise ErrNo.InvalidParameterErr, _
+                                          "SQLiteCStatement", ErrMsg
+    End If
+        
     If LenSQL > 0 Then
-        '@Ignore FunctionReturnValueDiscarded
-        If this.StmtHandle <> 0 Then Finalize
+        If this.StmtHandle <> 0 Then
+            ResultCode = Finalize
+            If ResultCode <> SQLITE_OK Then
+                ExecuteSetup = ResultCode
+                Exit Function
+            End If
+        End If
         ResultCode = Prepare16V2(SQLQuery)
         If ResultCode <> SQLITE_OK Then
             ExecuteSetup = ResultCode
             Exit Function
         End If
-    ElseIf this.StmtHandle <> 0 Then
+    Else
+        '''' LenSQL = 0 And this.StmtHandle <> 0 - the only remaining option,
+        '''' because <both = 0> option raises an error above.
         ResultCode = Reset
         If ResultCode <> SQLITE_OK Then
             ResultCode = ExecuteSetup(SQLQueryOriginal, QueryParameters)
             ExecuteSetup = ResultCode
             Exit Function
         End If
-    Else
-        Err.Raise ErrNo.InvalidParameterErr, "SQLiteCStatement", _
-                  "Blank query has been provided to an unprepared statement."
     End If
-    If Not IsEmpty(QueryParameters) Then
-        If this.DbPara Is Nothing Then Set this.DbPara = SQLiteCParameters(Me)
+    
+    If VarType(QueryParameters) > vbArray Or _
+       TypeName(QueryParameters) = "Dictionary" Then
+        '''' this.DbPara is set in Prepare16V2
         ResultCode = this.DbPara.BindDictOrArray(QueryParameters)
+        If ResultCode = SQLITE_OK Then
+            Debug.Print "Parameters are bound."
+        Else
+            ResultCode = this.DbConn.ErrInfoRetrieve
+        End If
     End If
     ExecuteSetup = ResultCode
 End Function
@@ -299,7 +376,6 @@ Public Function GetRowSet(ByVal SQLQuery As String, _
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
-        If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
         GetRowSet = this.DbExec.GetRowSet
         If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
     Else

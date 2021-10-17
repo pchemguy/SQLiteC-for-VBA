@@ -109,7 +109,7 @@ Public Function zfxGetStmtCreateTableIRBNT2V() As String
         "    xb BLOB," & vbNewLine & _
         "    xn NUMERIC," & vbNewLine & _
         "    xt Text" & vbNewLine & _
-        ");" & vbNewLine
+        ");"
     zfxGetStmtCreateTableIRBNT2V = TEST_STMT_CREATE_TABLE_IRBNT
 End Function
 
@@ -120,4 +120,3 @@ End Function
 Public Function zfxGetStmtSELECTt1() As String
     zfxGetStmtSELECTt1 = "SELECT * FROM t1"
 End Function
-

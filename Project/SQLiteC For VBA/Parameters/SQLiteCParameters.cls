@@ -14,6 +14,8 @@ Attribute VB_Description = "Handles query parameters"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
+'''' Notes: Test BindClear with hStmt=0
+
 ''''======================================================================''''
 '''' Parameters
 '''' https://www.sqlite.org/c3ref/bind_blob.html
@@ -85,9 +87,8 @@ End Sub
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_count.html
 ''''
 '@Description "Retrieves parameter count."
-Public Property Get Count() As Long
-Attribute Count.VB_Description = "Retrieves parameter count."
-    Count = sqlite3_bind_parameter_count(this.DbStmt.StmtHandle)
+Public Property Get ParameterCount() As Long
+    ParameterCount = sqlite3_bind_parameter_count(this.DbStmt.StmtHandle)
 End Property
 
 
@@ -166,7 +167,7 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             Debug.Print "Unsupported array type: " & CStr(VarType(Value))
             ResultCode = SQLITE_ERROR
     End Select
-    If ResultCode > SQLITE_ERROR Then ResultCode = this.DbStmt.DbConn.ErrInfoRetrieve
+    If ResultCode > SQLITE_ERROR Then ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
     BindOne = ResultCode
 End Function
 
@@ -180,7 +181,7 @@ Attribute BindArray.VB_Description = "Binds a set of parameter values provided a
     Dim ValueCount As Long
     ValueCount = UBound(ValueArr, 1) - LBound(ValueArr, 1) + 1
     Dim ParamCount As Long
-    ParamCount = Count
+    ParamCount = ParameterCount
     If ValueCount <> ParamCount Then
         Debug.Print "Wrong number of parameter values:" & vbNewLine & _
             "Expected: " & CStr(ParamCount) & vbNewLine & "Received: " & _
@@ -235,10 +236,11 @@ End Function
 
 
 Public Sub BindClear()
+    If this.DbStmt.StmtHandle = 0 Then Exit Sub
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)
     '@Ignore FunctionReturnValueDiscarded
-    If ResultCode <> SQLITE_OK Then this.DbStmt.DbConn.ErrInfoRetrieve
+    If ResultCode <> SQLITE_OK Then this.DbStmt.DbConnection.ErrInfoRetrieve
 End Sub
 
 

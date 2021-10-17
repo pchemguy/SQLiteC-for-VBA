@@ -47,6 +47,34 @@ Public Function SQLforFunctionsTableFilteredNamedParams() As String
 End Function
 
 
+Public Function SQLforFunctionsTableFilteredNamedParamsArray() As Variant
+    SQLforFunctionsTableFilteredNamedParamsArray = Array( _
+        1, _
+        0, _
+        0, _
+        "utf8", _
+        0, _
+        "s" _
+    )
+End Function
+
+
+Public Function SQLforFunctionsTableFilteredNamedParamsDict() As Scripting.Dictionary
+    Dim QueryParams As Scripting.Dictionary
+    Set QueryParams = New Scripting.Dictionary
+    With QueryParams
+        .CompareMode = TextCompare
+        .Item("@builtinY") = 1
+        .Item("@builtinN") = 0
+        .Item("@flags") = 0
+        .Item("@enc") = "utf8"
+        .Item("@narg") = 0
+        .Item("@type") = "s"
+    End With
+    Set SQLforFunctionsTableFilteredNamedParamsDict = QueryParams
+End Function
+
+
 Public Function SQLforCreateTestTable() As String
     SQLforCreateTestTable = Join(Array( _
         "CREATE TABLE t1(", _

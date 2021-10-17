@@ -51,10 +51,11 @@ Act:
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:
     Assert.IsNotNothing DbStmt, "DbStmt is not set."
-    Assert.IsNotNothing DbStmt.DbConn, "Connection object not set."
-    Assert.IsNotNothing DbStmt.DbExec, "Exec object not set."
+    Assert.IsNotNothing DbStmt.DbConnection, "Connection object not set."
+    Assert.IsNotNothing DbStmt.DbExecutor, "Executor object not set."
+    Assert.IsNothing DbStmt.DbParameters, "Parameters object should not be set."
     Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
-    Assert.AreSame dbc, DbStmt.DbConn, "Connection object mismatch."
+    Assert.AreSame dbc, DbStmt.DbConnection, "Connection object mismatch."
 
 CleanExit:
     Exit Sub
@@ -86,6 +87,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesStatementVersionPeraration()
     On Error GoTo TestFail
+    Set Fixtures = New SQLiteCTestFixtures
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -104,6 +106,7 @@ Assert:
     ResultCode = DbStmt.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.AreNotEqual 0, DbStmt.StmtHandle, "StmtHandle should not be zero."
+    Assert.IsNotNothing DbStmt.DbParameters, "Parameters object should be set."
     Assert.AreEqual SQLQuery, DbStmt.SQLQueryOriginal, "Original query mismatch"
     Assert.AreEqual SQLQuery, DbStmt.SQLQueryExpanded, "Expanded query mismatch"
     
@@ -124,6 +127,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesStatementCreateTablePeraration()
     On Error GoTo TestFail
+
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
@@ -161,6 +165,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesInvalidSQLHandling()
     On Error GoTo TestFail
+
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemory
@@ -176,23 +181,23 @@ Assert:
     
     SQLQuery = "SELECT --"
     ResultCode = DbStmt.Prepare16V2(SQLQuery)
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
+    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "-- SELECT --"
     ResultCode = DbStmt.Prepare16V2(SQLQuery)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Expected SQLITE_OK result: '" & SQLQuery & "'."
+    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "ABC SELECT --"
     ResultCode = DbStmt.Prepare16V2(SQLQuery)
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
-    Assert.AreNotEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
+    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     SQLQuery = "SELECT * FROM ABC"
     ResultCode = DbStmt.Prepare16V2(SQLQuery)
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
-    Assert.AreNotEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero."
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error: '" & SQLQuery & "'."
+    Assert.AreEqual 0, DbStmt.StmtHandle, "StmtHandle should be zero: '" & SQLQuery & "'."
     
     ResultCode = DbStmt.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -211,7 +216,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesValidSelect()
     On Error GoTo TestFail
-    Set Fixtures = New SQLiteCTestFixtures
+
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = Fixtures.zfxGetConnDbMemoryWithTable
@@ -242,5 +247,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-'    Set Fixtures = New SQLiteCTestFixtures

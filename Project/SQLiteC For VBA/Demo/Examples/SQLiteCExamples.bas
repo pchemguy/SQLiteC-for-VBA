@@ -28,9 +28,29 @@ Attribute Main.VB_Description = "Main entry point"
     InsertTestRows
     Dim Result As Variant
     Result = GetScalarDbVersion
+    Debug.Print Result
     Result = GetScalarDbPath
+    Debug.Print Result
     Result = GetRowSetFunctions
-    'PrepareStatementGetScalar
+    PrepareStatementGetRowSetFilteredPlain
+    
+    PrepareStatementGetRowSetFilteredParams
+    BindParamArray
+    BindParamDict
+    FinalizeStatement
+    
+    Result = Empty
+    Result = RunFunctionsQuery
+    
+    Result = Empty
+    Result = RunFunctionsQueryWithParamArray
+    
+    Result = Empty
+    Result = RunFunctionsQueryWithParamDict
+    
+    Debug.Assert Not (IsNull(Result) Or IsError(Result))
+    PrepareStatementGetScalar
+    FinalizeStatement
     CloseDb
     Cleanup
 End Sub
@@ -334,6 +354,21 @@ Private Function GetRowSetFunctions() As Variant
 End Function
 
 
+Private Sub FinalizeStatement()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+        
+    ResultCode = dbs.Finalize
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle <> 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to finalize statement."
+    Else
+        Debug.Print "Statement is finalized."
+    End If
+End Sub
+
+
 Private Sub PrepareStatementGetScalar()
     Dim dbs As SQLiteCStatement
     Set dbs = this.dbs
@@ -350,3 +385,119 @@ Private Sub PrepareStatementGetScalar()
         Debug.Print "Statement is prepared."
     End If
 End Sub
+
+
+Private Sub PrepareStatementGetRowSetFilteredPlain()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFiltered
+    
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to prepare statement."
+    Else
+        Debug.Print "Statement is prepared."
+    End If
+End Sub
+
+
+Private Sub PrepareStatementGetRowSetFilteredParams()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to prepare statement."
+    Else
+        Debug.Print "Statement is prepared."
+    End If
+End Sub
+
+
+Private Sub BindParamArray()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim ParamsArray As Variant
+    ParamsArray = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsArray
+    
+    dbs.DbParameters.BindClear
+    ResultCode = dbs.DbParameters.BindDictOrArray(ParamsArray)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to bind array parameters."
+    Else
+        Debug.Print "Array parameters are bound."
+    End If
+End Sub
+
+
+Private Sub BindParamDict()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim ParamsDict As Scripting.Dictionary
+    Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
+    
+    dbs.DbParameters.BindClear
+    ResultCode = dbs.DbParameters.BindDictOrArray(ParamsDict)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to bind dict parameters."
+    Else
+        Debug.Print "Dict parameters are bound."
+    End If
+End Sub
+
+
+Private Function RunFunctionsQuery() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFiltered
+    Dim ParamsArray As Variant
+    ParamsArray = Null
+    
+    RunFunctionsQuery = dbs.GetRowSet(SQLQuery, ParamsArray)
+End Function
+
+
+Private Function RunFunctionsQueryWithParamArray() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    Dim ParamsArray As Variant
+    ParamsArray = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsArray
+    
+    RunFunctionsQueryWithParamArray = dbs.GetRowSet(SQLQuery, ParamsArray)
+End Function
+
+
+Private Function RunFunctionsQueryWithParamDict() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    Dim ParamsDict As Variant
+    Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
+    
+    RunFunctionsQueryWithParamDict = dbs.GetRowSet(SQLQuery, ParamsDict)
+End Function
