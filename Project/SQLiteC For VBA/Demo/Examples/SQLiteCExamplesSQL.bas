@@ -78,21 +78,26 @@ Public Function SQLforCreateTestTable() As String
     SQLforCreateTestTable = Join(Array( _
         "CREATE TABLE t1(", _
         "    xi INTEGER,", _
+        "    xt TEXT,", _
         "    xr REAL,", _
-        "    xb BLOB,", _
-        "    xn NUMERIC,", _
-        "    xt Text", _
+        "    xb BLOB", _
         ");" _
     ), vbNewLine)
 End Function
 
 Public Function SQLforInsertTestRows() As String
     SQLforInsertTestRows = Join(Array( _
-        "INSERT INTO t1(rowid, xi, xr, xb, xn,    xt) ", _
-        "VALUES        (    1, 10, .1,  1,  7, 'AAA'),", _
-        "              (    2, 20, .3,  1, .2, 'BBB'),", _
-        "              (    3,  8, .2,  1, 10, 'AAA'),", _
-        "              (    4, 27, .3,  1, .9, 'DDD'),", _
-        "              (    5,  2, .8,  1,  1, 'BBB');" _
+        "INSERT INTO t1(rowid, xi,    xt,  xr,                  xb) ", _
+        "VALUES        (    1, 10, 'AAA', 3.1, X'410A0D0942434445'),", _
+        "              (    2, 20, 'BBB', 1.3, X'30310A0D09323334'),", _
+        "              (    3,  8, 'AAA', 7.2, X'30310A0D32093334'),", _
+        "              (    4, 27, 'DDD', 4.3, X'410A0D0942434445'),", _
+        "              (    5,  8, 'BBB', 3.8, X'30310A0D32093334');" _
+    ), vbNewLine)
+End Function
+
+Public Function SQLforSelectFromTestTable() As String
+    SQLforSelectFromTestTable = Join(Array( _
+        "SELECT rowid, * FROM t1;" _
     ), vbNewLine)
 End Function

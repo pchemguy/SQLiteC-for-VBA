@@ -14,36 +14,37 @@ Attribute VB_Description = "Provides SQL snippets for tests"
 Option Explicit
 
 
-Public Function CREATETableIRBNT() As String
-    CREATETableIRBNT = Join(Array( _
+Public Function CREATETableITRB() As String
+    CREATETableITRB = Join(Array( _
         "CREATE TABLE t1(", _
         "    xi INTEGER,", _
+        "    xt TEXT,", _
         "    xr REAL,", _
-        "    xb BLOB,", _
-        "    xn NUMERIC,", _
-        "    xt Text", _
+        "    xb BLOB", _
         ");" _
     ), vbNewLine)
 End Function
 
-Public Function INSERTValuesIRBNT() As String
-    INSERTValuesIRBNT = Join(Array( _
-        "INSERT INTO t1(rowid, xi, xr, xb, xn,    xt) ", _
-        "VALUES        (    1, 10, .1,  1,  7, 'AAA'),", _
-        "              (    2, 20, .3,  1, .2, 'BBB'),", _
-        "              (    3,  8, .2,  1, 10, 'AAA'),", _
-        "              (    4, 27, .3,  1, .9, 'DDD'),", _
-        "              (    5,  2, .8,  1,  1, 'BBB');" _
+Public Function INSERTValuesITRB() As String
+    INSERTValuesITRB = Join(Array( _
+        "INSERT INTO t1(rowid, xi,    xt,  xr,                  xb) ", _
+        "VALUES        (    1, 10, 'AAA', 3.1, X'410A0D0942434445'),", _
+        "              (    2, 20, 'BBB', 1.3, X'30310A0D09323334'),", _
+        "              (    3,  8, 'AAA', 7.2, X'30310A0D32093334'),", _
+        "              (    4, 27, 'DDD', 4.3, X'410A0D0942434445'),", _
+        "              (    5,  8, 'BBB', 3.8, X'30310A0D32093334');" _
     ), vbNewLine)
 End Function
 
-Public Function SELECTt1() As String
-    SELECTt1 = "SELECT * FROM t1"
+Public Function SELECTTestTable() As String
+    SELECTTestTable = Join(Array( _
+        "SELECT rowid, * FROM t1;" _
+    ), vbNewLine)
 End Function
 
 Public Function CREATETableINSERTValuesIRBNT() As String
     CREATETableINSERTValuesIRBNT = _
-        CREATETableIRBNT & vbNewLine & INSERTValuesIRBNT
+        CREATETableITRB & vbNewLine & INSERTValuesITRB
 End Function
 
 Public Function SELECTSQLiteVersion() As String
@@ -114,3 +115,5 @@ Public Function SELECTFunctionsTableWHEREParamsDict() As Scripting.Dictionary
     End With
     Set SELECTFunctionsTableWHEREParamsDict = QueryParams
 End Function
+
+

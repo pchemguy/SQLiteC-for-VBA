@@ -23,3 +23,14 @@ Public Const KeyAlreadyExistsErr As Long = 457
 Public Const OutOfMemoryErr As Long = 7&
 Public Const ConnectionNotOpenedErr As Long = vbObjectError + 3000
 Public Const StatementNotPreparedErr As Long = vbObjectError + 3001
+
+Public Type TColumnsMeta
+    ColumnNames As Variant
+    ColumnDbNames As Variant
+    ColumnTableNames As Variant
+    ColumnOriginNames As Variant
+    ColumnTypes As Variant
+    ColumnDeclaredTypes As Variant
+    ColumnAffinities As Variant
+    ColumnMap As Scripting.Dictionary
+End Type

@@ -81,7 +81,7 @@ Public Function zfxGetConnDbMemoryWithTable() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
     Set zfxGetConnDbMemoryWithTable = zfxGetConnection(DbPathName)
-    zfxGetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableIRBNT
+    zfxGetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableITRB
 End Function
 
 

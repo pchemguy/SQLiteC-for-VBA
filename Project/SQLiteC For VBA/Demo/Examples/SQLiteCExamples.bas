@@ -24,8 +24,11 @@ Attribute Main.VB_Description = "Main entry point"
     InitDBS
     OpenDb
     CheckFunctionality
+    
     CreateTestTable
     InsertTestRows
+    GetColumnsMeta
+    
     Dim Result As Variant
     Result = GetScalarDbVersion
     Debug.Print Result
@@ -320,6 +323,52 @@ Private Sub InsertTestRows()
         Debug.Print "Insert query is complete, AffectedRows = " & CStr(AffectedRows) & "."
     End If
     Debug.Assert AffectedRows = dbs.AffectedRowsCount
+End Sub
+
+
+Private Sub GetColumnsMeta()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforSelectFromTestTable
+    
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to prepare statement."
+    Else
+        Debug.Print "Statement is prepared."
+    End If
+    
+    ResultCode = dbs.DbExecutor.ExecuteStepAPI
+    Select Case ResultCode
+        Case SQLITE_ROW
+            Debug.Print "Step API returned row."
+        Case SQLITE_OK, SQLITE_DONE
+            Debug.Print "Step API returned NoData."
+            Exit Sub
+        Case Else
+            Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                      "Failed to execute the Step API."
+    End Select
+    
+    ResultCode = dbs.DbExecutor.GetColumnsMetaAPI
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to get columns meta."
+    Else
+        Debug.Print "Retrieved columns meta,"
+    End If
+
+    ResultCode = dbs.Reset
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to reset statement."
+    Else
+        Debug.Print "The statement is reset."
+    End If
 End Sub
 
 

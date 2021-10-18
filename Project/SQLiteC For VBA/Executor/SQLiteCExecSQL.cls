@@ -26,12 +26,21 @@ Attribute VB_Description = "Executes statement and retrieves data"
 
 Option Explicit
 
-Public Enum SQLiteTypes
+Public Enum SQLiteType
     SQLITE_INTEGER = 1&
     SQLITE_FLOAT = 2&
     SQLITE_TEXT = 3&
     SQLITE_BLOB = 4&
     SQLITE_NULL = 5&
+End Enum
+
+Public Enum SQLiteTypeAffinity
+    SQLITE_AFF_NONE = &H40       ' /* '@' */
+    SQLITE_AFF_BLOB = &H41       ' /* 'A' */
+    SQLITE_AFF_TEXT = &H42       ' /* 'B' */
+    SQLITE_AFF_NUMERIC = &H43    ' /* 'C' */
+    SQLITE_AFF_INTEGER = &H44    ' /* 'D' */
+    SQLITE_AFF_REAL = &H45       ' /* 'E' */
 End Enum
 
 #If VBA7 Then
@@ -76,14 +85,8 @@ Private Declare Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As Long,
 
 Private Type TSQLiteCExecSQL
     DbStmt As SQLiteCStatement
+    ColumnsMeta As TColumnsMeta
     ColumnCount As Long
-    ColumnNames As Variant
-    ColumnDbNames As Variant
-    ColumnTableNames As Variant
-    ColumnOriginNames As Variant
-    ColumnTypes As Variant
-    ColumnDeclaredTypes As Variant
-    ColumnMap As Scripting.Dictionary
     StepAPIError As Boolean
     PageCount As Long
     FilledPagesCount As Long
@@ -106,17 +109,27 @@ End Function
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     Set this.DbStmt = DbStmt
-    Set this.ColumnMap = New Scripting.Dictionary
-    this.ColumnMap.CompareMode = TextCompare
+    Set this.ColumnsMeta.ColumnMap = New Scripting.Dictionary
+    this.ColumnsMeta.ColumnMap.CompareMode = TextCompare
     this.RowCount = 0
     this.PageCount = 10
     this.PageSize = 100
 End Sub
 
 
-Public Function SQLiteTypeName(ByVal SQLiteType As SQLiteTypes) As String
-    SQLiteTypeName = Array("INTEGER", "FLOAT", "TEXT", "BLOB", "NULL")(SQLiteType - 1)
+Public Function SQLiteTypeName(ByVal DataTypeCode As SQLiteType) As String
+    SQLiteTypeName = Array("INTEGER", "FLOAT", "TEXT", "BLOB", "NULL")(DataTypeCode - 1)
 End Function
+
+
+Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteType) As String
+    SQLiteTypeAffinityName = Array("NONE", "BLOB", "TEXT", "NUMERIC", "INTEGER", "REAL")(DataTypeAffinityCode - &H40)
+End Function
+
+
+Public Property Get ColumnsMeta() As TColumnsMeta
+    ColumnsMeta = this.ColumnsMeta
+End Property
 
 
 Public Property Get FilledPagesCount() As Long
@@ -129,6 +142,31 @@ Public Property Get RowCount() As Long
 End Property
 
 
+'''' Reference: https://www.sqlite.org/datatype3.html
+''''            See section 3.1
+''''
+'@Description "Determines column type affinity."
+Friend Function TypeAffinityFromDeclaredType(ByVal DeclaredType As String) As SQLiteTypeAffinity
+    Dim DeclType As String
+    DeclType = UCase$(DeclaredType)
+    If InStr(DeclType, "INT") > 0 Then
+        TypeAffinityFromDeclaredType = SQLITE_AFF_INTEGER
+    ElseIf InStr(DeclType, "CHAR") > 0 Or _
+           InStr(DeclType, "CLOB") > 0 Or _
+           InStr(DeclType, "TEXT") > 0 Then
+        TypeAffinityFromDeclaredType = SQLITE_AFF_TEXT
+    ElseIf InStr(DeclType, "BLOB") > 0 Or Len(DeclType) = 0 Then
+        TypeAffinityFromDeclaredType = SQLITE_AFF_BLOB
+    ElseIf InStr(DeclType, "REAL") > 0 Or _
+           InStr(DeclType, "FLOA") > 0 Or _
+           InStr(DeclType, "DOUB") > 0 Then
+        TypeAffinityFromDeclaredType = SQLITE_AFF_REAL
+    Else
+        TypeAffinityFromDeclaredType = SQLITE_AFF_NUMERIC
+    End If
+End Function
+
+
 '''' Reference: https://www.sqlite.org/c3ref/column_count.html
 '''' Reference: https://www.sqlite.org/c3ref/column_name.html
 '''' Reference: https://www.sqlite.org/c3ref/column_database_name.html
@@ -136,7 +174,7 @@ End Property
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
 '@Description "Retrieves columns metadata."
-Public Function GetColumnMetaAPI() As SQLiteResultCodes
+Public Function GetColumnsMetaAPI() As SQLiteResultCodes
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim BufferPtr As LongPtr
@@ -146,30 +184,34 @@ Public Function GetColumnMetaAPI() As SQLiteResultCodes
     #End If
     hStmt = this.DbStmt.StmtHandle
     If hStmt = 0 Then
-        GetColumnMetaAPI = SQLITE_ERROR
+        GetColumnsMetaAPI = SQLITE_ERROR
         Exit Function
     End If
     Dim ColumnCount As Long
     ColumnCount = GetColumnCount
     If ColumnCount = 0 Then
         Debug.Print "No data avaialable"
-        GetColumnMetaAPI = SQLITE_ERROR
+        GetColumnsMetaAPI = SQLITE_ERROR
         Exit Function
     End If
+    Dim ColumnMap As Scripting.Dictionary
     Dim ColumnNames() As String
-    Dim ColumnTypes() As SQLiteTypes
+    Dim ColumnTypes() As SQLiteType
     Dim ColumnDbNames() As String
     Dim ColumnTableNames() As String
     Dim ColumnOriginNames() As String
     Dim ColumnDeclaredTypes() As String
+    Dim ColumnAffinities() As SQLiteTypeAffinity
     ReDim ColumnNames(0 To ColumnCount - 1)
     ReDim ColumnTypes(0 To ColumnCount - 1)
     ReDim ColumnDbNames(0 To ColumnCount - 1)
     ReDim ColumnTableNames(0 To ColumnCount - 1)
     ReDim ColumnOriginNames(0 To ColumnCount - 1)
     ReDim ColumnDeclaredTypes(0 To ColumnCount - 1)
+    ReDim ColumnAffinities(0 To ColumnCount - 1)
+    Set ColumnMap = New Scripting.Dictionary
+    ColumnMap.CompareMode = TextCompare
     
-    this.ColumnMap.RemoveAll
     Dim ColumnIndex As Long
     For ColumnIndex = 0 To ColumnCount - 1
         BufferPtr = sqlite3_column_name(hStmt, ColumnIndex)
@@ -193,30 +235,34 @@ Public Function GetColumnMetaAPI() As SQLiteResultCodes
         ColumnDeclaredTypes(ColumnIndex) = UTFlib.StrFromUTF8Ptr(BufferPtr)
         
         ColumnTypes(ColumnIndex) = sqlite3_column_type(hStmt, ColumnIndex)
-        this.ColumnMap(ColumnNames(ColumnIndex)) = ColumnIndex
+        ColumnAffinities(ColumnIndex) = TypeAffinityFromDeclaredType( _
+            ColumnDeclaredTypes(ColumnIndex))
+        ColumnMap(ColumnNames(ColumnIndex)) = ColumnIndex
     Next ColumnIndex
-    With this
+    With this.ColumnsMeta
+        Set .ColumnMap = ColumnMap
         .ColumnNames = ColumnNames
         .ColumnTypes = ColumnTypes
         .ColumnDbNames = ColumnDbNames
         .ColumnTableNames = ColumnTableNames
         .ColumnOriginNames = ColumnOriginNames
+        .ColumnAffinities = ColumnAffinities
         .ColumnDeclaredTypes = ColumnDeclaredTypes
     End With
     
-    GetColumnMetaAPI = SQLITE_OK
+    GetColumnsMetaAPI = SQLITE_OK
     Exit Function
     
 NULL_PTR:
     '''' Possible "OutOfMemoryErr" / "Failed to allocate memory for column name"
-    GetColumnMetaAPI = this.DbStmt.DbConnection.ErrInfoRetrieve
+    GetColumnsMetaAPI = this.DbStmt.DbConnection.ErrInfoRetrieve
     Exit Function
 End Function
 
 
 '''' Reference: https://www.sqlite.org/c3ref/step.html
 ''''
-Public Function ExecuteStepAPI() As SQLiteResultCodes
+Friend Function ExecuteStepAPI() As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_step(this.DbStmt.StmtHandle)
     Select Case ResultCode
@@ -224,8 +270,8 @@ Public Function ExecuteStepAPI() As SQLiteResultCodes
             this.StepAPIError = False
         Case Else
             this.StepAPIError = True
-            ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
     End Select
+    ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
     ExecuteStepAPI = ResultCode
 End Function
 
@@ -261,7 +307,7 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
-Public Function GetColumnValueAPI(Optional ByVal ColumnIndex As Long = 0) As Variant
+Friend Function GetColumnValueAPI(Optional ByVal ColumnIndex As Long = 0) As Variant
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim RemoteBufPtr As LongPtr
@@ -271,7 +317,7 @@ Public Function GetColumnValueAPI(Optional ByVal ColumnIndex As Long = 0) As Var
     #End If
     hStmt = this.DbStmt.StmtHandle
     
-    Dim ColumnType As SQLiteTypes
+    Dim ColumnType As SQLiteType
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
     Dim Value As Variant
     Select Case ColumnType

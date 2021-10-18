@@ -140,7 +140,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableIRBNT
+    SQLQuery = FixSQL.CREATETableITRB
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -230,7 +230,7 @@ Assert:
     
     Dim SQLQuery As String
     
-    SQLQuery = FixSQL.SELECTt1
+    SQLQuery = FixSQL.SELECTTestTable
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
