@@ -77,22 +77,26 @@ End Function
 Public Function SQLforCreateTestTable() As String
     SQLforCreateTestTable = Join(Array( _
         "CREATE TABLE t1(", _
+        "    id INTEGER NOT NULL,", _
         "    xi INTEGER,", _
-        "    xt TEXT,", _
-        "    xr REAL,", _
-        "    xb BLOB", _
+        "    xt TEXT COLLATE NOCASE,", _
+        "    xr REAL NOT NULL,", _
+        "    xb BLOB,", _
+        "    PRIMARY KEY(""id"" AUTOINCREMENT)", _
         ");" _
     ), vbNewLine)
 End Function
 
+
+
 Public Function SQLforInsertTestRows() As String
     SQLforInsertTestRows = Join(Array( _
-        "INSERT INTO t1(rowid, xi,    xt,  xr,                  xb) ", _
-        "VALUES        (    1, 10, 'AAA', 3.1, X'410A0D0942434445'),", _
-        "              (    2, 20, 'BBB', 1.3, X'30310A0D09323334'),", _
-        "              (    3,  8, 'AAA', 7.2, X'30310A0D32093334'),", _
-        "              (    4, 27, 'DDD', 4.3, X'410A0D0942434445'),", _
-        "              (    5,  8, 'BBB', 3.8, X'30310A0D32093334');" _
+        "INSERT INTO t1(id,   xi,    xt,  xr,                  xb) ", _
+        "VALUES        ( 1,   10, 'AAA', 3.1, X'410A0D0942434445'),", _
+        "              ( 2,   20,  NULL, 1.3, X'30310A0D09323334'),", _
+        "              ( 3, NULL, 'AAA', 7.2,                NULL),", _
+        "              ( 4,   27, 'DDD', 4.3, X'410A0D0942434445'),", _
+        "              ( 5, NULL,  NULL, 3.8, X'30310A0D32093334');" _
     ), vbNewLine)
 End Function
 

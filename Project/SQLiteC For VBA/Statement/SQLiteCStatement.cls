@@ -333,8 +333,8 @@ End Function
 
 
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
-            Optional ByRef AffectedRows As Long = -1, _
-            Optional ByVal QueryParameters As Variant = Empty) As SQLiteResultCodes
+                       Optional ByVal QueryParameters As Variant = Empty, _
+                       Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode <> SQLITE_OK Then
@@ -372,15 +372,30 @@ Public Function GetScalar(ByVal SQLQuery As String, _
 End Function
 
 
-Public Function GetRowSet(ByVal SQLQuery As String, _
-                 Optional ByVal QueryParameters As Variant = Empty) As Variant
+Public Function GetPagedRowSet(ByVal SQLQuery As String, _
+                      Optional ByVal QueryParameters As Variant = Empty, _
+                      Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
-        GetRowSet = this.DbExec.GetRowSet
+        GetPagedRowSet = this.DbExec.GetPagedRowSet(UseDeclaredTypes)
         If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
     Else
-        GetRowSet = CVErr(ResultCode)
+        GetPagedRowSet = ResultCode
+    End If
+End Function
+
+
+Public Function GetRowSet2D(ByVal SQLQuery As String, _
+                   Optional ByVal QueryParameters As Variant = Empty, _
+                   Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    If ResultCode = SQLITE_OK Then
+        GetRowSet2D = this.DbExec.GetRowSet2D(UseDeclaredTypes)
+        If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+    Else
+        GetRowSet2D = ResultCode
     End If
 End Function
 

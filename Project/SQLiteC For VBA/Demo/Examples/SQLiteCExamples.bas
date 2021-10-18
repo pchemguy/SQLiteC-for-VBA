@@ -1,5 +1,6 @@
 Attribute VB_Name = "SQLiteCExamples"
 '@Folder "SQLiteC For VBA.Demo.Examples"
+'@IgnoreModule
 Option Explicit
 
 Private Const LITE_LIB As String = "SQLiteCforVBA"
@@ -25,16 +26,21 @@ Attribute Main.VB_Description = "Main entry point"
     OpenDb
     CheckFunctionality
     
+    Dim Result As Variant
     CreateTestTable
     InsertTestRows
-    GetColumnsMeta
-    
-    Dim Result As Variant
+    GetTableMeta
+    Result = GetPagedTestRowsSet
+
     Result = GetScalarDbVersion
     Debug.Print Result
     Result = GetScalarDbPath
     Debug.Print Result
-    Result = GetRowSetFunctions
+    
+    Result = GetPagedRowSetFunctions
+    Dim ResultB As Variant
+    ResultB = GetRowSet2DFunctions
+    
     PrepareStatementGetRowSetFilteredPlain
     
     PrepareStatementGetRowSetFilteredParams
@@ -296,7 +302,7 @@ Private Sub CreateTestTable()
     SQLQuery = SQLiteCExamplesSQL.SQLforCreateTestTable
     Dim AffectedRows As Long
     AffectedRows = -2
-    ResultCode = dbs.ExecuteNonQuery(SQLQuery, AffectedRows)
+    ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to create table."
@@ -315,7 +321,7 @@ Private Sub InsertTestRows()
     SQLQuery = SQLiteCExamplesSQL.SQLforInsertTestRows
     Dim AffectedRows As Long
     AffectedRows = -2
-    ResultCode = dbs.ExecuteNonQuery(SQLQuery, AffectedRows)
+    ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to insert rows."
@@ -326,7 +332,18 @@ Private Sub InsertTestRows()
 End Sub
 
 
-Private Sub GetColumnsMeta()
+Private Function GetPagedTestRowsSet() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforSelectFromTestTable
+    
+    GetPagedTestRowsSet = dbs.GetPagedRowSet(SQLQuery)
+End Function
+
+
+Private Sub GetTableMeta()
     Dim dbs As SQLiteCStatement
     Set dbs = this.dbs
     Dim ResultCode As SQLiteResultCodes
@@ -354,7 +371,7 @@ Private Sub GetColumnsMeta()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.GetColumnsMetaAPI
+    ResultCode = dbs.DbExecutor.GetTableMetaAPI
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."
@@ -394,14 +411,25 @@ Private Function GetScalarDbPath() As Variant
 End Function
 
 
-Private Function GetRowSetFunctions() As Variant
+Private Function GetPagedRowSetFunctions() As Variant
     Dim dbs As SQLiteCStatement
     Set dbs = this.dbs
     
     Dim SQLQuery As String
     SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
     
-    GetRowSetFunctions = dbs.GetRowSet(SQLQuery)
+    GetPagedRowSetFunctions = dbs.GetPagedRowSet(SQLQuery)
+End Function
+
+
+Private Function GetRowSet2DFunctions() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
+    
+    GetRowSet2DFunctions = dbs.GetRowSet2D(SQLQuery)
 End Function
 
 
@@ -522,7 +550,7 @@ Private Function RunFunctionsQuery() As Variant
     Dim ParamsArray As Variant
     ParamsArray = Null
     
-    RunFunctionsQuery = dbs.GetRowSet(SQLQuery, ParamsArray)
+    RunFunctionsQuery = dbs.GetPagedRowSet(SQLQuery, ParamsArray)
 End Function
 
 
@@ -536,7 +564,7 @@ Private Function RunFunctionsQueryWithParamArray() As Variant
     Dim ParamsArray As Variant
     ParamsArray = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsArray
     
-    RunFunctionsQueryWithParamArray = dbs.GetRowSet(SQLQuery, ParamsArray)
+    RunFunctionsQueryWithParamArray = dbs.GetPagedRowSet(SQLQuery, ParamsArray)
 End Function
 
 
@@ -550,7 +578,7 @@ Private Function RunFunctionsQueryWithParamDict() As Variant
     Dim ParamsDict As Variant
     Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
     
-    RunFunctionsQueryWithParamDict = dbs.GetRowSet(SQLQuery, ParamsDict)
+    RunFunctionsQueryWithParamDict = dbs.GetPagedRowSet(SQLQuery, ParamsDict)
 End Function
 
 

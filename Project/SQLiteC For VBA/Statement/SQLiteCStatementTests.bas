@@ -345,7 +345,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     
     Dim Result As Variant
-    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+    Result = dbs.ExecuteNonQuery(SQLQuery, QueryParams, AffectedRows)
 
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
@@ -376,7 +376,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     
     Dim Result As Variant
-    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+    Result = dbs.ExecuteNonQuery(SQLQuery, QueryParams, AffectedRows)
 
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
@@ -386,8 +386,6 @@ End Sub
 Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     On Error Resume Next
     
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.zfxGetConnDbMemory
     Dim dbs As SQLiteCStatement
@@ -405,8 +403,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim Result As Variant
-    Result = dbs.ExecuteNonQuery(SQLQuery, AffectedRows, QueryParams)
+    Result = dbs.ExecuteNonQuery(SQLQuery, QueryParams, AffectedRows)
 
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
-

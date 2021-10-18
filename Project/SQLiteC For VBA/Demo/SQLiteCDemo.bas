@@ -112,8 +112,9 @@ Private Sub TestDbRegular()
     Debug.Assert ResultCode = SQLITE_OK
     Result = DbStmt.GetScalar("SELECT sqlite_version()")
     Debug.Print Result
-    Result = DbStmt.GetRowSet("SELECT * FROM pragma_module_list()")
+    Result = DbStmt.GetPagedRowSet("SELECT * FROM pragma_module_list()")
     Debug.Print Result(0)(0)(0)
     ResultCode = DbConn.CloseDb
     Debug.Assert ResultCode = SQLITE_OK
 End Sub
+
