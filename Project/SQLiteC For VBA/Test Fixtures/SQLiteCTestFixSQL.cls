@@ -38,6 +38,22 @@ Public Function INSERTValuesITRB() As String
     ), vbNewLine)
 End Function
 
+Public Function INSERTTemplateITRB() As String
+    INSERTTemplateITRB = Join(Array( _
+        "INSERT INTO t1 VALUES ($id,   $xi, $xt, $xr, $xb);" _
+    ), vbNewLine)
+End Function
+
+'Public Function INSERTParamValuesITRB() As Variant
+'    INSERTParamValuesITRB = Array( _
+'        Array( 1,   10, "AAA", 3.1, X'410A0D0942434445'),", _
+'        "              ( 2,   20,  NULL, 1.3, X'30310A0D09323334'),", _
+'        "              ( 3, NULL, 'AAA', 7.2,                NULL),", _
+'        "              ( 4,   27, 'DDD', 4.3, X'410A0D0942434445'),", _
+'        "              ( 5, NULL,  NULL, 3.8, X'30310A0D32093334');" _
+'    )
+'End Function
+
 Public Function SELECTTestTable() As String
     SELECTTestTable = Join(Array( _
         "SELECT rowid, * FROM t1;" _

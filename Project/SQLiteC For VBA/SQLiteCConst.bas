@@ -55,10 +55,11 @@ End Enum
 ''''                    SQLITE_INTEGER, SQLITE_FLOAT)(ColumnAffinity - &H41)
 '''' ---------------------------------------------------------------------- ''''
 
-'''' .ColumnIndex must be set by the caller; set .Initialized = -1 flag to confirm
 Public Type SQLiteColumnMeta
     Name As String
+    '''' .ColumnIndex must be set by the caller; set .Initialized = -1 flag to confirm
     ColumnIndex As Long
+    Initialized As Long
     DbName As String
     TableName As String
     OriginName As String
@@ -70,5 +71,4 @@ Public Type SQLiteColumnMeta
     NotNull As Boolean
     PrimaryKey As Boolean
     AutoIncrement As Boolean
-    Initialized As Long
 End Type

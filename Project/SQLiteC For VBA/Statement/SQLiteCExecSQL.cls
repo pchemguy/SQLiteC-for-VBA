@@ -86,6 +86,8 @@ Private Type TSQLiteCExecSQL
     PageSize As Long
     FilledPagesCount As Long
     RowCount As Long
+    '''' Meta API's fenced with the .UseTableMetadataAPI flag will fail if executed
+    '''' against the PRAGMA-Table-functions SELECTs. Set it to false in such a case.
     UseTableMetadataAPI As Boolean
 End Type
 Private this As TSQLiteCExecSQL
@@ -135,6 +137,7 @@ Public Property Get TableMeta() As SQLiteColumnMeta()
 End Property
 
 
+'@Ignore ProcedureNotUsed
 Public Property Get FilledPagesCount() As Long
     FilledPagesCount = this.FilledPagesCount
 End Property
@@ -145,6 +148,7 @@ Public Property Get RowCount() As Long
 End Property
 
 
+'@Ignore ProcedureNotUsed
 Public Property Get UseTableMetadataAPI() As Boolean
     UseTableMetadataAPI = this.UseTableMetadataAPI
 End Property
@@ -155,6 +159,7 @@ Public Property Let UseTableMetadataAPI(ByVal Value As Boolean)
 End Property
 
 
+'@Ignore ProcedureNotUsed
 Public Property Get PageCount() As Long
     PageCount = this.PageCount
 End Property
@@ -165,6 +170,7 @@ Public Property Let PageCount(ByVal Value As Long)
 End Property
 
 
+'@Ignore ProcedureNotUsed
 Public Property Get PageSize() As Long
     PageSize = this.PageCount
 End Property
@@ -256,6 +262,7 @@ Attribute GetColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         ColumnNamePtr = sqlite3_column_name(hStmt, ColumnIndex)
         If ColumnNamePtr = 0 Then GoTo META_ERROR:
         .Name = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
+        this.ColumnMap(.Name) = ColumnIndex
         
         '''' column_data_type API returns value type. It should return SQLITE_NULL,
         '''' if SQLITE_ROW has not been returned by the step API.
@@ -265,15 +272,15 @@ Attribute GetColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         If ColumnNamePtr = 0 Then GoTo META_ERROR:
         .OriginName = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
         
-        Dim DataTypePtr As Variant
-        DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
-        If DataTypePtr = 0 Then GoTo META_ERROR:
-        .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
-        
-        .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
-        this.ColumnMap(.Name) = ColumnIndex
-        
+        '''' Meta API's fenced with the .UseTableMetadataAPI flag will fail if executed
+        '''' against the PRAGMA-Table-functions SELECTs. Set it to false in such a case.
         If this.UseTableMetadataAPI Then
+            Dim DataTypePtr As Variant
+            DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
+            If DataTypePtr = 0 Then GoTo META_ERROR:
+            .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
+            .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
+
             '''' For queries against PRAGMA functions, table_column_metadata
             '''' should return SQLITE_ERROR (no such table column...)
             Dim NotNull As Long

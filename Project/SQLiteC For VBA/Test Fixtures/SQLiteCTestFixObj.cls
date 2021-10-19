@@ -100,4 +100,12 @@ Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As 
     CreateFunctionsTableWithData = AffectedRows
 End Function
 
-
+Public Function ByteArray(ParamArray Values() As Variant) As Byte()
+    Dim Buffer() As Byte
+    ReDim Buffer(0 To UBound(Values))
+    Dim ByteIndex As Long
+    For ByteIndex = 0 To UBound(Values)
+        Buffer(ByteIndex) = CByte(Values(ByteIndex))
+    Next ByteIndex
+    ByteArray = Buffer
+End Function

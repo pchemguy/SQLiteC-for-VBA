@@ -410,11 +410,9 @@ End Sub
 
 
 '@TestMethod("Query Paged RowSet")
-Private Sub ztcGetPagedRowSet_VerifyPageRowSetGeometry()
+Private Sub ztcGetPagedRowSet_VerifyPage‰RowSetGeometry()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
@@ -467,8 +465,6 @@ End Sub
 Private Sub ztcGetPagedRowSet_SelectSubsetOfFunctions()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
@@ -478,7 +474,7 @@ Arrange:
     Dim ResultCode As SQLiteResultCodes
 
     ResultCode = dbc.OpenDb
-    'Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     dbs.DbExecutor.PageSize = 99
     dbs.DbExecutor.PageCount = 9
     Dim AffectedRows As Long
@@ -510,4 +506,135 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("Query 2D RowSet")
+Private Sub ztcGetRowSet2D_VerifyRowSet2DGeometry()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.FunctionsTable
+    Dim RowSet2D As Variant
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+Assert:
+    Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
+    Assert.IsFalse IsEmpty(RowSet2D), "RowSet2D should not be empty."
+    Assert.IsFalse IsNull(RowSet2D), "RowSet2D should not be null."
+    Assert.AreEqual 0, LBound(RowSet2D, 1), "RowSet2D R-base mismatch"
+    Assert.AreEqual 0, LBound(RowSet2D, 2), "RowSet2D C-base mismatch"
+    Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query 2D RowSet")
+Private Sub ztcGetRowSet2D_NamedParamsSelectWithDictVsArrayValues()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTMinMaxSubstrLTrimFromFunctionsNamedParam
+    Dim QueryParamsDict As Scripting.Dictionary
+    Set QueryParamsDict = FixSQL.SELECTMinMaxSubstrLTrimFunctionsNamedValues
+    Dim RowSet2DNamedParams As Variant
+    RowSet2DNamedParams = dbs.GetRowSet2D(SQLQuery, QueryParamsDict, True)
+    Dim QueryParamsArray As Variant
+    QueryParamsArray = FixSQL.SELECTMinMaxSubstrLTrimFunctionsAnonValues
+    Dim RowSet2DAnonValues As Variant
+    RowSet2DAnonValues = dbs.GetRowSet2D(SQLQuery, QueryParamsArray, True)
+Assert:
+    Assert.AreEqual UBound(RowSet2DNamedParams, 1), UBound(RowSet2DAnonValues, 1), "Record size mismatch."
+    Assert.AreEqual UBound(RowSet2DNamedParams, 2), UBound(RowSet2DAnonValues, 2), "Column size mismatch."
+    Assert.AreEqual RowSet2DNamedParams(0, 0), RowSet2DAnonValues(0, 0), "Bottom-Left mismatch."
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query 2D RowSet")
+Private Sub ztcGetRowSet2D_SelectPragmaTableWithUseTableMetadataAPI()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.FunctionsPragmaTable
+    Dim RowSet2D As Variant
+Assert:
+    dbs.DbExecutor.UseTableMetadataAPI = True
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+    Assert.IsTrue IsError(RowSet2D), "Expected an error from RowSet2D."
+    Assert.AreEqual CVErr(SQLITE_RANGE), RowSet2D, "Expected SQLITE_RANGE error."
+    dbs.DbExecutor.UseTableMetadataAPI = False
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+    Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
+    Assert.IsTrue IsArray(RowSet2D), "Expected a rowset result."
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+'    Set FixObj = New SQLiteCTestFixObj
+ '   Set FixSQL = New SQLiteCTestFixSQL
 
