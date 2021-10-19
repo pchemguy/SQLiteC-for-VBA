@@ -46,7 +46,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbRegular
+    Set dbc = FixObj.GetConnDbRegular
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
@@ -68,7 +68,7 @@ Act:
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -88,7 +88,7 @@ Act:
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbTemp
+    Set dbc = FixObj.GetConnDbTemp
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -106,7 +106,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbRegular
+    Set dbc = FixObj.GetConnDbRegular
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -130,7 +130,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbTemp
+    Set dbc = FixObj.GetConnDbTemp
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -154,7 +154,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithMemoryDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb

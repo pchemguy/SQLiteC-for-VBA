@@ -55,7 +55,7 @@ Private Sub ztcCreate_VerifiesProperties()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbRegular
+    Set dbc = FixObj.GetConnDbRegular
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo
 Act:
@@ -82,7 +82,7 @@ Private Sub ztcGetErr_VerifiesErrorInfo()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbRegular
+    Set dbc = FixObj.GetConnDbRegular
     dbc.ErrInfoRetrieve
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo

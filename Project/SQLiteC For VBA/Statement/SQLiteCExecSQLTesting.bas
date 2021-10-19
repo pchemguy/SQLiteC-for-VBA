@@ -37,28 +37,6 @@ End Sub
 
 
 '===================================================='
-'===================== FIXTURES ====================='
-'===================================================='
-
-
-Private Function zfxCreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long
-    Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATEFunctionsTableWithData
-    Dim AffectedRows As Long
-    AffectedRows = -2
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
-    If ResultCode <> SQLITE_OK Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
-                  "Failed to create table."
-    Else
-        Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
-    End If
-    zfxCreateFunctionsTableWithData = AffectedRows
-End Function
-
-
-'===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
 
@@ -69,9 +47,9 @@ Private Sub ztcSQLiteTypeName_VerifiesSQLiteTypeName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -95,9 +73,9 @@ Private Sub ztcSQLiteTypeAffinityName_VerifiesSQLiteTypeAffinityName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -121,9 +99,9 @@ Private Sub ztcTypeAffinityFromDeclaredType_VerifiesDeclaredTypeHandling()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -148,9 +126,9 @@ Private Sub ztcTypeAffinityMap_VerifiesMappingToSQLiteTypes()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -174,7 +152,7 @@ Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -225,7 +203,7 @@ Private Sub ztcColumnMetaAPI_ThrowsOnUninitializedSQLiteColumnMeta()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -253,7 +231,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -262,14 +240,14 @@ Arrange:
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     Dim AffectedRows As Long
-    AffectedRows = zfxCreateFunctionsTableWithData(dbc)
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQL.FunctionsTable
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.GetTableMeta
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetColumnMetaAPI error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
     Dim TableMeta() As SQLiteColumnMeta
     TableMeta = dbs.DbExecutor.TableMeta
 Assert:

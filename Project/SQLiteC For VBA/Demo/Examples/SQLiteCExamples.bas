@@ -25,7 +25,7 @@ Attribute Main.VB_Description = "Main entry point"
     InitDBS
     OpenDb
     CheckFunctionality
-    CREATEFunctionsTableWithData
+    CreateFunctionsTableWithData
     
     Dim Result As Variant
     CreateTestTable
@@ -594,13 +594,13 @@ Private Function GetRowSet2DFunctions() As Variant
 End Function
 
 
-Private Sub CREATEFunctionsTableWithData()
+Private Sub CreateFunctionsTableWithData()
     Dim dbc As SQLiteCConnection
     Set dbc = this.dbc
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.CREATEFunctionsTableWithData
+    SQLQuery = SQLiteCExamplesSQL.CreateFunctionsTableWithData
     Dim AffectedRows As Long
     AffectedRows = -2
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)

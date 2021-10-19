@@ -109,7 +109,7 @@ Private Sub ztcCreate_VerifiesDefaultManager()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
 Assert:
     Assert.IsNotNothing dbm, "Default manager is not set."
 
@@ -126,7 +126,7 @@ Private Sub ztcGetMainDbId_VerifiesIsNull()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
 Assert:
     Assert.IsTrue IsNull(dbm.MainDbId), "Main db is not null."
 
@@ -143,7 +143,7 @@ Private Sub ztcGetDllMan_VerifiesIsSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
 Assert:
     Assert.IsNotNothing dbm.DllMan, "Dll manager is not set"
 
@@ -160,7 +160,7 @@ Private Sub ztcConnDb_VerifiesIsNotSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
 Assert:
     Assert.IsNothing dbm.ConnDb(vbNullString), "Connection should be nothing"
 
@@ -206,7 +206,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbRegular
+    Set dbc = FixObj.GetConnDbRegular
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
 
@@ -223,7 +223,7 @@ Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM()
+    Set dbm = FixObj.GetDefaultDBM()
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
     Dim DbConn As SQLiteCConnection
@@ -246,7 +246,7 @@ Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM()
+    Set dbm = FixObj.GetDefaultDBM()
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim DbConn As SQLiteCConnection
@@ -268,7 +268,7 @@ Private Sub ztcGetDbConn_VerifiesTempMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM()
+    Set dbm = FixObj.GetDefaultDBM()
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim DbConn As SQLiteCConnection

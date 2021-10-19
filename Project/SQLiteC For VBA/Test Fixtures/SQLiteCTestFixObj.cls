@@ -24,7 +24,7 @@ End Type
 Private this As TSQLiteCConnectionTestFixtures
 
 
-Public Function zfxGetDefaultDBM() As SQLiteC
+Public Function GetDefaultDBM() As SQLiteC
     Dim DllPath As String
     DllPath = LITE_RPREFIX & "dll\" & ARCH
     Dim dbm As SQLiteC
@@ -32,54 +32,72 @@ Public Function zfxGetDefaultDBM() As SQLiteC
     Set dbm = SQLiteC(DllPath)
     If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "SQLiteCTestFixtures", "Failed to create an SQLiteC instance."
-    Set zfxGetDefaultDBM = dbm
+    Set GetDefaultDBM = dbm
 End Function
 
-Public Function zfxGetConnection(ByVal DbPathName As String) As SQLiteCConnection
+Public Function GetConnection(ByVal DbPathName As String) As SQLiteCConnection
     Dim dbm As SQLiteC
-    Set dbm = zfxGetDefaultDBM()
+    Set dbm = GetDefaultDBM()
     '''' Keep a reference to the DllManager to prevent library unloading due to object destruction
     Set this.DllMan = dbm.DllMan
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
     If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "SQLiteCTestFixtures", "Failed to create an SQLiteCConnection instance."
-    Set zfxGetConnection = DbConn
+    Set GetConnection = DbConn
 End Function
 
-Public Function zfxGetConnDbRegular() As SQLiteCConnection
+Public Function GetConnDbRegular() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
-    Set zfxGetConnDbRegular = zfxGetConnection(DbPathName)
+    Set GetConnDbRegular = GetConnection(DbPathName)
 End Function
 
-Public Function zfxGetConnDbReadOnlyAttr() As SQLiteCConnection
+Public Function GetConnDbReadOnlyAttr() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & "ReadOnlyAttr.db"
-    Set zfxGetConnDbReadOnlyAttr = zfxGetConnection(DbPathName)
+    Set GetConnDbReadOnlyAttr = GetConnection(DbPathName)
 End Function
 
-Public Function zfxGetConnDbMemory() As SQLiteCConnection
+Public Function GetConnDbMemory() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
-    Set zfxGetConnDbMemory = zfxGetConnection(DbPathName)
+    Set GetConnDbMemory = GetConnection(DbPathName)
 End Function
 
-Public Function zfxGetConnDbTemp() As SQLiteCConnection
+Public Function GetConnDbTemp() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = vbNullString
-    Set zfxGetConnDbTemp = zfxGetConnection(DbPathName)
+    Set GetConnDbTemp = GetConnection(DbPathName)
 End Function
 
-Public Function zfxGetConnDbInvalidPath() As SQLiteCConnection
+Public Function GetConnDbInvalidPath() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = "_:_/\_BAD PATH_<>;"
-    Set zfxGetConnDbInvalidPath = zfxGetConnection(DbPathName)
+    Set GetConnDbInvalidPath = GetConnection(DbPathName)
 End Function
 
-Public Function zfxGetConnDbMemoryWithTable() As SQLiteCConnection
+Public Function GetConnDbMemoryWithTable() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
-    Set zfxGetConnDbMemoryWithTable = zfxGetConnection(DbPathName)
-    zfxGetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableITRB
+    Set GetConnDbMemoryWithTable = GetConnection(DbPathName)
+    GetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableITRB
 End Function
+
+Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCTestFixSQL.CreateFunctionsTableWithData
+    Dim AffectedRows As Long
+    AffectedRows = -2
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create table."
+    Else
+        Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    End If
+    CreateFunctionsTableWithData = AffectedRows
+End Function
+
+

@@ -1,7 +1,7 @@
 Attribute VB_Name = "SQLiteCConnectionQueryTests"
 '@Folder "SQLiteC For VBA.Connection"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
 Option Explicit
 Option Private Module
 
@@ -48,7 +48,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim SQLQuery As String
     SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
@@ -84,7 +84,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim SQLQuery As String
     SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
@@ -120,7 +120,7 @@ Private Sub ztcChangesCount_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim SQLQuery As String
     SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
@@ -142,7 +142,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:

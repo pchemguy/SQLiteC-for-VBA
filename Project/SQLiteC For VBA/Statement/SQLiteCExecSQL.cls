@@ -86,6 +86,7 @@ Private Type TSQLiteCExecSQL
     PageSize As Long
     FilledPagesCount As Long
     RowCount As Long
+    UseTableMetadataAPI As Boolean
 End Type
 Private this As TSQLiteCExecSQL
 
@@ -112,6 +113,7 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
         .MetaLoaded = False
         .AffinityMap = Array(SQLITE_BLOB, SQLITE_TEXT, SQLITE_TEXT, _
                              SQLITE_INTEGER, SQLITE_FLOAT)
+        .UseTableMetadataAPI = True
     End With
 End Sub
 
@@ -140,6 +142,16 @@ End Property
 
 Public Property Get RowCount() As Long
     RowCount = this.RowCount
+End Property
+
+
+Public Property Get UseTableMetadataAPI() As Boolean
+    UseTableMetadataAPI = this.UseTableMetadataAPI
+End Property
+
+
+Public Property Let UseTableMetadataAPI(ByVal Value As Boolean)
+    this.UseTableMetadataAPI = Value
 End Property
 
 
@@ -204,6 +216,7 @@ End Function
 '@Description "Retrieves columns metadata."
 Public Function GetColumnMetaAPI(ByRef ColumnInfo As SQLiteColumnMeta _
                                 ) As SQLiteResultCodes
+Attribute GetColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Dim dbs As SQLiteCStatement
     Set dbs = this.Statement
     Dim dbc As SQLiteCConnection
@@ -260,29 +273,32 @@ Public Function GetColumnMetaAPI(ByRef ColumnInfo As SQLiteColumnMeta _
         .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
         this.ColumnMap(.Name) = ColumnIndex
         
-        '''' For queries against PRAGMA functions, table_column_metadata
-        '''' should return SQLITE_ERROR (no such table column...)
-        Dim NotNull As Long
-        NotNull = False
-        Dim PrimaryKey As Long
-        PrimaryKey = False
-        Dim AutoIncrement As Long
-        AutoIncrement = False
-        Dim CollationPtr As Variant: CollationPtr = 0 '''' RD workaround
-        ResultCodeTAPI = sqlite3_table_column_metadata(dbc.DbHandle, _
-            DatabaseNamePtr, TableNamePtr, ColumnNamePtr, _
-            DataTypePtr, CollationPtr, NotNull, PrimaryKey, AutoIncrement)
-        If ResultCodeTAPI = SQLITE_OK And DataTypePtr <> 0 And CollationPtr <> 0 Then
-            .DeclaredTypeT = UTFlib.StrFromUTF8Ptr(DataTypePtr)
-            .Collation = UTFlib.StrFromUTF8Ptr(CollationPtr)
-            .NotNull = CBool(NotNull)
-            .PrimaryKey = CBool(PrimaryKey)
-            .AutoIncrement = CBool(AutoIncrement)
-        Else
-            dbc.ErrInfoRetrieve
+        If this.UseTableMetadataAPI Then
+            '''' For queries against PRAGMA functions, table_column_metadata
+            '''' should return SQLITE_ERROR (no such table column...)
+            Dim NotNull As Long
+            NotNull = False
+            Dim PrimaryKey As Long
+            PrimaryKey = False
+            Dim AutoIncrement As Long
+            AutoIncrement = False
+            Dim CollationPtr As Variant: CollationPtr = 0 '''' RD workaround
+            ResultCodeTAPI = sqlite3_table_column_metadata(dbc.DbHandle, _
+                DatabaseNamePtr, TableNamePtr, ColumnNamePtr, _
+                DataTypePtr, CollationPtr, NotNull, PrimaryKey, AutoIncrement)
+            If ResultCodeTAPI = SQLITE_OK And DataTypePtr <> 0 And CollationPtr <> 0 Then
+                .DeclaredTypeT = UTFlib.StrFromUTF8Ptr(DataTypePtr)
+                .Collation = UTFlib.StrFromUTF8Ptr(CollationPtr)
+                .NotNull = CBool(NotNull)
+                .PrimaryKey = CBool(PrimaryKey)
+                .AutoIncrement = CBool(AutoIncrement)
+            Else
+                ResultCodeTAPI = dbc.ErrInfoRetrieve
+            End If
         End If
     End With
     
+    ResultCode = SQLITE_OK
     GetColumnMetaAPI = ResultCode
     Exit Function
     
@@ -294,7 +310,7 @@ End Function
 
 '@Description "Collects table metadata."
 Public Function GetTableMeta() As SQLiteResultCodes
-Attribute GetTableMeta.VB_Description = "Retrieves columns metadata."
+Attribute GetTableMeta.VB_Description = "Collects table metadata."
     Dim dbs As SQLiteCStatement
     Set dbs = this.Statement
     #If VBA7 Then
@@ -400,8 +416,12 @@ Friend Function GetColumnValueAPI( _
     '''' penalty in case when most columns are nullable and require this null-check.
     '''' The caller is responsible for querying/populating the metadata.
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
-    If ColumnType <> SQLITE_NULL And UseDeclaredTypes And this.MetaLoaded Then
-        ColumnType = this.AffinityMap(this.TableMeta(ColumnIndex).Affinity - &H41)
+    If this.MetaLoaded Then
+        Dim Affinity As SQLiteTypeAffinity
+        Affinity = this.TableMeta(ColumnIndex).Affinity - SQLITE_AFF_NONE - 1
+        If ColumnType <> SQLITE_NULL And UseDeclaredTypes And Affinity >= 0 Then
+            ColumnType = this.AffinityMap(Affinity)
+        End If
     End If
     
     Dim Value As Variant
@@ -526,7 +546,7 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
         GetRowSet2D = PagedRowSet
         Exit Function
     End If
-    Dim RowSetArray As Variant
+    Dim RowSetArray() As Variant
     ReDim RowSetArray(0 To this.RowCount - 1, 0 To this.ColumnCount - 1)
     
     Dim RecordIndex As Long

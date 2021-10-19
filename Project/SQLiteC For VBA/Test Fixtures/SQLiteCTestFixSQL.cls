@@ -11,6 +11,7 @@ Attribute VB_Description = "Provides SQL snippets for tests"
 '@Folder "SQLiteC For VBA.Test Fixtures"
 '@ModuleDescription "Provides SQL snippets for tests"
 '@PredeclaredId
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 
@@ -92,8 +93,8 @@ End Function
 
 '''' This SQL command is a multi-statement "nonquery".
 '''' Use step_exec API.
-Public Function CREATEFunctionsTableWithData() As String
-    CREATEFunctionsTableWithData = Join(Array( _
+Public Function CreateFunctionsTableWithData() As String
+    CreateFunctionsTableWithData = Join(Array( _
         "DROP TABLE IF EXISTS functions;", _
         CREATEFunctionsTable, _
         "INSERT INTO functions (rowid, name, builtin, type, enc, narg, flags)", _
@@ -222,18 +223,35 @@ Public Function SELECTFunctionsNamedParamsCOLValues() As Scripting.Dictionary
     Set SELECTFunctionsNamedParamsCOLValues = QueryParams
 End Function
 
-Public Function SELECTMinMaxSubstrFromFunctions() As String
-    SELECTMinMaxSubstrFromFunctions = Join(Array( _
+Public Function SELECTMinMaxSubstrLTrimFromFunctions() As String
+    SELECTMinMaxSubstrLTrimFromFunctions = Join(Array( _
         "SELECT name, count(*) AS rept", _
         "FROM functions", _
-        "WHERE name like @substr_pattern OR name like @min_max_pattern AND length(name) = @min_max_len", _
+        "WHERE name like 'substr%' OR", _
+        "      name like 'm%' AND length(name) = 3 OR", _
+        "      name like '%trim' OR", _
+        "      name like 'l%' AND length(name) < 5", _
         "GROUP BY name", _
         "HAVING Rept > 1", _
         "ORDER BY name DESC;" _
     ), vbNewLine)
 End Function
 
-Public Function SELECTMinMaxSubstrFromFunctionsValues() As Scripting.Dictionary
+Public Function SELECTMinMaxSubstrLTrimFromFunctionsNamedParam() As String
+    SELECTMinMaxSubstrLTrimFromFunctionsNamedParam = Join(Array( _
+        "SELECT name, count(*) AS rept", _
+        "FROM functions", _
+        "WHERE name like @substr_pattern OR", _
+        "      name like @min_max_pattern AND length(name) = @min_max_len OR", _
+        "      name like @trim_pattern OR", _
+        "      name like @LogPattern AND length(name) < @LogLen", _
+        "GROUP BY name", _
+        "HAVING Rept > @Rept", _
+        "ORDER BY name DESC;" _
+    ), vbNewLine)
+End Function
+
+Public Function SELECTMinMaxSubstrLTrimFunctionsNamedValues() As Scripting.Dictionary
     Dim QueryParams As Scripting.Dictionary
     Set QueryParams = New Scripting.Dictionary
     With QueryParams
@@ -241,6 +259,47 @@ Public Function SELECTMinMaxSubstrFromFunctionsValues() As Scripting.Dictionary
         .Item("@substr_pattern") = "substr%"
         .Item("@min_max_pattern") = "m%"
         .Item("@min_max_len") = 3
+        .Item("@trim_pattern") = "%trim"
+        .Item("@LogPattern") = "l%"
+        .Item("@LogLen") = 5
+        .Item("@Rept") = 1
     End With
-    Set SELECTMinMaxSubstrFromFunctionsValues = QueryParams
+    Set SELECTMinMaxSubstrLTrimFunctionsNamedValues = QueryParams
 End Function
+
+Public Function SELECTMinMaxSubstrLTrimFromFunctionsAnonParam() As String
+    SELECTMinMaxSubstrLTrimFromFunctionsAnonParam = Join(Array( _
+        "SELECT name, count(*) AS rept", _
+        "FROM functions", _
+        "WHERE name like ? OR", _
+        "      name like ? AND length(name) = ? OR", _
+        "      name like ? OR", _
+        "      name like ? AND length(name) < ?", _
+        "GROUP BY name", _
+        "HAVING Rept > ?", _
+        "ORDER BY name DESC;" _
+    ), vbNewLine)
+End Function
+
+Public Function SELECTMinMaxSubstrLTrimFunctionsAnonValues() As Variant
+    SELECTMinMaxSubstrLTrimFunctionsAnonValues = Array( _
+        "substr%", _
+        "m%", _
+        3, _
+        "%trim", _
+        "l%", _
+        5, _
+        1 _
+    )
+End Function
+
+'''' Wraps a non-CTE SELECT query to yield a query returning RecordCount for the
+'''' original query.
+Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
+    CountSelectNoCTE = _
+        "WITH" & vbNewLine & "  subset AS (" & vbNewLine & _
+        "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+        vbNewLine & ")" & vbNewLine & _
+        "SELECT count(*) AS counter FROM subset;"
+End Function
+

@@ -48,7 +48,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Assert:
@@ -71,7 +71,7 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -91,7 +91,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareSQLiteVersion()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -130,7 +130,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareOfCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -168,7 +168,7 @@ Private Sub ztcPrepare16V2_VerifiesErrorOnInvalidSQL()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -219,7 +219,7 @@ Private Sub ztcPrepare16V2_VerifiesErrorWithSelectFromFakeTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemoryWithTable
+    Set dbc = FixObj.GetConnDbMemoryWithTable
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -255,7 +255,7 @@ Private Sub ztcGetBusy_VerifiesBusyStatus()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -295,9 +295,9 @@ Private Sub ztcPrepare16V2_VerifiesGetScalar()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.zfxGetDefaultDBM
+    Set dbm = FixObj.GetDefaultDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -325,7 +325,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -356,7 +356,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -387,7 +387,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -407,3 +407,107 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
 
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
+
+
+'@TestMethod("Query Paged RowSet")
+Private Sub ztcGetPagedRowSet_VerifyPageRowSetGeometry()
+    On Error GoTo TestFail
+
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim PageSize As Long
+    PageSize = 8
+    Dim PageCount As Long
+    PageCount = 28
+    dbs.DbExecutor.PageSize = PageSize
+    dbs.DbExecutor.PageCount = PageCount
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTMinMaxSubstrLTrimFromFunctionsNamedParam
+    Dim QueryParams As Scripting.Dictionary
+    Set QueryParams = FixSQL.SELECTMinMaxSubstrLTrimFunctionsNamedValues
+    Dim PagedRowSet As Variant
+    PagedRowSet = dbs.GetPagedRowSet(SQLQuery, QueryParams, True)
+Assert:
+    Assert.IsFalse IsError(PagedRowSet), "Unexpected error from GetPagedRowSet."
+    Assert.IsFalse IsEmpty(PagedRowSet), "GetPagedRowSet should not be empty."
+    Assert.IsFalse IsNull(PagedRowSet), "GetPagedRowSet should not be null."
+    Assert.AreEqual 0, LBound(PagedRowSet), "PagesArray base mismatch"
+    Assert.AreEqual PageCount - 1, UBound(PagedRowSet), "PagesArray size mismatch"
+    Assert.AreEqual 0, LBound(PagedRowSet(0)), "RowSet base mismatch"
+    Assert.AreEqual PageSize - 1, UBound(PagedRowSet(0)), "RowSet size mismatch"
+    Assert.AreEqual 0, LBound(PagedRowSet(0)(0)), "FieldSet base mismatch"
+    Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(PagedRowSet(0)(0)), "FieldSet size mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query Paged RowSet")
+Private Sub ztcGetPagedRowSet_SelectSubsetOfFunctions()
+    On Error GoTo TestFail
+
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    'Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    dbs.DbExecutor.PageSize = 99
+    dbs.DbExecutor.PageCount = 9
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTMinMaxSubstrLTrimFromFunctions
+    Dim SQLQueryCount As String
+    SQLQueryCount = FixSQL.CountSelectNoCTE(SQLQuery)
+    Dim RecordCount As Variant
+    RecordCount = dbs.GetScalar(SQLQueryCount)
+Act:
+    SQLQuery = FixSQL.SELECTMinMaxSubstrLTrimFromFunctionsNamedParam
+    Dim QueryParams As Scripting.Dictionary
+    Set QueryParams = FixSQL.SELECTMinMaxSubstrLTrimFunctionsNamedValues
+    Dim PagedRowSet As Variant
+    PagedRowSet = dbs.GetPagedRowSet(SQLQuery, QueryParams, True)
+Assert:
+    Assert.IsFalse IsEmpty(PagedRowSet(0)(RecordCount - 1)), "RowSet is too small"
+    Assert.IsTrue IsEmpty(PagedRowSet(0)(RecordCount)), "RowSet is too big"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+

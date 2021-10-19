@@ -49,7 +49,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAnonParams()
     Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -87,7 +87,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithNumberedParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -125,7 +125,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithColonParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -163,7 +163,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithSParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -201,7 +201,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -239,7 +239,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParamsSeqValues()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -281,7 +281,7 @@ Private Sub ztcBindDictOrArray_ThrowsOnSequntialParamCountMismatch()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.zfxGetConnDbMemory
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -300,3 +300,4 @@ Act:
 Assert:
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
+

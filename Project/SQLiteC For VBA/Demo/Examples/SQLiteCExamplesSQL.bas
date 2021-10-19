@@ -1,5 +1,6 @@
 Attribute VB_Name = "SQLiteCExamplesSQL"
 '@Folder "SQLiteC For VBA.Demo.Examples"
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 
@@ -49,8 +50,8 @@ End Function
 
 '''' This SQL command is a multi-statement "nonquery".
 '''' Use step_exec API.
-Public Function CREATEFunctionsTableWithData() As String
-    CREATEFunctionsTableWithData = Join(Array( _
+Public Function CreateFunctionsTableWithData() As String
+    CreateFunctionsTableWithData = Join(Array( _
         "DROP TABLE IF EXISTS functions;", _
         CREATEFunctionsTable, _
         "INSERT INTO functions (rowid, name, builtin, type, enc, narg, flags)", _
