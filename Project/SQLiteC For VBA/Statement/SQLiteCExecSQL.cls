@@ -76,7 +76,7 @@ Private Declare Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As Long,
 
 Private Type TSQLiteCExecSQL
     Statement As SQLiteCStatement
-    TableMeta() As ColumnMeta
+    TableMeta() As SQLiteColumnMeta
     ColumnMap As Scripting.Dictionary
     ColumnCount As Long
     MetaLoaded As Boolean
@@ -128,7 +128,7 @@ Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteTypeA
 End Function
 
 
-Public Property Get TableMeta() As ColumnMeta()
+Public Property Get TableMeta() As SQLiteColumnMeta()
     TableMeta = this.TableMeta
 End Property
 
@@ -194,6 +194,7 @@ Attribute TypeAffinityFromDeclaredType.VB_Description = "Determines column type 
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/table_column_metadata.html
 '''' Reference: https://www.sqlite.org/c3ref/column_count.html
 '''' Reference: https://www.sqlite.org/c3ref/column_name.html
 '''' Reference: https://www.sqlite.org/c3ref/column_database_name.html
@@ -201,91 +202,136 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
 '@Description "Retrieves columns metadata."
-Public Function GetTableMetaAPI() As SQLiteResultCodes
-Attribute GetTableMetaAPI.VB_Description = "Retrieves columns metadata."
+Public Function GetColumnMetaAPI(ByRef ColumnInfo As SQLiteColumnMeta _
+                                ) As SQLiteResultCodes
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.Statement
+    Dim dbc As SQLiteCConnection
+    Set dbc = dbs.DbConnection
+    
     #If VBA7 Then
         Dim hStmt As LongPtr
-        Dim DataTypePtr As LongPtr
-        Dim CollationPtr As LongPtr
-        Dim DatabaseNamePtr As LongPtr
-        Dim TableNamePtr As LongPtr
-        Dim ColumnNamePtr As LongPtr
     #Else
         Dim hStmt As Long
-        Dim DataTypePtr As Long
-        Dim CollationPtr As Long: CollationPtr = 0 '''' Workaround for RD
-        Dim DatabaseNamePtr As Long
-        Dim TableNamePtr As Long
-        Dim ColumnNamePtr As Long
     #End If
-    hStmt = this.Statement.StmtHandle
+    hStmt = dbs.StmtHandle
     If hStmt = 0 Then
-        GetTableMetaAPI = SQLITE_ERROR
+        GetColumnMetaAPI = SQLITE_ERROR
         Exit Function
     End If
-    Dim ColumnCount As Long
-    ColumnCount = GetColumnCount
-    If ColumnCount = 0 Then
-        Debug.Print "No data avaialable"
-        GetTableMetaAPI = SQLITE_ERROR
-        Exit Function
-    End If
-    ReDim this.TableMeta(0 To ColumnCount - 1)
-    Dim NotNull As Long
-    Dim PrimaryKey As Long
-    Dim AutoIncrement As Long
+    Dim ResultCode As SQLiteResultCodes
+    Dim ResultCodeTAPI As SQLiteResultCodes
     
-    Dim ColumnIndex As Long
-    For ColumnIndex = 0 To ColumnCount - 1
-        With this.TableMeta(ColumnIndex)
-            ColumnNamePtr = sqlite3_column_name(hStmt, ColumnIndex)
-            If ColumnNamePtr = 0 Then GoTo META_ERROR:
-            .Name = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
-            
-            DatabaseNamePtr = sqlite3_column_database_name(hStmt, ColumnIndex)
-            If DatabaseNamePtr = 0 Then GoTo META_ERROR:
-            .DbName = UTFlib.StrFromUTF8Ptr(DatabaseNamePtr)
-            
-            TableNamePtr = sqlite3_column_table_name(hStmt, ColumnIndex)
-            If TableNamePtr = 0 Then GoTo META_ERROR:
-            .TableName = UTFlib.StrFromUTF8Ptr(TableNamePtr)
-            
-            ColumnNamePtr = sqlite3_column_origin_name(hStmt, ColumnIndex)
-            If ColumnNamePtr = 0 Then GoTo META_ERROR:
-            .OriginName = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
-            
-            DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
-            If DataTypePtr = 0 Then GoTo META_ERROR:
-            .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
-            
-            .DataType = sqlite3_column_type(hStmt, ColumnIndex)
-            .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
-            this.ColumnMap(.Name) = ColumnIndex
-            
-            NotNull = False
-            PrimaryKey = False
-            AutoIncrement = False
-            Dim ResultCode As SQLiteResultCodes
-            ResultCode = sqlite3_table_column_metadata(this.Statement.DbConnection.DbHandle, _
-                DatabaseNamePtr, TableNamePtr, ColumnNamePtr, DataTypePtr, CollationPtr, _
-                NotNull, PrimaryKey, AutoIncrement)
-            If ResultCode <> SQLITE_OK Or DataTypePtr = 0 Or CollationPtr = 0 _
-                    Then GoTo META_ERROR:
+    With ColumnInfo
+        If .Initialized <> -1 Then Err.Raise ErrNo.InvalidParameterErr, _
+            "SQLiteCExecSQL", "Set .ColumnIndex and .Initialized=-1 before the call!"
+
+        Dim ColumnIndex As Long
+        ColumnIndex = .ColumnIndex
+        
+        Dim DatabaseNamePtr As Variant
+        DatabaseNamePtr = sqlite3_column_database_name(hStmt, ColumnIndex)
+        If DatabaseNamePtr = 0 Then GoTo META_ERROR:
+        .DbName = UTFlib.StrFromUTF8Ptr(DatabaseNamePtr)
+        
+        Dim TableNamePtr As Variant
+        TableNamePtr = sqlite3_column_table_name(hStmt, ColumnIndex)
+        If TableNamePtr = 0 Then GoTo META_ERROR:
+        .TableName = UTFlib.StrFromUTF8Ptr(TableNamePtr)
+        
+        Dim ColumnNamePtr As Variant
+        ColumnNamePtr = sqlite3_column_name(hStmt, ColumnIndex)
+        If ColumnNamePtr = 0 Then GoTo META_ERROR:
+        .Name = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
+        
+        '''' column_data_type API returns value type. It should return SQLITE_NULL,
+        '''' if SQLITE_ROW has not been returned by the step API.
+        .DataType = sqlite3_column_type(hStmt, ColumnIndex)
+        
+        ColumnNamePtr = sqlite3_column_origin_name(hStmt, ColumnIndex)
+        If ColumnNamePtr = 0 Then GoTo META_ERROR:
+        .OriginName = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
+        
+        Dim DataTypePtr As Variant
+        DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
+        If DataTypePtr = 0 Then GoTo META_ERROR:
+        .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
+        
+        .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
+        this.ColumnMap(.Name) = ColumnIndex
+        
+        '''' For queries against PRAGMA functions, table_column_metadata
+        '''' should return SQLITE_ERROR (no such table column...)
+        Dim NotNull As Long
+        NotNull = False
+        Dim PrimaryKey As Long
+        PrimaryKey = False
+        Dim AutoIncrement As Long
+        AutoIncrement = False
+        Dim CollationPtr As Variant: CollationPtr = 0 '''' RD workaround
+        ResultCodeTAPI = sqlite3_table_column_metadata(dbc.DbHandle, _
+            DatabaseNamePtr, TableNamePtr, ColumnNamePtr, _
+            DataTypePtr, CollationPtr, NotNull, PrimaryKey, AutoIncrement)
+        If ResultCodeTAPI = SQLITE_OK And DataTypePtr <> 0 And CollationPtr <> 0 Then
             .DeclaredTypeT = UTFlib.StrFromUTF8Ptr(DataTypePtr)
             .Collation = UTFlib.StrFromUTF8Ptr(CollationPtr)
             .NotNull = CBool(NotNull)
             .PrimaryKey = CBool(PrimaryKey)
             .AutoIncrement = CBool(AutoIncrement)
-        End With
-    Next ColumnIndex
+        Else
+            dbc.ErrInfoRetrieve
+        End If
+    End With
     
-    this.MetaLoaded = True
-    GetTableMetaAPI = SQLITE_OK
+    GetColumnMetaAPI = ResultCode
     Exit Function
     
 META_ERROR:
-    GetTableMetaAPI = this.Statement.DbConnection.ErrInfoRetrieve
+    GetColumnMetaAPI = dbc.ErrInfoRetrieve
     Exit Function
+End Function
+
+
+'@Description "Collects table metadata."
+Public Function GetTableMeta() As SQLiteResultCodes
+Attribute GetTableMeta.VB_Description = "Retrieves columns metadata."
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.Statement
+    #If VBA7 Then
+        Dim hStmt As LongPtr
+    #Else
+        Dim hStmt As Long
+    #End If
+    hStmt = dbs.StmtHandle
+    If hStmt = 0 Then
+        GetTableMeta = SQLITE_ERROR
+        Exit Function
+    End If
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim ColumnCount As Long
+    ColumnCount = GetColumnCount
+    If ColumnCount = 0 Then
+        Debug.Print "No data avaialable"
+        GetTableMeta = SQLITE_ERROR
+        Exit Function
+    End If
+    ReDim this.TableMeta(0 To ColumnCount - 1)
+    Dim ColumnIndex As Long
+    For ColumnIndex = 0 To ColumnCount - 1
+        this.TableMeta(ColumnIndex).ColumnIndex = ColumnIndex
+        this.TableMeta(ColumnIndex).Initialized = -1
+        '''' column_data_type API returns value type. If SQLITE_ROW has not been
+        '''' returned by step API, column_data_type should return SQLITE_NULL
+        ResultCode = GetColumnMetaAPI(this.TableMeta(ColumnIndex))
+        If ResultCode <> SQLITE_OK Then
+            GetTableMeta = ResultCode
+            Exit Function
+        End If
+    Next ColumnIndex
+    
+    this.MetaLoaded = True
+    GetTableMeta = ResultCode
 End Function
 
 
@@ -424,7 +470,7 @@ Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = Fals
     End If
     
     If UseDeclaredTypes Then
-        ResultCode = GetTableMetaAPI
+        ResultCode = GetTableMeta
         If ResultCode <> SQLITE_OK Then
             Debug.Print "Failed to retrieve table metadata."
             GetPagedRowSet = CVErr(ResultCode)
@@ -458,7 +504,6 @@ Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = Fals
                 Case SQLITE_DONE
                     Pages(PageIndex) = Page
                     this.RowCount = RowCount
-                    ResultCode = this.Statement.DbConnection.ErrInfoRetrieve
                     GetPagedRowSet = Pages
                     Exit Function
                 Case Else
@@ -484,22 +529,24 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
     Dim RowSetArray As Variant
     ReDim RowSetArray(0 To this.RowCount - 1, 0 To this.ColumnCount - 1)
     
+    Dim RecordIndex As Long
+    RecordIndex = 0
     Dim ColumnIndex As Long
     Dim RowIndex As Long
     Dim PageIndex As Long
     For PageIndex = 0 To this.FilledPagesCount - 1
         For RowIndex = 0 To this.PageSize - 1
             For ColumnIndex = 0 To this.ColumnCount - 1
-                RowSetArray(RowIndex, ColumnIndex) = PagedRowSet(PageIndex, RowIndex)(ColumnIndex)
-                RowIndex = RowIndex + 1
+                RowSetArray(RecordIndex, ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
             Next ColumnIndex
+            RecordIndex = RecordIndex + 1
         Next RowIndex
     Next PageIndex
     For RowIndex = 0 To this.RowCount - this.FilledPagesCount * this.PageSize - 1
         For ColumnIndex = 0 To this.ColumnCount - 1
-            RowSetArray(RowIndex, ColumnIndex) = PagedRowSet(PageIndex, RowIndex)(ColumnIndex)
-            RowIndex = RowIndex + 1
+            RowSetArray(RecordIndex, ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
         Next ColumnIndex
+        RecordIndex = RecordIndex + 1
     Next RowIndex
     GetRowSet2D = RowSetArray
 End Function

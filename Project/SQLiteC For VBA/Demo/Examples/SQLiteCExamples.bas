@@ -25,6 +25,7 @@ Attribute Main.VB_Description = "Main entry point"
     InitDBS
     OpenDb
     CheckFunctionality
+    CREATEFunctionsTableWithData
     
     Dim Result As Variant
     CreateTestTable
@@ -299,7 +300,7 @@ Private Sub CreateTestTable()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforCreateTestTable
+    SQLQuery = SQLiteCExamplesSQL.CreateTestTable
     Dim AffectedRows As Long
     AffectedRows = -2
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
@@ -318,7 +319,7 @@ Private Sub InsertTestRows()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforInsertTestRows
+    SQLQuery = SQLiteCExamplesSQL.InsertTestRows
     Dim AffectedRows As Long
     AffectedRows = -2
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
@@ -337,7 +338,7 @@ Private Function GetPagedTestRowsSet() As Variant
     Set dbs = this.dbs
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforSelectFromTestTable
+    SQLQuery = SQLiteCExamplesSQL.SelectFromTestTable
     
     GetPagedTestRowsSet = dbs.GetPagedRowSet(SQLQuery)
 End Function
@@ -349,7 +350,7 @@ Private Sub GetTableMeta()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforSelectFromTestTable
+    SQLQuery = SQLiteCExamplesSQL.SelectFromTestTable
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
@@ -371,7 +372,7 @@ Private Sub GetTableMeta()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.GetTableMetaAPI
+    ResultCode = dbs.DbExecutor.GetTableMeta
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."
@@ -394,7 +395,7 @@ Private Function GetScalarDbVersion() As Variant
     Set dbs = this.dbs
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforGetSQLiteVersion
+    SQLQuery = SQLiteCExamplesSQL.GetSQLiteVersion
     
     GetScalarDbVersion = dbs.GetScalar(SQLQuery)
 End Function
@@ -405,31 +406,9 @@ Private Function GetScalarDbPath() As Variant
     Set dbs = this.dbs
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforGetDbPath
+    SQLQuery = SQLiteCExamplesSQL.GetDbPath
     
     GetScalarDbPath = dbs.GetScalar(SQLQuery)
-End Function
-
-
-Private Function GetPagedRowSetFunctions() As Variant
-    Dim dbs As SQLiteCStatement
-    Set dbs = this.dbs
-    
-    Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
-    
-    GetPagedRowSetFunctions = dbs.GetPagedRowSet(SQLQuery)
-End Function
-
-
-Private Function GetRowSet2DFunctions() As Variant
-    Dim dbs As SQLiteCStatement
-    Set dbs = this.dbs
-    
-    Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
-    
-    GetRowSet2DFunctions = dbs.GetRowSet2D(SQLQuery)
 End Function
 
 
@@ -454,7 +433,7 @@ Private Sub PrepareStatementGetScalar()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforGetSQLiteVersion
+    SQLQuery = SQLiteCExamplesSQL.GetSQLiteVersion
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
@@ -472,7 +451,7 @@ Private Sub PrepareStatementGetRowSetFilteredPlain()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFiltered
+    SQLQuery = SQLiteCExamplesSQL.FunctionsPragmaTableFiltered
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
@@ -490,7 +469,7 @@ Private Sub PrepareStatementGetRowSetFilteredParams()
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    SQLQuery = SQLiteCExamplesSQL.FunctionsPragmaTableNamedParams
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
@@ -508,7 +487,7 @@ Private Sub BindParamArray()
     Dim ResultCode As SQLiteResultCodes
     
     Dim ParamsArray As Variant
-    ParamsArray = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsArray
+    ParamsArray = SQLiteCExamplesSQL.FunctionsFilteredNamedParamsArray
     
     dbs.DbParameters.BindClear
     ResultCode = dbs.DbParameters.BindDictOrArray(ParamsArray)
@@ -527,7 +506,7 @@ Private Sub BindParamDict()
     Dim ResultCode As SQLiteResultCodes
     
     Dim ParamsDict As Scripting.Dictionary
-    Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
+    Set ParamsDict = SQLiteCExamplesSQL.FunctionsFilteredNamedParamsDict
     
     dbs.DbParameters.BindClear
     ResultCode = dbs.DbParameters.BindDictOrArray(ParamsDict)
@@ -546,7 +525,7 @@ Private Function RunFunctionsQuery() As Variant
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFiltered
+    SQLQuery = SQLiteCExamplesSQL.FunctionsTableFiltered
     Dim ParamsArray As Variant
     ParamsArray = Null
     
@@ -560,9 +539,9 @@ Private Function RunFunctionsQueryWithParamArray() As Variant
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    SQLQuery = SQLiteCExamplesSQL.FunctionsTableNamedParams
     Dim ParamsArray As Variant
-    ParamsArray = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsArray
+    ParamsArray = SQLiteCExamplesSQL.FunctionsFilteredNamedParamsArray
     
     RunFunctionsQueryWithParamArray = dbs.GetPagedRowSet(SQLQuery, ParamsArray)
 End Function
@@ -574,9 +553,9 @@ Private Function RunFunctionsQueryWithParamDict() As Variant
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParams
+    SQLQuery = SQLiteCExamplesSQL.FunctionsTableNamedParams
     Dim ParamsDict As Variant
-    Set ParamsDict = SQLiteCExamplesSQL.SQLforFunctionsTableFilteredNamedParamsDict
+    Set ParamsDict = SQLiteCExamplesSQL.FunctionsFilteredNamedParamsDict
     
     RunFunctionsQueryWithParamDict = dbs.GetPagedRowSet(SQLQuery, ParamsDict)
 End Function
@@ -587,7 +566,48 @@ Private Function GetFirstFunctionName() As Variant
     Set dbs = this.dbs
     
     Dim SQLQuery As String
-    SQLQuery = SQLiteCExamplesSQL.SQLforFunctionsTable
+    SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
     
     GetFirstFunctionName = dbs.GetScalar(SQLQuery)
 End Function
+
+
+Private Function GetPagedRowSetFunctions() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+        
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
+    
+    GetPagedRowSetFunctions = dbs.GetPagedRowSet(SQLQuery)
+End Function
+
+
+Private Function GetRowSet2DFunctions() As Variant
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
+    
+    GetRowSet2DFunctions = dbs.GetRowSet2D(SQLQuery)
+End Function
+
+
+Private Sub CREATEFunctionsTableWithData()
+    Dim dbc As SQLiteCConnection
+    Set dbc = this.dbc
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.CREATEFunctionsTableWithData
+    Dim AffectedRows As Long
+    AffectedRows = -2
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create table."
+    Else
+        Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    End If
+End Sub

@@ -168,7 +168,10 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             Debug.Print "Unsupported array type: " & CStr(VarType(Value))
             ResultCode = SQLITE_ERROR
     End Select
-    If ResultCode > SQLITE_ERROR Then ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
+    If ResultCode > SQLITE_ERROR Then
+        ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
+        BindClear
+    End If
     BindOne = ResultCode
 End Function
 
@@ -184,11 +187,10 @@ Attribute BindArray.VB_Description = "Binds a set of parameter values provided a
     Dim ParamCount As Long
     ParamCount = ParameterCount
     If ValueCount <> ParamCount Then
-        Debug.Print "Wrong number of parameter values:" & vbNewLine & _
-            "Expected: " & CStr(ParamCount) & vbNewLine & "Received: " & _
-            CStr(ValueCount)
-        BindArray = SQLITE_ERROR
-        Exit Function
+        Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+        "Wrong number of parameter values:" & _
+        vbNewLine & "Expected: " & CStr(ParamCount) & _
+        vbNewLine & "Received: " & CStr(ValueCount)
     End If
     Dim ResultCode As SQLiteResultCodes
     Dim ParamIndex As Long
@@ -216,7 +218,6 @@ Attribute BindDict.VB_Description = "Binds a set of parameter values provided as
             ResultCode = BindOne(ParamIndex, ValueDict(ParamName))
             If ResultCode <> SQLITE_OK Then
                 BindDict = ResultCode
-                BindClear
                 Exit Function
             End If
         End If
@@ -225,6 +226,11 @@ Attribute BindDict.VB_Description = "Binds a set of parameter values provided as
 End Function
 
 
+'''' TODO: parameter type checking.
+'''' Possible options:
+''''   - type hint in named params, e.g., $I__Age, $T__first_name
+''''   - dictionary, specifying type for each parameter (can be
+''''     passed as an optional second argument.
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
     If this.DbStmt.StmtHandle = 0 Then Err.Raise StatementNotPreparedErr, _
         "SQLiteCParameters", "Statement is not prepared."

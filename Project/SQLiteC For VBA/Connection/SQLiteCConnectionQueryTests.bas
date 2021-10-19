@@ -50,7 +50,7 @@ Act:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.zfxGetConnDbMemory
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesIRBNT
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
@@ -86,7 +86,7 @@ Act:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.zfxGetConnDbMemory
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesIRBNT
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
@@ -112,6 +112,26 @@ CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcChangesCount_ThrowsOnClosedConnection()
+    On Error Resume Next
+    
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.zfxGetConnDbMemory
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    Dim AffectedRecords As Long
+    AffectedRecords = -2
+    
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = SQLITE_ERROR
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "ResultCode changed unexpectedly."
+    
+    Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
 End Sub
 
 

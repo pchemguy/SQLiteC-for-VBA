@@ -17,12 +17,11 @@ Option Explicit
 Public Function CREATETableITRB() As String
     CREATETableITRB = Join(Array( _
         "CREATE TABLE t1(", _
-        "    id INTEGER NOT NULL,", _
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,", _
         "    xi INTEGER,", _
         "    xt TEXT COLLATE NOCASE,", _
         "    xr REAL NOT NULL,", _
-        "    xb BLOB,", _
-        "    PRIMARY KEY(""id"" AUTOINCREMENT)", _
+        "    xb BLOB", _
         ");" _
     ), vbNewLine)
 End Function
@@ -44,8 +43,8 @@ Public Function SELECTTestTable() As String
     ), vbNewLine)
 End Function
 
-Public Function CREATETableINSERTValuesIRBNT() As String
-    CREATETableINSERTValuesIRBNT = _
+Public Function CREATETableINSERTValuesITRB() As String
+    CREATETableINSERTValuesITRB = _
         CREATETableITRB & vbNewLine & INSERTValuesITRB
 End Function
 
@@ -65,17 +64,46 @@ Public Function SELECTCollations() As String
     ), vbNewLine)
 End Function
 
-Public Function SELECTFunctionsTable() As String
-    SELECTFunctionsTable = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
+Public Function FunctionsTable() As String
+    FunctionsTable = Join(Array( _
         "SELECT * FROM functions ORDER BY name;" _
+    ), vbNewLine)
+End Function
+
+Public Function FunctionsPragmaTable() As String
+    FunctionsPragmaTable = Join(Array( _
+        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
+        FunctionsTable _
+    ), vbNewLine)
+End Function
+
+Public Function CREATEFunctionsTable() As String
+    CREATEFunctionsTable = Join(Array( _
+        "CREATE TABLE functions(", _
+        "    name    TEXT COLLATE NOCASE NOT NULL,", _
+        "    builtin INTEGER             NOT NULL,", _
+        "    type    TEXT COLLATE NOCASE NOT NULL,", _
+        "    enc     TEXT COLLATE NOCASE NOT NULL,", _
+        "    narg    INTEGER             NOT NULL,", _
+        "    flags   INTEGER             NOT NULL", _
+        ");" _
+    ), vbNewLine)
+End Function
+
+'''' This SQL command is a multi-statement "nonquery".
+'''' Use step_exec API.
+Public Function CREATEFunctionsTableWithData() As String
+    CREATEFunctionsTableWithData = Join(Array( _
+        "DROP TABLE IF EXISTS functions;", _
+        CREATEFunctionsTable, _
+        "INSERT INTO functions (rowid, name, builtin, type, enc, narg, flags)", _
+        FunctionsPragmaTable _
     ), vbNewLine)
 End Function
 
 Public Function SELECTFunctionsTableWHERE() As String
     SELECTFunctionsTableWHERE = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = 1 OR [builtin] = 0 AND [flags] = 0) AND", _
         "      ([enc] = 'utf8' AND [narg] >= 0 AND [type] = 's')", _
         "ORDER BY name;" _
@@ -84,8 +112,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsAnon() As String
     SELECTFunctionsNamedParamsAnon = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = ? OR [builtin] = ? AND [flags] = ?) AND", _
         "      ([enc] = ? AND [narg] >= ? AND [type] = ?)", _
         "ORDER BY name;" _
@@ -105,8 +132,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsNo() As String
     SELECTFunctionsNamedParamsNo = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = ?3 OR [builtin] = ?4 AND [flags] = ?5) AND", _
         "      ([enc] = ?1 AND [narg] >= ?6 AND [type] = ?2)", _
         "ORDER BY name;" _
@@ -126,8 +152,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsAt() As String
     SELECTFunctionsNamedParamsAt = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = @builtinY OR [builtin] = @builtinN AND [flags] = @flags) AND", _
         "      ([enc] = @enc AND [narg] >= @narg AND [type] = @type)", _
         "ORDER BY name;" _
@@ -151,8 +176,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsS() As String
     SELECTFunctionsNamedParamsS = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = $builtinY OR [builtin] = $builtinN AND [flags] = $flags) AND", _
         "      ([enc] = $enc AND [narg] >= $narg AND [type] = $type)", _
         "ORDER BY name;" _
@@ -176,8 +200,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsCOL() As String
     SELECTFunctionsNamedParamsCOL = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        "SELECT * FROM functions", _
+        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = :builtinY OR [builtin] = :builtinN AND [flags] = :flags) AND", _
         "      ([enc] = :enc AND [narg] >= :narg AND [type] = :type)", _
         "ORDER BY name;" _
@@ -197,4 +220,27 @@ Public Function SELECTFunctionsNamedParamsCOLValues() As Scripting.Dictionary
         .Item(":type") = "s"
     End With
     Set SELECTFunctionsNamedParamsCOLValues = QueryParams
+End Function
+
+Public Function SELECTMinMaxSubstrFromFunctions() As String
+    SELECTMinMaxSubstrFromFunctions = Join(Array( _
+        "SELECT name, count(*) AS rept", _
+        "FROM functions", _
+        "WHERE name like @substr_pattern OR name like @min_max_pattern AND length(name) = @min_max_len", _
+        "GROUP BY name", _
+        "HAVING Rept > 1", _
+        "ORDER BY name DESC;" _
+    ), vbNewLine)
+End Function
+
+Public Function SELECTMinMaxSubstrFromFunctionsValues() As Scripting.Dictionary
+    Dim QueryParams As Scripting.Dictionary
+    Set QueryParams = New Scripting.Dictionary
+    With QueryParams
+        .CompareMode = TextCompare
+        .Item("@substr_pattern") = "substr%"
+        .Item("@min_max_pattern") = "m%"
+        .Item("@min_max_len") = 3
+    End With
+    Set SELECTMinMaxSubstrFromFunctionsValues = QueryParams
 End Function

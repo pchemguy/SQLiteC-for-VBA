@@ -300,6 +300,8 @@ End Function
 '@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
 Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
+    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCConnection", "Database connection is not opened!"
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
     Else
@@ -328,6 +330,13 @@ Attribute JournalModeSet.VB_Description = "Sets SQLite journal mode."
 End Function
 
 
+'''' This interface does not support parametrized queries as opposed to the
+'''' similar interface on the Statemnt object. This is because this interface
+'''' uses a "shortcut" API not supporting parameterized quiries.
+''''
+'''' This interface, however, supports execution of multi-statement SQL commands.
+'''' This difference is also due to the differences between the underlying APIs.
+''''
 '''' Reference: https://www.sqlite.org/c3ref/exec.html
 ''''
 '@Description "Executes a plain-text non-query via a convenience shortcut."

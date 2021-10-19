@@ -83,5 +83,3 @@ Public Function zfxGetConnDbMemoryWithTable() As SQLiteCConnection
     Set zfxGetConnDbMemoryWithTable = zfxGetConnection(DbPathName)
     zfxGetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableITRB
 End Function
-
-

@@ -3,33 +3,63 @@ Attribute VB_Name = "SQLiteCExamplesSQL"
 Option Explicit
 
 
-Public Function SQLforGetSQLiteVersion() As String
-    SQLforGetSQLiteVersion = Join(Array( _
+Public Function GetSQLiteVersion() As String
+    GetSQLiteVersion = Join(Array( _
         "SELECT sqlite_version();" _
     ), vbNewLine)
 End Function
 
-Public Function SQLforGetDbPath() As String
-    SQLforGetDbPath = Join(Array( _
+Public Function GetDbPath() As String
+    GetDbPath = Join(Array( _
         "SELECT file FROM pragma_database_list;" _
     ), vbNewLine)
 End Function
 
-Public Function SQLforGetCollations() As String
-    SQLforGetCollations = Join(Array( _
+Public Function GetCollations() As String
+    GetCollations = Join(Array( _
         "SELECT name FROM pragma_collation_list AS collations ORDER BY name;" _
     ), vbNewLine)
 End Function
 
-Public Function SQLforFunctionsTable() As String
-    SQLforFunctionsTable = Join(Array( _
-        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
+Public Function SelectFromFunctionsTable() As String
+    SelectFromFunctionsTable = Join(Array( _
         "SELECT * FROM functions ORDER BY name;" _
     ), vbNewLine)
 End Function
 
-Public Function SQLforFunctionsTableFiltered() As String
-    SQLforFunctionsTableFiltered = Join(Array( _
+Public Function FunctionsPragmaTable() As String
+    FunctionsPragmaTable = Join(Array( _
+        "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
+        SelectFromFunctionsTable _
+    ), vbNewLine)
+End Function
+
+Public Function CREATEFunctionsTable() As String
+    CREATEFunctionsTable = Join(Array( _
+        "CREATE TABLE functions(", _
+        "    name    TEXT COLLATE NOCASE NOT NULL,", _
+        "    builtin INTEGER             NOT NULL,", _
+        "    type    TEXT COLLATE NOCASE NOT NULL,", _
+        "    enc     TEXT COLLATE NOCASE NOT NULL,", _
+        "    narg    INTEGER             NOT NULL,", _
+        "    flags   INTEGER             NOT NULL", _
+        ");" _
+    ), vbNewLine)
+End Function
+
+'''' This SQL command is a multi-statement "nonquery".
+'''' Use step_exec API.
+Public Function CREATEFunctionsTableWithData() As String
+    CREATEFunctionsTableWithData = Join(Array( _
+        "DROP TABLE IF EXISTS functions;", _
+        CREATEFunctionsTable, _
+        "INSERT INTO functions (rowid, name, builtin, type, enc, narg, flags)", _
+        FunctionsPragmaTable _
+    ), vbNewLine)
+End Function
+
+Public Function FunctionsPragmaTableFiltered() As String
+    FunctionsPragmaTableFiltered = Join(Array( _
         "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
         "SELECT * FROM functions", _
         "WHERE ([builtin] = 1 OR [builtin] = 0 AND [flags] = 0) AND", _
@@ -38,8 +68,17 @@ Public Function SQLforFunctionsTableFiltered() As String
     ), vbNewLine)
 End Function
 
-Public Function SQLforFunctionsTableFilteredNamedParams() As String
-    SQLforFunctionsTableFilteredNamedParams = Join(Array( _
+Public Function FunctionsTableFiltered() As String
+    FunctionsTableFiltered = Join(Array( _
+        "SELECT * FROM functions", _
+        "WHERE ([builtin] = 1 OR [builtin] = 0 AND [flags] = 0) AND", _
+        "      ([enc] = 'utf8' AND [narg] >= 0 AND [type] = 's')", _
+        "ORDER BY name;" _
+    ), vbNewLine)
+End Function
+
+Public Function FunctionsPragmaTableNamedParams() As String
+    FunctionsPragmaTableNamedParams = Join(Array( _
         "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
         "SELECT * FROM functions", _
         "WHERE ([builtin] = @builtinY OR [builtin] = @builtinN AND [flags] = @flags) AND", _
@@ -48,8 +87,17 @@ Public Function SQLforFunctionsTableFilteredNamedParams() As String
     ), vbNewLine)
 End Function
 
-Public Function SQLforFunctionsTableFilteredNamedParamsArray() As Variant
-    SQLforFunctionsTableFilteredNamedParamsArray = Array( _
+Public Function FunctionsTableNamedParams() As String
+    FunctionsTableNamedParams = Join(Array( _
+        "SELECT * FROM functions", _
+        "WHERE ([builtin] = @builtinY OR [builtin] = @builtinN AND [flags] = @flags) AND", _
+        "      ([enc] = @enc AND [narg] >= @narg AND [type] = @type)", _
+        "ORDER BY name;" _
+    ), vbNewLine)
+End Function
+
+Public Function FunctionsFilteredNamedParamsArray() As Variant
+    FunctionsFilteredNamedParamsArray = Array( _
         1, _
         0, _
         0, _
@@ -59,7 +107,7 @@ Public Function SQLforFunctionsTableFilteredNamedParamsArray() As Variant
     )
 End Function
 
-Public Function SQLforFunctionsTableFilteredNamedParamsDict() As Scripting.Dictionary
+Public Function FunctionsFilteredNamedParamsDict() As Scripting.Dictionary
     Dim QueryParams As Scripting.Dictionary
     Set QueryParams = New Scripting.Dictionary
     With QueryParams
@@ -71,26 +119,23 @@ Public Function SQLforFunctionsTableFilteredNamedParamsDict() As Scripting.Dicti
         .Item("@narg") = 0
         .Item("@type") = "s"
     End With
-    Set SQLforFunctionsTableFilteredNamedParamsDict = QueryParams
+    Set FunctionsFilteredNamedParamsDict = QueryParams
 End Function
 
-Public Function SQLforCreateTestTable() As String
-    SQLforCreateTestTable = Join(Array( _
+Public Function CreateTestTable() As String
+    CreateTestTable = Join(Array( _
         "CREATE TABLE t1(", _
-        "    id INTEGER NOT NULL,", _
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,", _
         "    xi INTEGER,", _
         "    xt TEXT COLLATE NOCASE,", _
         "    xr REAL NOT NULL,", _
-        "    xb BLOB,", _
-        "    PRIMARY KEY(""id"" AUTOINCREMENT)", _
+        "    xb BLOB", _
         ");" _
     ), vbNewLine)
 End Function
 
-
-
-Public Function SQLforInsertTestRows() As String
-    SQLforInsertTestRows = Join(Array( _
+Public Function InsertTestRows() As String
+    InsertTestRows = Join(Array( _
         "INSERT INTO t1(id,   xi,    xt,  xr,                  xb) ", _
         "VALUES        ( 1,   10, 'AAA', 3.1, X'410A0D0942434445'),", _
         "              ( 2,   20,  NULL, 1.3, X'30310A0D09323334'),", _
@@ -100,8 +145,10 @@ Public Function SQLforInsertTestRows() As String
     ), vbNewLine)
 End Function
 
-Public Function SQLforSelectFromTestTable() As String
-    SQLforSelectFromTestTable = Join(Array( _
+Public Function SelectFromTestTable() As String
+    SelectFromTestTable = Join(Array( _
         "SELECT rowid, * FROM t1;" _
     ), vbNewLine)
 End Function
+
+
