@@ -33,6 +33,7 @@ Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
     ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteErrors ' PtrDb
 Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_db_filename Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As LongPtr
 Private Declare PtrSafe Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteDbAccess
 '''' Transactions
 Private Declare PtrSafe Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteTxnState
@@ -48,6 +49,7 @@ Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
     ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
+Private Declare Function sqlite3_db_filename Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As Long
 Private Declare Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteDbAccess
 '''' Transactions
 Private Declare Function sqlite3_txn_state Lib "SQLite3" (ByVal hDb As Long, ByVal zSchema As Long) As SQLiteTxnState
@@ -158,6 +160,17 @@ End Property
 Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
+
+
+Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
+                                  ) As String
+    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCConnection", "Database connection is not opened!"
+    Dim SchemaUTF8() As Byte
+    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
+    AttachedDbPathName = UTFlib.StrFromUTF8Ptr( _
+        sqlite3_db_filename(this.DbHandle, VarPtr(SchemaUTF8(0))))
+End Function
 
 
 Public Property Get ErrorInfo() As SQLiteCErr
@@ -288,6 +301,8 @@ End Function
 Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
                           ) As SQLiteDbAccess
 Attribute AccessMode.VB_Description = "Queries database access mode."
+    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCConnection", "Database connection is not opened!"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))

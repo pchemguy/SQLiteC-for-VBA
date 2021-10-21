@@ -1,7 +1,7 @@
 Attribute VB_Name = "SQLiteCConnectionOpenCloseTests"
 '@Folder "SQLiteC For VBA.Connection"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
 Option Explicit
 Option Private Module
 
@@ -42,6 +42,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
+    Set FixObj = New SQLiteCTestFixObj
 
 Arrange:
 Act:
@@ -80,7 +81,7 @@ End Sub
 
 
 '@TestMethod("Connection")
-Private Sub ztcGetDbPathName_VerifiesTempDbPathName()
+Private Sub ztcGetDbPathName_VerifiesAnonDbPathName()
     On Error GoTo TestFail
 
 Arrange:
@@ -88,10 +89,46 @@ Act:
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbTemp
+    Set dbc = FixObj.GetConnDbAnon
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Connection")
+Private Sub ztcAttachedDbPathName_ThrowsOnClosedConnection()
+    On Error Resume Next
+    
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Debug.Print dbc.DbPathName = dbc.AttachedDbPathName
+    
+    Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
+End Sub
+
+
+'@TestMethod("Connection")
+Private Sub ztcAttachedDbPathName_VerifiesTempDbPathName()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbTemp
+    Dim ResultCode As SQLiteResultCodes
+Act:
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+Assert:
+    Assert.AreEqual dbc.DbPathName, dbc.AttachedDbPathName, "AttachedDbPathName mismatch."
+Cleanup:
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
 CleanExit:
     Exit Sub
 TestFail:
@@ -130,7 +167,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbTemp
+    Set dbc = FixObj.GetConnDbAnon
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb

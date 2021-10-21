@@ -15,6 +15,12 @@ Attribute VB_Description = "Provides SQL snippets for tests"
 Option Explicit
 
 
+Public Function DROPTableITRB() As String
+    DROPTableITRB = Join(Array( _
+        "DROP TABLE IF EXISTS t1;" _
+    ), vbNewLine)
+End Function
+
 Public Function CREATETableITRB() As String
     CREATETableITRB = Join(Array( _
         "CREATE TABLE t1(", _
@@ -40,19 +46,44 @@ End Function
 
 Public Function INSERTTemplateITRB() As String
     INSERTTemplateITRB = Join(Array( _
-        "INSERT INTO t1 VALUES ($id,   $xi, $xt, $xr, $xb);" _
+        "INSERT INTO t1 VALUES ($id, $xi, $xt, $xr, $xb);" _
     ), vbNewLine)
 End Function
 
-'Public Function INSERTParamValuesITRB() As Variant
-'    INSERTParamValuesITRB = Array( _
-'        Array( 1,   10, "AAA", 3.1, X'410A0D0942434445'),", _
-'        "              ( 2,   20,  NULL, 1.3, X'30310A0D09323334'),", _
-'        "              ( 3, NULL, 'AAA', 7.2,                NULL),", _
-'        "              ( 4,   27, 'DDD', 4.3, X'410A0D0942434445'),", _
-'        "              ( 5, NULL,  NULL, 3.8, X'30310A0D32093334');" _
-'    )
-'End Function
+Public Function INSERTTemplateITRBParamNames() As Variant
+    INSERTTemplateITRBParamNames = Array("$id", "$xi", "$xt", "$xr", "$xb")
+End Function
+
+Public Function INSERTTemplateITRBParamValueSets() As Variant
+    INSERTTemplateITRBParamValueSets = Array( _
+        Array(1, 10, "AAA", 3.1, SQLiteCTestFixObj.ByteArray("A" & vbCr & vbLf & vbTab & "BCDE")), _
+        Array(2, 20, Null, 1.3, SQLiteCTestFixObj.ByteArray("01" & vbCr & vbLf & vbTab & "234")), _
+        Array(3, Null, "AAA", 7.2, Null), _
+        Array(4, 27, "DDD", 4.3, SQLiteCTestFixObj.ByteArray("A" & vbCr & vbLf & vbTab & "BCDE")), _
+        Array(5, Null, Null, 3.8, SQLiteCTestFixObj.ByteArray("01" & vbCr & vbLf & "2" & vbTab & "34")) _
+    )
+End Function
+
+Public Function UPDATEPlainITRB() As String
+    UPDATEPlainITRB = Join(Array( _
+        "UPDATE t1 SET xr = xr * 2 WHERE xt = 'AAA' OR xi > 20.5;" _
+    ), vbNewLine)
+End Function
+
+Public Function UPDATETemplateITRB() As String
+    UPDATETemplateITRB = Join(Array( _
+        "UPDATE t1 SET xr = xr * @xr WHERE xt = @xt OR xi > @xi;" _
+    ), vbNewLine)
+End Function
+
+Public Function UPDATETemplateITRBValues() As Scripting.Dictionary
+    Dim FixSQL As SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixObj
+    Set UPDATETemplateITRBValues = FixSQL.KeysValuesToDict( _
+        Array("@xr", "@xt", "@xi"), _
+        Array(2, "AAA", 20.5) _
+    )
+End Function
 
 Public Function SELECTTestTable() As String
     SELECTTestTable = Join(Array( _
@@ -63,6 +94,20 @@ End Function
 Public Function CREATETableINSERTValuesITRB() As String
     CREATETableINSERTValuesITRB = _
         CREATETableITRB & vbNewLine & INSERTValuesITRB
+End Function
+
+Public Function SELECTLiteralAtParam(Optional ByVal Literal As Variant = Empty) As String
+    Dim LiteralParam As String
+    If VarType(Literal) = Empty Then
+        LiteralParam = "@Literal"
+    ElseIf VarType(Literal) = vbString Then
+        LiteralParam = "'" & Literal & "'"
+    Else
+        LiteralParam = CStr(Literal)
+    End If
+    SELECTLiteralAtParam = Join(Array( _
+        "SELECT " & LiteralParam & ";" _
+    ), vbNewLine)
 End Function
 
 Public Function SELECTSQLiteVersion() As String
@@ -318,4 +363,3 @@ Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
         vbNewLine & ")" & vbNewLine & _
         "SELECT count(*) AS counter FROM subset;"
 End Function
-

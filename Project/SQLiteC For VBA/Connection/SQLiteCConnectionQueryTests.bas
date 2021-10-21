@@ -46,28 +46,29 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
     On Error GoTo TestFail
 
 Arrange:
-Act:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
-    Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
-Assert:
-        ResultCode = dbc.OpenDb
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        ResultCode = dbc.SavePoint("ABCDEFG")
+Assert:
+    ResultCode = dbc.SavePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
-        ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected query error"
     Assert.AreEqual 5, AffectedRecords, "AffectedRecords mismatch"
-        TxnStateCode = SQLITE_TXN_NULL
-        TxnStateCode = dbc.TxnState("main")
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
     Assert.IsTrue TxnStateCode = SQLITE_TXN_WRITE, "Unexpected Txn state"
-        ResultCode = dbc.ReleasePoint("ABCDEFG")
+    ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-        ResultCode = dbc.CloseDb
+Cleanup:
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:
@@ -78,34 +79,110 @@ End Sub
 
 
 '@TestMethod("Query")
+Private Sub ztcExecuteNonQueryPlain_VerifiesCreateTable()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+
+    Dim AffectedRecords As Long
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+Assert:
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
+    Assert.AreEqual 5, AffectedRecords, "AffectedRecords mismatch"
+Cleanup:
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'''' N.B.: The only difference from the test below is the SQLQuery prefix
+''''       FixSQL.DROPTableITRB & vbNewLine
+'@TestMethod("Query")
 Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
     On Error GoTo TestFail
 
 Arrange:
-Act:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
-    Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
-Assert:
-        ResultCode = dbc.OpenDb
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        ResultCode = dbc.SavePoint("ABCDEFG")
+Assert:
+    ResultCode = dbc.SavePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
-        ResultCode = dbc.ExecuteNonQueryPlain("PRAGMA query_only=1")
+    ResultCode = dbc.ExecuteNonQueryPlain("PRAGMA query_only=1")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected query error"
-        ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
     Assert.AreEqual SQLITE_READONLY, ResultCode, "Expected SQLITE_READONLY error"
     Assert.AreEqual -1, AffectedRecords, "AffectedRecords mismatch"
-        TxnStateCode = SQLITE_TXN_NULL
-        TxnStateCode = dbc.TxnState("main")
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
     Assert.IsTrue TxnStateCode = SQLITE_TXN_NONE, "Unexpected Txn state"
-        ResultCode = dbc.ReleasePoint("ABCDEFG")
+    ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-        ResultCode = dbc.CloseDb
+Cleanup:
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'''' N.B.: The only difference from the test below is the SQLQuery prefix
+''''       FixSQL.DROPTableITRB & vbNewLine
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQueryPlain_TransactionTriggeredByAttemptedTableDrop()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+
+    Dim AffectedRecords As Long
+    Dim ResultCode As SQLiteResultCodes
+    Dim TxnStateCode As SQLiteTxnState
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.DROPTableITRB & vbNewLine & FixSQL.CREATETableINSERTValuesITRB
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+Assert:
+    ResultCode = dbc.SavePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
+    ResultCode = dbc.ExecuteNonQueryPlain("PRAGMA query_only=1")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected query error"
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
+    Assert.AreEqual SQLITE_READONLY, ResultCode, "Expected SQLITE_READONLY error"
+    Assert.AreEqual -1, AffectedRecords, "AffectedRecords mismatch"
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
+    Assert.IsTrue TxnStateCode = SQLITE_TXN_READ, "Unexpected Txn state"
+    ResultCode = dbc.ReleasePoint("ABCDEFG")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
+Cleanup:
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:

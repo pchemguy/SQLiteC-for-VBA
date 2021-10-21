@@ -366,8 +366,8 @@ Friend Function ExecuteStepAPI() As SQLiteResultCodes
     If ResultCode <> SQLITE_ROW Then
         If ResultCode <> SQLITE_DONE And ResultCode <> SQLITE_OK Then
             this.StepAPIError = True
+            ResultCode = this.Statement.DbConnection.ErrInfoRetrieve
         End If
-        ResultCode = this.Statement.DbConnection.ErrInfoRetrieve
     End If
     ExecuteStepAPI = ResultCode
 End Function

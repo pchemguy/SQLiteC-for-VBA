@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
-    '@Folder "SQLiteC For VBA.Statement"
+'@Folder "SQLiteC For VBA.Statement"
 '@ModuleDescription "Manages the lifecycle of the SQLite3 Prerpared Statement Object (PSO)."
 '@PredeclaredId
 '@Exposed
@@ -348,7 +348,6 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
         If AffectedRows <> -1 Then
             AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
         End If
-        ResultCode = Reset
         ExecuteNonQuery = ResultCode
     Else
         AffectedRows = -1

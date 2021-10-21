@@ -148,16 +148,24 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
         Case vbEmpty, vbNull
             ResultCode = sqlite3_bind_null(hStmt, ParamIndex)
         Case vbArray + vbByte
+            '''' If the argument is passed as a Variant wrapped byte array,
+            '''' which is quite likely, getting the actual address of the
+            '''' array is a fairly involved process (at least technically).
+            '''' To avoid dealing with this matter at least for now, I would
+            '''' rather pay the price of making a local copy. I would prefer
+            '''' not storing large blobs in the database anyway.
+            Dim LocalBuffer() As Byte
+            LocalBuffer = Value
             Length = UBound(Value) - LBound(Value) + 1
-            ResultCode = sqlite3_bind_blob(hStmt, ParamIndex, VarPtr(Value(0)), Length, SQLITE_TRANSIENT)
+            ResultCode = sqlite3_bind_blob(hStmt, ParamIndex, VarPtr(LocalBuffer(0)), Length, SQLITE_TRANSIENT)
         Case vbDecimal
             Dim DecValue As String
             DecValue = CStr(Value)
             Length = Len(DecValue) * 2
             ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(DecValue), Length, SQLITE_TRANSIENT)
         Case vbObject, vbError, vbDataObject, vbUserDefinedType
-            Debug.Print "Unsupported value type: " & CStr(VarType(Value))
-            ResultCode = SQLITE_ERROR
+            Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+                      "Unsupported value type: " & CStr(VarType(Value))
         Case Is < vbArray
             Debug.Print "Unsupported value converted to String. Type: " & CStr(VarType(Value))
             Dim StrValue As String
@@ -165,8 +173,8 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             Length = Len(StrValue) * 2
             ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(StrValue), Length, SQLITE_TRANSIENT)
         Case Is >= vbArray
-            Debug.Print "Unsupported array type: " & CStr(VarType(Value))
-            ResultCode = SQLITE_ERROR
+            Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+                      "Unsupported array type: " & CStr(VarType(Value))
     End Select
     If ResultCode > SQLITE_ERROR Then
         ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
@@ -249,6 +257,7 @@ Public Sub BindClear()
     '@Ignore FunctionReturnValueDiscarded
     If ResultCode <> SQLITE_OK Then this.DbStmt.DbConnection.ErrInfoRetrieve
 End Sub
+
 
 
 '#If VBA7 Then

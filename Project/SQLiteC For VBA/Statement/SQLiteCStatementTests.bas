@@ -409,8 +409,44 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
 End Sub
 
 
+'@TestMethod("Query")
+Private Sub ztcExecuteNonQuery_VerifiesCreateTable()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableITRB
+    Dim AffectedRows As Long
+    ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
+    Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
+Assert:
+    Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
 '@TestMethod("Query Paged RowSet")
-Private Sub ztcGetPagedRowSet_VerifyPage‰RowSetGeometry()
+Private Sub ztcGetPagedRowSet_VerifyPagedRowSetGeometry()
     On Error GoTo TestFail
 
 Arrange:
@@ -450,7 +486,7 @@ Assert:
     Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(PagedRowSet(0)(0)), "FieldSet size mismatch"
 Cleanup:
     ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -497,7 +533,7 @@ Assert:
     Assert.IsTrue IsEmpty(PagedRowSet(0)(RecordCount)), "RowSet is too big"
 Cleanup:
     ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -533,13 +569,14 @@ Assert:
     Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
     Assert.IsFalse IsEmpty(RowSet2D), "RowSet2D should not be empty."
     Assert.IsFalse IsNull(RowSet2D), "RowSet2D should not be null."
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
     Assert.AreEqual 0, LBound(RowSet2D, 1), "RowSet2D R-base mismatch"
     Assert.AreEqual 0, LBound(RowSet2D, 2), "RowSet2D C-base mismatch"
     Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
     Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
 Cleanup:
     ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -583,7 +620,7 @@ Assert:
     Assert.AreEqual RowSet2DNamedParams(0, 0), RowSet2DAnonValues(0, 0), "Bottom-Left mismatch."
 Cleanup:
     ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -625,7 +662,7 @@ Assert:
     Assert.IsTrue IsArray(RowSet2D), "Expected a rowset result."
 Cleanup:
     ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -635,6 +672,115 @@ TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
-'    Set FixObj = New SQLiteCTestFixObj
- '   Set FixSQL = New SQLiteCTestFixSQL
 
+'@TestMethod("Query 2D RowSet")
+Private Sub ztcGetRowSet2D_InsertPlainSelectFromITRBTable()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
+    
+    SQLQuery = FixSQL.SELECTTestTable
+    Dim RowSet2D As Variant
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+Assert:
+    Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
+    Assert.IsFalse IsEmpty(RowSet2D), "RowSet2D should not be empty."
+    Assert.IsFalse IsNull(RowSet2D), "RowSet2D should not be null."
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+    Assert.AreEqual 0, LBound(RowSet2D, 1), "RowSet2D R-base mismatch"
+    Assert.AreEqual 0, LBound(RowSet2D, 2), "RowSet2D C-base mismatch"
+    Assert.AreEqual 4, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
+    Assert.AreEqual 5, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query 2D RowSet")
+Private Sub ztcGetRowSet2D_InsertWithParamsSelectFromITRBTable()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbTemp
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableITRB
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
+    
+    SQLQuery = FixSQL.INSERTTemplateITRB
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    
+    Dim ParamNames As Variant
+    ParamNames = FixSQL.INSERTTemplateITRBParamNames
+    Dim ParamValuesSets As Variant
+    ParamValuesSets = FixSQL.INSERTTemplateITRBParamValueSets
+    Dim ParamValueMap As Scripting.Dictionary
+    Dim RowIndex As Long
+    For RowIndex = LBound(ParamValuesSets) To UBound(ParamValuesSets)
+        Set ParamValueMap = FixObj.KeysValuesToDict(ParamNames, ParamValuesSets(RowIndex))
+        ResultCode = dbs.ExecuteNonQuery(vbNullString, ParamValueMap, AffectedRows)
+        Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
+        Assert.AreEqual 1, AffectedRows, "AffectedRows mismatch"
+    Next RowIndex
+    
+    SQLQuery = FixSQL.SELECTTestTable
+    Dim RowSet2D As Variant
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+Assert:
+    Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
+    Assert.IsFalse IsEmpty(RowSet2D), "RowSet2D should not be empty."
+    Assert.IsFalse IsNull(RowSet2D), "RowSet2D should not be null."
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+    Assert.AreEqual 0, LBound(RowSet2D, 1), "RowSet2D R-base mismatch"
+    Assert.AreEqual 0, LBound(RowSet2D, 2), "RowSet2D C-base mismatch"
+    Assert.AreEqual 4, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
+    Assert.AreEqual 5, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.GetColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual 7, UBound(RowSet2D(0, 5)), "Blob size mismatch."
+    Assert.AreEqual 79, FixObj.XorElements(RowSet2D(0, 5)), "Blob XOR hash mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
