@@ -29,9 +29,9 @@ Private Const VERBOUS As Boolean = True
 
 #If VBA7 Then
 '''' Open/close connection
-Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteErrors
+Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
-    ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteErrors ' PtrDb
+    ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteResultCodes ' PtrDb
 Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_db_filename Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As LongPtr
 Private Declare PtrSafe Function sqlite3_db_readonly Lib "SQLite3" (ByVal hDb As LongPtr, ByVal zSchema As LongPtr) As SQLiteDbAccess

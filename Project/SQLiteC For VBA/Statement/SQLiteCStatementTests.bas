@@ -997,7 +997,7 @@ Act:
     Set ParamValueMap = FixSQL.UPDATETemplateITRBValuesDict
     ResultCode = dbs.ExecuteNonQuery(vbNullString, ParamValueMap, AffectedRows)
     Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
-    Assert.AreEqual 3, AffectedRows, "AffectedRows mismatch"
+    Assert.AreEqual 3, AffectedRows, "AffectedRows mismatch <" & CStr(AffectedRows) & ">"
     
     SQLQuery = FixSQL.SELECTTestTable
     Dim RowSet2D As Variant

@@ -22,7 +22,7 @@ Option Explicit
 
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf8String
-Private Declare PtrSafe Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteErrors) As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteResultCodes) As LongPtr ' PtrUtf8String
 Private Declare PtrSafe Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
