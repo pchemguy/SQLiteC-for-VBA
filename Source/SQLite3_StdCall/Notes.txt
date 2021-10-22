@@ -1,6 +1,0 @@
-To update SQLite3.lib:
-
-- Copy current version of Sqlite3.def from the SQLite dll distribution.
-- Open  a Visual Studio Command Prompt
-- Enter "LIB /DEF:Sqlite3.def"
-
