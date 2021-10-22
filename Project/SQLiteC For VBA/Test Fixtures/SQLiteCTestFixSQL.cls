@@ -76,10 +76,10 @@ Public Function UPDATETemplateITRB() As String
     ), vbNewLine)
 End Function
 
-Public Function UPDATETemplateITRBValues() As Scripting.Dictionary
+Public Function UPDATETemplateITRBValuesDict() As Scripting.Dictionary
     Dim FixSQL As SQLiteCTestFixObj
     Set FixSQL = New SQLiteCTestFixObj
-    Set UPDATETemplateITRBValues = FixSQL.KeysValuesToDict( _
+    Set UPDATETemplateITRBValuesDict = FixSQL.KeysValuesToDict( _
         Array("@xr", "@xt", "@xi"), _
         Array(2, "AAA", 20.5) _
     )

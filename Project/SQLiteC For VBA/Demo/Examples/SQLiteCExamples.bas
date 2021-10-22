@@ -11,6 +11,7 @@ Private Type TSQLiteCExamples
     dbm As SQLiteC
     dbc As SQLiteCConnection
     dbs As SQLiteCStatement
+    dbr As SQLiteCRecordsetADO
 End Type
 Private this As TSQLiteCExamples
 Private fso As New Scripting.FileSystemObject
@@ -26,11 +27,14 @@ Attribute Main.VB_Description = "Main entry point"
     OpenDb
     CheckFunctionality
     CreateFunctionsTableWithData
-    
+    GetTableMetaFunctions
+    GetFabRecordset
+        
     Dim Result As Variant
     CreateTestTable
     InsertTestRows
     GetTableMeta
+    
     Result = GetPagedTestRowsSet
 
     Result = GetScalarDbVersion
@@ -304,7 +308,7 @@ Private Sub CreateTestTable()
     Dim AffectedRows As Long
     AffectedRows = -2
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
-    If ResultCode <> SQLITE_OK Then
+    If ResultCode <> SQLITE_OK And ResultCode <> SQLITE_DONE Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to create table."
     Else
@@ -323,7 +327,7 @@ Private Sub InsertTestRows()
     Dim AffectedRows As Long
     AffectedRows = -2
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
-    If ResultCode <> SQLITE_OK Then
+    If ResultCode <> SQLITE_OK And ResultCode <> SQLITE_DONE Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to insert rows."
     Else
@@ -342,6 +346,52 @@ Private Function GetPagedTestRowsSet() As Variant
     
     GetPagedTestRowsSet = dbs.GetPagedRowSet(SQLQuery)
 End Function
+
+
+Private Sub GetTableMetaFunctions()
+    Dim dbs As SQLiteCStatement
+    Set dbs = this.dbs
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
+    
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+    If ResultCode <> SQLITE_OK Or dbs.StmtHandle = 0 Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to prepare statement."
+    Else
+        Debug.Print "Statement is prepared."
+    End If
+    
+    ResultCode = dbs.DbExecutor.ExecuteStepAPI
+    Select Case ResultCode
+        Case SQLITE_ROW
+            Debug.Print "Step API returned row."
+        Case SQLITE_OK, SQLITE_DONE
+            Debug.Print "Step API returned NoData."
+            Exit Sub
+        Case Else
+            Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                      "Failed to execute the Step API."
+    End Select
+    
+    ResultCode = dbs.DbExecutor.GetTableMeta
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to get columns meta."
+    Else
+        Debug.Print "Retrieved columns meta,"
+    End If
+
+    ResultCode = dbs.Reset
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to reset statement."
+    Else
+        Debug.Print "The statement is reset."
+    End If
+End Sub
 
 
 Private Sub GetTableMeta()
@@ -610,4 +660,11 @@ Private Sub CreateFunctionsTableWithData()
     Else
         Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
     End If
+End Sub
+
+
+Private Sub GetFabRecordset()
+    Dim SQLQuery As String
+    SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
+    Set this.dbr = this.dbs.GetRecordset(SQLQuery)
 End Sub

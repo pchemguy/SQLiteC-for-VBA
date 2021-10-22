@@ -399,6 +399,23 @@ Public Function GetRowSet2D(ByVal SQLQuery As String, _
 End Function
 
 
+Public Function GetRecordset(ByVal SQLQuery As String, _
+                    Optional ByVal QueryParameters As Variant = Empty, _
+                    Optional ByVal UseDeclaredTypes As Boolean = True) As SQLiteCRecordsetADO
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    If ResultCode <> SQLITE_OK Then
+        Set GetRecordset = Nothing
+        Exit Function
+    End If
+    Dim dbr As SQLiteCRecordsetADO
+    Set dbr = this.DbExec.GetFabRecordset(UseDeclaredTypes)
+    dbr.SQLQuerySet , , QueryParameters
+    If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+    Set GetRecordset = dbr
+End Function
+
+
 '''' Reference: https://www.sqlite.org/c3ref/expanded_sql.html
 ''''
 '@Description "Returns SQL query supplied to the PSO factory with bound parameters expanded."

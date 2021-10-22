@@ -46,7 +46,6 @@ Private Declare PtrSafe Function sqlite3_table_column_metadata Lib "SQLite3" ( _
     ByVal hDb As LongPtr, ByVal zDbName As LongPtr, ByVal zTableName As LongPtr, ByVal zColumnName As LongPtr, _
     ByRef pzDataType As LongPtr, ByRef pzCollSeq As LongPtr, ByRef pNotNull As Long, _
     ByRef pPrimaryKey As Long, ByRef pAutoinc As Long) As SQLiteResultCodes
-
 Private Declare PtrSafe Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrData
 Private Declare PtrSafe Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_double Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Double
@@ -66,7 +65,6 @@ Private Declare Function sqlite3_table_column_metadata Lib "SQLite3" ( _
     ByVal hDb As Long, ByVal zDbName As Long, ByVal zTableName As Long, ByVal zColumnName As Long, _
     ByRef pzDataType As Long, ByRef pzCollSeq As Long, ByRef pNotNull As Long, _
     ByRef pPrimaryKey As Long, ByRef pAutoinc As Long) As SQLiteResultCodes
-
 Private Declare Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrData
 Private Declare Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
 Private Declare Function sqlite3_column_double Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Double
@@ -75,8 +73,8 @@ Private Declare Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As Long,
 #End If
 
 Private Type TSQLiteCExecSQL
-    Statement As SQLiteCStatement
-    TableMeta() As SQLiteColumnMeta
+    DbStmt As SQLiteCStatement
+    TableMeta() As SQLiteCColumnMeta
     ColumnMap As Scripting.Dictionary
     ColumnCount As Long
     MetaLoaded As Boolean
@@ -106,7 +104,7 @@ End Function
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     With this
-        Set .Statement = DbStmt
+        Set .DbStmt = DbStmt
         Set .ColumnMap = New Scripting.Dictionary
         .ColumnMap.CompareMode = TextCompare
         .RowCount = 0
@@ -132,7 +130,12 @@ Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteTypeA
 End Function
 
 
-Public Property Get TableMeta() As SQLiteColumnMeta()
+Public Property Get MetaLoaded() As Boolean
+    MetaLoaded = this.MetaLoaded
+End Property
+
+
+Public Property Get TableMeta() As SQLiteCColumnMeta()
     TableMeta = this.TableMeta
 End Property
 
@@ -220,11 +223,11 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
 ''''
 '@Description "Retrieves columns metadata."
-Public Function GetColumnMetaAPI(ByRef ColumnInfo As SQLiteColumnMeta _
+Public Function GetColumnMetaAPI(ByRef ColumnInfo As SQLiteCColumnMeta _
                                 ) As SQLiteResultCodes
 Attribute GetColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Dim dbs As SQLiteCStatement
-    Set dbs = this.Statement
+    Set dbs = this.DbStmt
     Dim dbc As SQLiteCConnection
     Set dbc = dbs.DbConnection
     
@@ -280,6 +283,7 @@ Attribute GetColumnMetaAPI.VB_Description = "Retrieves columns metadata."
             If DataTypePtr = 0 Then GoTo META_ERROR:
             .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
             .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
+            .AffinityType = this.AffinityMap(.Affinity - SQLITE_AFF_NONE - 1)
 
             '''' For queries against PRAGMA functions, table_column_metadata
             '''' should return SQLITE_ERROR (no such table column...)
@@ -319,7 +323,7 @@ End Function
 Public Function GetTableMeta() As SQLiteResultCodes
 Attribute GetTableMeta.VB_Description = "Collects table metadata."
     Dim dbs As SQLiteCStatement
-    Set dbs = this.Statement
+    Set dbs = this.DbStmt
     #If VBA7 Then
         Dim hStmt As LongPtr
     #Else
@@ -362,11 +366,11 @@ End Function
 ''''
 Friend Function ExecuteStepAPI() As SQLiteResultCodes
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_step(this.Statement.StmtHandle)
+    ResultCode = sqlite3_step(this.DbStmt.StmtHandle)
     If ResultCode <> SQLITE_ROW Then
         If ResultCode <> SQLITE_DONE And ResultCode <> SQLITE_OK Then
             this.StepAPIError = True
-            ResultCode = this.Statement.DbConnection.ErrInfoRetrieve
+            ResultCode = this.DbStmt.DbConnection.ErrInfoRetrieve
         End If
     End If
     ExecuteStepAPI = ResultCode
@@ -376,7 +380,7 @@ End Function
 '@Description "Retrieves a scalar value"
 Public Function GetScalar() As Variant
 Attribute GetScalar.VB_Description = "Retrieves a scalar value"
-    If this.Statement.StmtHandle = 0 Then
+    If this.DbStmt.StmtHandle = 0 Then
         GetScalar = CVErr(SQLITE_ERROR)
         Exit Function
     End If
@@ -391,12 +395,12 @@ End Function
 
 
 Public Function GetColumnCount() As Long
-    If this.Statement.StmtHandle = 0 Then
+    If this.DbStmt.StmtHandle = 0 Then
         GetColumnCount = 0
         Exit Function
     End If
     Dim ColumnCount As Long
-    ColumnCount = sqlite3_column_count(this.Statement.StmtHandle)
+    ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     this.ColumnCount = ColumnCount
     GetColumnCount = ColumnCount
 End Function
@@ -414,7 +418,7 @@ Friend Function GetColumnValueAPI( _
         Dim hStmt As Long
         Dim RemoteBufPtr As Long
     #End If
-    hStmt = this.Statement.StmtHandle
+    hStmt = this.DbStmt.StmtHandle
     
     Dim ColumnType As SQLiteType
     '''' Must query value type API to check for NULL.
@@ -444,7 +448,7 @@ Friend Function GetColumnValueAPI( _
             If RemoteBufPtr > 0 Then
                 Value = UTFlib.StrFromUTF8Ptr(RemoteBufPtr)
             Else
-                Value = CVErr(this.Statement.DbConnection.ErrInfoRetrieve)
+                Value = CVErr(this.DbStmt.DbConnection.ErrInfoRetrieve)
             End If
         Case SQLITE_NULL
             Value = Null
@@ -458,7 +462,7 @@ Friend Function GetColumnValueAPI( _
                 RtlMoveMemory VarPtr(LocalBuffer(0)), RemoteBufPtr, Length
                 Value = LocalBuffer
             Else
-                Value = CVErr(this.Statement.DbConnection.ErrInfoRetrieve)
+                Value = CVErr(this.DbStmt.DbConnection.ErrInfoRetrieve)
             End If
     End Select
     GetColumnValueAPI = Value
@@ -482,7 +486,7 @@ End Function
 
 
 Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
-    If this.Statement.StmtHandle = 0 Then
+    If this.DbStmt.StmtHandle = 0 Then
         GetPagedRowSet = CVErr(SQLITE_ERROR)
         Exit Function
     End If
@@ -553,6 +557,7 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
         GetRowSet2D = PagedRowSet
         Exit Function
     End If
+    
     Dim RowSetArray() As Variant
     ReDim RowSetArray(0 To this.RowCount - 1, 0 To this.ColumnCount - 1)
     
@@ -576,6 +581,48 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
         RecordIndex = RecordIndex + 1
     Next RowIndex
     GetRowSet2D = RowSetArray
+End Function
+
+
+Public Function GetFabRecordset(Optional ByVal UseDeclaredTypes As Boolean = False _
+                               ) As SQLiteCRecordsetADO
+    Dim PagedRowSet As Variant
+    PagedRowSet = GetPagedRowSet(UseDeclaredTypes)
+    If IsError(PagedRowSet) Then
+        Set GetFabRecordset = Nothing
+        Exit Function
+    End If
+    
+    Dim dbr As SQLiteCRecordsetADO
+    Set dbr = SQLiteCRecordsetADO(this.DbStmt)
+
+    Dim ColumnIndex As Long
+    Dim RowIndex As Long
+    Dim PageIndex As Long
+    With dbr.AdoRecordset
+        .PageSize = this.PageSize
+        .CacheSize = this.PageSize
+        .Open
+        For PageIndex = 0 To this.FilledPagesCount - 1
+            For RowIndex = 0 To this.PageSize - 1
+                .AddNew
+                For ColumnIndex = 0 To this.ColumnCount - 1
+                    .Fields(ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
+                Next ColumnIndex
+                .Update
+            Next RowIndex
+        Next PageIndex
+        For RowIndex = 0 To this.RowCount - this.FilledPagesCount * this.PageSize - 1
+            .AddNew
+            For ColumnIndex = 0 To this.ColumnCount - 1
+                .Fields(ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
+            Next ColumnIndex
+            .Update
+        Next RowIndex
+        .UpdateBatch
+    End With
+    
+    Set GetFabRecordset = dbr
 End Function
 
 

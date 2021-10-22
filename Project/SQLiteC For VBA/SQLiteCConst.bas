@@ -25,6 +25,7 @@ Public Const ConnectionNotOpenedErr As Long = vbObjectError + 3000
 Public Const StatementNotPreparedErr As Long = vbObjectError + 3001
 
 Public Enum SQLiteType
+    SQLITE_NONE = 0&
     SQLITE_INTEGER = 1&
     SQLITE_FLOAT = 2&
     SQLITE_TEXT = 3&
@@ -55,7 +56,7 @@ End Enum
 ''''                    SQLITE_INTEGER, SQLITE_FLOAT)(ColumnAffinity - &H41)
 '''' ---------------------------------------------------------------------- ''''
 
-Public Type SQLiteColumnMeta
+Public Type SQLiteCColumnMeta
     Name As String
     '''' .ColumnIndex must be set by the caller; set .Initialized = -1 flag to confirm
     ColumnIndex As Long
@@ -66,9 +67,14 @@ Public Type SQLiteColumnMeta
     DataType As SQLiteType
     DeclaredTypeC As String
     Affinity As SQLiteTypeAffinity
+    AffinityType As SQLiteType
     DeclaredTypeT As String
     Collation As String
     NotNull As Boolean
     PrimaryKey As Boolean
     AutoIncrement As Boolean
+    AdoType As ADODB.DataTypeEnum
+    AdoAttr As ADODB.FieldAttributeEnum
+    AdoSize As Long
 End Type
+
