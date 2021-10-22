@@ -14,10 +14,6 @@ Attribute VB_Description = "Constructs ADO Recordset"
 '@PredeclaredId
 Option Explicit
 
-'@MemberAttribute VB_VarHelpID, -1
-Private WithEvents FabRecordset As ADODB.Recordset
-Attribute FabRecordset.VB_VarHelpID = -1
-
 Private Type TSQLiteCRecordsetADO
     DbStmt As SQLiteCStatement
     DbExec As SQLiteCExecSQL
@@ -25,6 +21,7 @@ Private Type TSQLiteCRecordsetADO
     SQLQuery As String
     SQLQueryExpanded As String
     SQLQueryParameters As Variant
+    FabRecordset As ADODB.Recordset
 End Type
 Private this As TSQLiteCRecordsetADO
 
@@ -41,19 +38,21 @@ End Function
 
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
-    Set this.DbStmt = DbStmt
-    Set this.DbExec = DbStmt.DbExecutor
-    Set this.DbConn = DbStmt.DbConnection
-    Set FabRecordset = New ADODB.Recordset
-    AddMeta
-    this.SQLQuery = DbStmt.SQLQueryOriginal
-    this.SQLQueryExpanded = DbStmt.SQLQueryExpanded
-    FabRecordset.Source = DbStmt.SQLQueryExpanded
+    With this
+        Set .DbStmt = DbStmt
+        Set .DbExec = DbStmt.DbExecutor
+        Set .DbConn = DbStmt.DbConnection
+        Set .FabRecordset = New ADODB.Recordset
+        AddMeta
+        .SQLQuery = DbStmt.SQLQueryOriginal
+        .SQLQueryExpanded = DbStmt.SQLQueryExpanded
+        .FabRecordset.Source = DbStmt.SQLQueryExpanded
+    End With
 End Sub
 
 
 Public Property Get AdoRecordset() As ADODB.Recordset
-    Set AdoRecordset = FabRecordset
+    Set AdoRecordset = this.FabRecordset
 End Property
 
 
@@ -62,7 +61,7 @@ Friend Sub AddMeta()
         Err.Raise ErrNo.IncompatibleStatusErr, "SQLiteCRecordsetADO", _
                   "Metadata has not been loaded."
     End If
-    With FabRecordset
+    With this.FabRecordset
         .CursorLocation = adUseClient
         .CursorType = adOpenStatic
         .LockType = adLockBatchOptimistic
@@ -72,7 +71,7 @@ Friend Sub AddMeta()
     Dim ColumnIndex As Long
     For ColumnIndex = 0 To UBound(TableMeta)
         With TableMeta(ColumnIndex)
-            If this.DbExec.UseTableMetadataAPI Then
+            If this.DbExec.UseTableMetaAPI Then
                 Select Case .AffinityType
                     Case SQLITE_INTEGER
                         .AdoType = adInteger
@@ -101,15 +100,15 @@ Friend Sub AddMeta()
                 .OriginName = .Name
             End If
             '@Ignore ArgumentWithIncompatibleObjectType: False positive
-            FabRecordset.Fields.Append .OriginName, .AdoType, .AdoSize, .AdoAttr
+            this.FabRecordset.Fields.Append .OriginName, .AdoType, .AdoSize, .AdoAttr
         End With
     Next ColumnIndex
 End Sub
 
 
-Public Sub SQLQuerySet(Optional SQLQuery As String = vbNullString, _
-                       Optional SQLQueryExpanded As String = vbNullString, _
-                       Optional SQLQueryParameters As Variant = Empty)
+Public Sub SQLQuerySet(Optional ByVal SQLQuery As String = vbNullString, _
+                       Optional ByVal SQLQueryExpanded As String = vbNullString, _
+                       Optional ByVal SQLQueryParameters As Variant = Empty)
     If Len(SQLQuery) > 0 Then this.SQLQuery = SQLQuery
     If Len(SQLQueryExpanded) > 0 Then this.SQLQueryExpanded = SQLQueryExpanded
     Select Case VarType(SQLQueryParameters)

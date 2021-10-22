@@ -77,27 +77,14 @@ End Sub
 
 
 '@TestMethod("Factory")
-Private Sub ztcGetErr_VerifiesErrorInfo()
-    On Error GoTo TestFail
-
-Arrange:
+Private Sub ztcGetErr_ThrowsOnClosedConnection()
+    On Error Resume Next
+    
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbRegular
     dbc.ErrInfoRetrieve
     Dim dberr As SQLiteCErr
     Set dberr = dbc.ErrorInfo
-Act:
-Assert:
-    Assert.AreEqual SQLITE_NOMEM, dberr.ErrorCode, "ErrorCode mismatch"
-    Assert.AreEqual SQLITE_NOMEM, dberr.ErrorCodeEx, "ErrorCodeEx mismatch"
-    Assert.AreEqual "NOMEM", dberr.ErrorName, "ErrorName mismatch"
-    Assert.AreEqual "NOMEM", dberr.ErrorCodeName, "ErrorCodeName mismatch"
-    Assert.AreEqual "NOMEM", dberr.ErrorCodeExName, "ErrorCodeExName mismatch"
-    Assert.AreEqual "out of memory", dberr.ErrorMessage, "ErrorMessage mismatch"
-    Assert.AreEqual "out of memory", dberr.ErrorString, "ErrorString mismatch"
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    
+    Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
 End Sub

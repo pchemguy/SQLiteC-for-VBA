@@ -376,7 +376,7 @@ Private Sub GetTableMetaFunctions()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.GetTableMeta
+    ResultCode = dbs.DbExecutor.TableMetaCollect
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."
@@ -422,7 +422,7 @@ Private Sub GetTableMeta()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.GetTableMeta
+    ResultCode = dbs.DbExecutor.TableMetaCollect
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."

@@ -42,7 +42,6 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
-    Set FixObj = New SQLiteCTestFixObj
 
 Arrange:
 Act:

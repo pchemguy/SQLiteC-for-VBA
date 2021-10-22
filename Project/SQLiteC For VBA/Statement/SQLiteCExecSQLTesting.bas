@@ -150,8 +150,6 @@ End Sub
 Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
@@ -161,11 +159,11 @@ Arrange:
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.FunctionsPragmaTable
+    SQLQuery = FixSQL.SELECTFunctionsPragmaTable
     ResultCode = dbc.OpenDb
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
 Act:
     '''' Enable this call to obtain a meaningful value for .DataType
     'ResultCode = dbs.DbExecutor.ExecuteStepAPI
@@ -173,9 +171,9 @@ Act:
     Dim ColumnInfo As SQLiteCColumnMeta
     ColumnInfo.ColumnIndex = 0
     ColumnInfo.Initialized = -1
-    '''' table_column_metadata API against SELECT-PRAGMA should fail, but this error is ignored.
-    ResultCode = dbs.DbExecutor.GetColumnMetaAPI(ColumnInfo)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetColumnMetaAPI error."
+    '''' table_column_metadata API against SELECT-PRAGMA should fail.
+    ResultCode = dbs.DbExecutor.ColumnMetaAPI(ColumnInfo)
+    Assert.AreEqual SQLITE_ERROR, ResultCode, "Unexpected GetColumnMetaAPI error."
 Assert:
     With ColumnInfo
         Assert.AreEqual SQLITE_AFF_INTEGER, .Affinity, "Affinity mismatch."
@@ -212,7 +210,7 @@ Arrange:
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.FunctionsPragmaTable
+    SQLQuery = FixSQL.SELECTFunctionsPragmaTable
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
@@ -221,7 +219,7 @@ Act:
     Dim ColumnInfo As SQLiteCColumnMeta
     ColumnInfo.ColumnIndex = 1
     '''' Throws if this not set: ColumnInfo.Initialized = -1
-    ResultCode = dbs.DbExecutor.GetColumnMetaAPI(ColumnInfo)
+    ResultCode = dbs.DbExecutor.ColumnMetaAPI(ColumnInfo)
 
     Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
 End Sub
@@ -245,10 +243,10 @@ Arrange:
     AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.FunctionsTable
+    SQLQuery = FixSQL.SELECTFunctionsTable
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    ResultCode = dbs.DbExecutor.GetTableMeta
+    ResultCode = dbs.DbExecutor.TableMetaCollect
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
     Dim TableMeta() As SQLiteCColumnMeta
     TableMeta = dbs.DbExecutor.TableMeta
@@ -268,3 +266,137 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("Metadata")
+Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
+    On Error Resume Next
+    
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+    
+    Dim ResultCode As SQLiteResultCodes
+    
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableITRBrowid
+    Dim AffectedRows As Long
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error."
+Act:
+    ResultCode = dbs.DbExecutor.TableMetaCollect
+
+    Guard.AssertExpectedError Assert, StatementNotPreparedErr
+End Sub
+
+
+'@TestMethod("Metadata")
+Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
+    On Error GoTo TestFail
+
+    Set FixObj = New SQLiteCTestFixObj
+    Set FixSQL = New SQLiteCTestFixSQL
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    Dim AffectedRows As Long
+    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+'    Assert.IsTrue AffectedRows > 0, "Failed to INSERT test data."
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.SELECTFunctionsTableRowid
+    ResultCode = dbs.Prepare16V2(SQLQuery)
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbs.DbExecutor.TableMetaCollect
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
+    Dim TableMeta() As SQLiteCColumnMeta
+    TableMeta = dbs.DbExecutor.TableMeta
+Assert:
+    Assert.AreEqual 0, LBound(TableMeta), "TableMeta base mismatch."
+    Assert.AreEqual 6, UBound(TableMeta), "TableMeta size mismatch."
+    Assert.AreEqual "enc", TableMeta(4).Name, "enc column name mismatch."
+    Assert.AreEqual "narg", TableMeta(5).Name, "nargs column name mismatch "
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+''@TestMethod("Metadata")
+'Private Sub ztcGetTableMeta_VerifiesSQLiteErrorWithUnpreparedStatement()
+'    On Error GoTo TestFail
+'
+'    Set FixObj = New SQLiteCTestFixObj
+'    Set FixSQL = New SQLiteCTestFixSQL
+'Arrange:
+'    Dim dbc As SQLiteCConnection
+'    Set dbc = FixObj.GetConnDbMemory
+'    Dim dbs As SQLiteCStatement
+'    Set dbs = dbc.CreateStatement(vbNullString)
+'
+'    Dim ResultCode As SQLiteResultCodes
+'    ResultCode = dbc.OpenDb
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+'    Dim AffectedRows As Long
+'Act:
+'    Dim SQLQuery As String
+'    SQLQuery = FixSQL.CREATETableITRBrowid
+'    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+'    ResultCode = dbs.DbExecutor.GetTableMeta
+'Assert:
+'    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error (GetTableMeta)."
+'Cleanup:
+'    ResultCode = dbs.Finalize
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
+'    ResultCode = dbc.CloseDb
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+'
+'CleanExit:
+'    Exit Sub
+'TestFail:
+'    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+'End Sub
+'
+'
+''@TestMethod("Metadata")
+'Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
+'    On Error Resume Next
+'
+'Arrange:
+'    Dim dbc As SQLiteCConnection
+'    Set dbc = FixObj.GetConnDbMemory
+'    Dim dbs As SQLiteCStatement
+'    Set dbs = dbc.CreateStatement(vbNullString)
+'
+'    Dim ResultCode As SQLiteResultCodes
+'
+'    Dim SQLQuery As String
+'    SQLQuery = FixSQL.FunctionsPragmaTable
+'    ResultCode = dbc.OpenDb
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+'    ResultCode = dbs.Prepare16V2(SQLQuery)
+'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+'Act:
+'    Dim ColumnInfo As SQLiteCColumnMeta
+'    ColumnInfo.ColumnIndex = 1
+'    '''' Throws if this not set: ColumnInfo.Initialized = -1
+'    ResultCode = dbs.DbExecutor.GetColumnMetaAPI(ColumnInfo)
+'
+'    Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
+'End Sub
+'

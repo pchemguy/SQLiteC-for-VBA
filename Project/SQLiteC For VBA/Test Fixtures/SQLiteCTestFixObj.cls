@@ -95,7 +95,9 @@ Public Function GetConnDbMemoryWithTable() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
     Set GetConnDbMemoryWithTable = GetConnection(DbPathName)
+    GetConnDbMemoryWithTable.OpenDb
     GetConnDbMemoryWithTable.ExecuteNonQueryPlain SQLiteCTestFixSQL.CREATETableITRB
+    GetConnDbMemoryWithTable.CloseDb
 End Function
 
 Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long

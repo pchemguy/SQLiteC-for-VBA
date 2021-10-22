@@ -161,8 +161,6 @@ End Sub
 Private Sub ztcBindDictOrArray_VerifiesQueryWithAnonParams()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory

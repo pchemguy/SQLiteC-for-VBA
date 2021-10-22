@@ -33,6 +33,18 @@ Public Function CREATETableITRB() As String
     ), vbNewLine)
 End Function
 
+Public Function CREATETableITRBrowid() As String
+    CREATETableITRBrowid = Join(Array( _
+        "CREATE TABLE t1(", _
+        "    id INT PRIMARY KEY NOT NULL,", _
+        "    xi INTEGER,", _
+        "    xt TEXT COLLATE NOCASE,", _
+        "    xr REAL NOT NULL,", _
+        "    xb BLOB", _
+        ");" _
+    ), vbNewLine)
+End Function
+
 Public Function INSERTValuesITRB() As String
     INSERTValuesITRB = Join(Array( _
         "INSERT INTO t1(id,   xi,    xt,  xr,                  xb) ", _
@@ -91,6 +103,12 @@ Public Function SELECTTestTable() As String
     ), vbNewLine)
 End Function
 
+Public Function SELECTTestTableNoRowid() As String
+    SELECTTestTableNoRowid = Join(Array( _
+        "SELECT * FROM t1;" _
+    ), vbNewLine)
+End Function
+
 Public Function CREATETableINSERTValuesITRB() As String
     CREATETableINSERTValuesITRB = _
         CREATETableITRB & vbNewLine & INSERTValuesITRB
@@ -126,16 +144,22 @@ Public Function SELECTCollations() As String
     ), vbNewLine)
 End Function
 
-Public Function FunctionsTable() As String
-    FunctionsTable = Join(Array( _
+Public Function SELECTFunctionsTable() As String
+    SELECTFunctionsTable = Join(Array( _
         "SELECT * FROM functions ORDER BY name;" _
     ), vbNewLine)
 End Function
 
-Public Function FunctionsPragmaTable() As String
-    FunctionsPragmaTable = Join(Array( _
+Public Function SELECTFunctionsTableRowid() As String
+    SELECTFunctionsTableRowid = Join(Array( _
+        "SELECT rowid, * FROM functions ORDER BY name;" _
+    ), vbNewLine)
+End Function
+
+Public Function SELECTFunctionsPragmaTable() As String
+    SELECTFunctionsPragmaTable = Join(Array( _
         "WITH functions AS (SELECT rowid, * FROM pragma_function_list)", _
-        FunctionsTable _
+        SELECTFunctionsTable _
     ), vbNewLine)
 End Function
 
@@ -159,13 +183,13 @@ Public Function CreateFunctionsTableWithData() As String
         "DROP TABLE IF EXISTS functions;", _
         CREATEFunctionsTable, _
         "INSERT INTO functions (rowid, name, builtin, type, enc, narg, flags)", _
-        FunctionsPragmaTable _
+        SELECTFunctionsPragmaTable _
     ), vbNewLine)
 End Function
 
 Public Function SELECTFunctionsTableWHERE() As String
     SELECTFunctionsTableWHERE = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = 1 OR [builtin] = 0 AND [flags] = 0) AND", _
         "      ([enc] = 'utf8' AND [narg] >= 0 AND [type] = 's')", _
         "ORDER BY name;" _
@@ -174,7 +198,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsAnon() As String
     SELECTFunctionsNamedParamsAnon = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = ? OR [builtin] = ? AND [flags] = ?) AND", _
         "      ([enc] = ? AND [narg] >= ? AND [type] = ?)", _
         "ORDER BY name;" _
@@ -194,7 +218,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsNo() As String
     SELECTFunctionsNamedParamsNo = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = ?3 OR [builtin] = ?4 AND [flags] = ?5) AND", _
         "      ([enc] = ?1 AND [narg] >= ?6 AND [type] = ?2)", _
         "ORDER BY name;" _
@@ -214,7 +238,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsAt() As String
     SELECTFunctionsNamedParamsAt = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = @builtinY OR [builtin] = @builtinN AND [flags] = @flags) AND", _
         "      ([enc] = @enc AND [narg] >= @narg AND [type] = @type)", _
         "ORDER BY name;" _
@@ -238,7 +262,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsS() As String
     SELECTFunctionsNamedParamsS = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = $builtinY OR [builtin] = $builtinN AND [flags] = $flags) AND", _
         "      ([enc] = $enc AND [narg] >= $narg AND [type] = $type)", _
         "ORDER BY name;" _
@@ -262,7 +286,7 @@ End Function
 
 Public Function SELECTFunctionsNamedParamsCOL() As String
     SELECTFunctionsNamedParamsCOL = Join(Array( _
-        Replace(FunctionsPragmaTable, " ORDER BY name;", vbNullString), _
+        Replace(SELECTFunctionsPragmaTable, " ORDER BY name;", vbNullString), _
         "WHERE ([builtin] = :builtinY OR [builtin] = :builtinN AND [flags] = :flags) AND", _
         "      ([enc] = :enc AND [narg] >= :narg AND [type] = :type)", _
         "ORDER BY name;" _
@@ -363,3 +387,5 @@ Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
         vbNewLine & ")" & vbNewLine & _
         "SELECT count(*) AS counter FROM subset;"
 End Function
+
+

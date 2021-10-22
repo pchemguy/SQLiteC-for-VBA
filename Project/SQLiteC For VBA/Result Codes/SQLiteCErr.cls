@@ -91,6 +91,8 @@ Public Sub GetErr()
         Dim DbHandle As Long
     #End If
     DbHandle = this.DbConn.DbHandle
+    If DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCErr", "Database connection is not opened!"
     With this
         .ErrorCode = sqlite3_errcode(DbHandle)
         .ErrorCodeEx = sqlite3_extended_errcode(DbHandle)

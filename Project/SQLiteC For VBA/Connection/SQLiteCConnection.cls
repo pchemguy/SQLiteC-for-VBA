@@ -360,6 +360,8 @@ Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
     
+    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+        "SQLiteCConnection", "Database connection is not opened!"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
     SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)

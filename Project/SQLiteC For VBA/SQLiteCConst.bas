@@ -76,5 +76,5 @@ Public Type SQLiteCColumnMeta
     AdoType As ADODB.DataTypeEnum
     AdoAttr As ADODB.FieldAttributeEnum
     AdoSize As Long
+    RowId As Boolean
 End Type
-
