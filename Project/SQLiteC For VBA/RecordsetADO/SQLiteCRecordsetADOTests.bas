@@ -1,11 +1,10 @@
 Attribute VB_Name = "SQLiteCRecordsetADOTests"
 '@Folder "SQLiteC For VBA.RecordsetADO"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext, IndexedDefaultMemberAccess
 Option Explicit
 Option Private Module
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -45,8 +44,6 @@ End Sub
 Private Sub ztcAddMeta_InsertPlainSelectFromITRBTableRowid()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObj.GetConnDbMemory
@@ -57,6 +54,7 @@ Arrange:
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     Dim AffectedRows As Long
+    Dim Attr As ADODB.FieldAttributeEnum
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQL.CREATETableITRBrowid
@@ -71,11 +69,71 @@ Act:
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = SQLiteCRecordsetADO(dbs)
     dbr.AddMeta
+    Dim TableMeta() As SQLiteCColumnMeta
+    TableMeta = dbs.DbExecutor.TableMeta
+    Dim Rst As ADODB.Recordset
+    Set Rst = dbr.AdoRecordset
+    Rst.Open
 Assert:
-'    Assert.IsNotNothing dbr, "Unexpected error from FabRecordset."
-'    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
-'    Assert.AreEqual 5, dbr.AdoRecordset.RecordCount, "Recordset.RecordCount mismatch"
-'    Assert.AreEqual 6, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
+    With TableMeta(0)
+        Assert.AreEqual adInteger, .AdoType, "AdoType mismatch."
+        Assert.AreEqual 0, .AdoSize, "AdoSize should be 0."
+        Attr = adFldIsNullable + adFldMayBeNull + adFldKeyColumn + adFldRowID + adFldUpdatable
+        Assert.AreEqual Attr, .AdoAttr, "AdoAttr mismatch"
+    End With
+
+    With TableMeta(3)
+        Assert.AreEqual adVarWChar, .AdoType, "AdoType mismatch."
+        Assert.AreEqual 8192, .AdoSize, "AdoSize should be 8192."
+        Attr = adFldIsNullable + adFldMayBeNull + adFldUpdatable
+        Assert.AreEqual Attr, .AdoAttr, "AdoAttr mismatch"
+    End With
+
+    With TableMeta(4)
+        Assert.AreEqual adDouble, .AdoType, "AdoType mismatch."
+        Assert.AreEqual 0, .AdoSize, "AdoSize should be 0."
+        Attr = adFldUpdatable
+        Assert.AreEqual Attr, .AdoAttr, "AdoAttr mismatch"
+    End With
+
+    With TableMeta(5)
+        Assert.AreEqual adLongVarBinary, .AdoType, "AdoType mismatch."
+        Assert.AreEqual 65535, .AdoSize, "AdoSize should be 65535."
+        Attr = adFldIsNullable + adFldMayBeNull + adFldUpdatable + adFldLong
+        Assert.AreEqual Attr, .AdoAttr, "AdoAttr mismatch"
+    End With
+    
+    With Rst.Fields(0)
+        Assert.AreEqual "rowid", .Name, "Rst field name mismatch"
+        Assert.AreEqual 4, .DefinedSize, "Rst field DefinedSize mismatch"
+        Assert.AreEqual adInteger, .Type, "Rst field type mismatch"
+        Attr = adFldIsNullable + adFldMayBeNull + adFldKeyColumn + adFldRowID + adFldUpdatable + adFldFixed
+        Assert.AreEqual Attr, .Attributes, "Rst field Attributes mismatch"
+    End With
+    
+    With Rst.Fields(3)
+        Assert.AreEqual "xt", .Name, "Rst field name mismatch"
+        Assert.AreEqual 8192, .DefinedSize, "Rst field DefinedSize mismatch"
+        Assert.AreEqual adVarWChar, .Type, "Rst field type mismatch"
+        Attr = adFldIsNullable + adFldMayBeNull + adFldUpdatable
+        Assert.AreEqual Attr, .Attributes, "Rst field Attributes mismatch"
+    End With
+
+    With Rst.Fields(4)
+        Assert.AreEqual "xr", .Name, "Rst field name mismatch"
+        Assert.AreEqual 8, .DefinedSize, "Rst field DefinedSize mismatch"
+        Assert.AreEqual adDouble, .Type, "Rst field type mismatch"
+        Attr = adFldFixed + adFldUpdatable
+        Assert.AreEqual Attr, .Attributes, "Rst field Attributes mismatch"
+    End With
+
+    With Rst.Fields(5)
+        Assert.AreEqual "xb", .Name, "Rst field name mismatch"
+        Assert.AreEqual 65535, .DefinedSize, "Rst field DefinedSize mismatch"
+        Assert.AreEqual adLongVarBinary, .Type, "Rst field type mismatch"
+        Attr = adFldIsNullable + adFldMayBeNull + adFldUpdatable + adFldLong
+        Assert.AreEqual Attr, .Attributes, "Rst field Attributes mismatch"
+    End With
 Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."

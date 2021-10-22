@@ -5,7 +5,6 @@ Attribute VB_Name = "SQLiteCExecSQLTesting"
 Option Explicit
 Option Private Module
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -296,35 +295,79 @@ End Sub
 Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
     On Error GoTo TestFail
 
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixObj.GetConnDbTemp
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
     Dim ResultCode As SQLiteResultCodes
+    Dim SQLQuery As String
+    Dim AffectedRows As Long
 
     ResultCode = dbc.OpenDb
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-    Dim AffectedRows As Long
-    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
-'    Assert.IsTrue AffectedRows > 0, "Failed to INSERT test data."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    SQLQuery = FixSQL.CREATETableITRBrowid & FixSQL.INSERTValuesITRB
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Assert.IsTrue AffectedRows = 5, "Failed to INSERT test data."
 Act:
-    Dim SQLQuery As String
-    SQLQuery = FixSQL.SELECTFunctionsTableRowid
+    SQLQuery = FixSQL.SELECTTestTable
     ResultCode = dbs.Prepare16V2(SQLQuery)
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
     Dim TableMeta() As SQLiteCColumnMeta
     TableMeta = dbs.DbExecutor.TableMeta
 Assert:
     Assert.AreEqual 0, LBound(TableMeta), "TableMeta base mismatch."
-    Assert.AreEqual 6, UBound(TableMeta), "TableMeta size mismatch."
-    Assert.AreEqual "enc", TableMeta(4).Name, "enc column name mismatch."
-    Assert.AreEqual "narg", TableMeta(5).Name, "nargs column name mismatch "
+    Assert.AreEqual 5, UBound(TableMeta), "TableMeta size mismatch."
+    Assert.AreEqual "xr", TableMeta(4).Name, "enc column name mismatch."
+    Assert.AreEqual "xb", TableMeta(5).Name, "nargs column name mismatch."
+    
+    With TableMeta(0)
+        Assert.AreEqual "rowid", .Name, "rowid column name mismatch."
+        Assert.IsTrue .RowId, "Rowid should be true."
+        Assert.IsTrue .PrimaryKey, "PrimaryKey should be true."
+        Assert.IsFalse .AutoIncrement, "AutoIncrement should be false."
+        Assert.IsFalse .NotNull, "AutoIncrement should be false."
+        Assert.AreEqual SQLITE_AFF_INTEGER, .Affinity, "Expected Affinity=SQLITE_AFF_INTEGER"
+        Assert.AreEqual SQLITE_INTEGER, .AffinityType, "Expected AffinityType=SQLITE_INTEGER"
+        Assert.AreEqual "INTEGER", .DeclaredTypeT, "Expected DeclaredTypeT=INTEGER"
+    End With
+    
+    With TableMeta(1)
+        Assert.AreEqual "id", .Name, "id column name mismatch."
+        Assert.IsFalse .RowId, "Rowid should be false."
+        Assert.IsTrue .PrimaryKey, "PrimaryKey should be true."
+        Assert.IsFalse .AutoIncrement, "AutoIncrement should be false."
+        Assert.IsTrue .NotNull, "AutoIncrement should be true."
+        Assert.AreEqual SQLITE_AFF_INTEGER, .Affinity, "Expected Affinity=SQLITE_AFF_INTEGER"
+        Assert.AreEqual SQLITE_INTEGER, .AffinityType, "Expected AffinityType=SQLITE_INTEGER"
+        Assert.AreEqual "INT", .DeclaredTypeT, "Expected DeclaredTypeT=INT"
+        Assert.AreEqual "BINARY", .Collation, "Expected Collation=BINARY"
+        Assert.AreEqual "main", .DbName, "Expected DbName=main"
+        Assert.AreEqual "t1", .TableName, "Expected TableName=t1"
+    End With
+    
+    With TableMeta(3)
+        Assert.AreEqual SQLITE_AFF_TEXT, .Affinity, "Expected Affinity=SQLITE_AFF_TEXT"
+        Assert.AreEqual SQLITE_TEXT, .AffinityType, "Expected AffinityType=SQLITE_TEXT"
+        Assert.AreEqual "TEXT", .DeclaredTypeT, "Expected DeclaredTypeT=TEXT"
+        Assert.AreEqual "NOCASE", .Collation, "Expected Collation=NOCASE"
+    End With
+    
+    With TableMeta(4)
+        Assert.AreEqual SQLITE_AFF_REAL, .Affinity, "Expected Affinity=SQLITE_AFF_REAL"
+        Assert.AreEqual SQLITE_FLOAT, .AffinityType, "Expected AffinityType=SQLITE_FLOAT"
+        Assert.AreEqual "REAL", .DeclaredTypeT, "Expected DeclaredTypeT=REAL"
+        Assert.IsTrue .NotNull, "AutoIncrement should be true."
+    End With
+    
+    With TableMeta(5)
+        Assert.AreEqual SQLITE_AFF_BLOB, .Affinity, "Expected Affinity=SQLITE_AFF_BLOB"
+        Assert.AreEqual SQLITE_BLOB, .AffinityType, "Expected AffinityType=SQLITE_BLOB"
+        Assert.AreEqual "BLOB", .DeclaredTypeT, "Expected DeclaredTypeT=BLOB"
+    End With
 Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -336,67 +379,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-''@TestMethod("Metadata")
-'Private Sub ztcGetTableMeta_VerifiesSQLiteErrorWithUnpreparedStatement()
-'    On Error GoTo TestFail
-'
-'    Set FixObj = New SQLiteCTestFixObj
-'    Set FixSQL = New SQLiteCTestFixSQL
-'Arrange:
-'    Dim dbc As SQLiteCConnection
-'    Set dbc = FixObj.GetConnDbMemory
-'    Dim dbs As SQLiteCStatement
-'    Set dbs = dbc.CreateStatement(vbNullString)
-'
-'    Dim ResultCode As SQLiteResultCodes
-'    ResultCode = dbc.OpenDb
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-'    Dim AffectedRows As Long
-'Act:
-'    Dim SQLQuery As String
-'    SQLQuery = FixSQL.CREATETableITRBrowid
-'    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
-'    ResultCode = dbs.DbExecutor.GetTableMeta
-'Assert:
-'    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error (GetTableMeta)."
-'Cleanup:
-'    ResultCode = dbs.Finalize
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
-'    ResultCode = dbc.CloseDb
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
-'
-'CleanExit:
-'    Exit Sub
-'TestFail:
-'    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-'End Sub
-'
-'
-''@TestMethod("Metadata")
-'Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
-'    On Error Resume Next
-'
-'Arrange:
-'    Dim dbc As SQLiteCConnection
-'    Set dbc = FixObj.GetConnDbMemory
-'    Dim dbs As SQLiteCStatement
-'    Set dbs = dbc.CreateStatement(vbNullString)
-'
-'    Dim ResultCode As SQLiteResultCodes
-'
-'    Dim SQLQuery As String
-'    SQLQuery = FixSQL.FunctionsPragmaTable
-'    ResultCode = dbc.OpenDb
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-'    ResultCode = dbs.Prepare16V2(SQLQuery)
-'    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-'Act:
-'    Dim ColumnInfo As SQLiteCColumnMeta
-'    ColumnInfo.ColumnIndex = 1
-'    '''' Throws if this not set: ColumnInfo.Initialized = -1
-'    ResultCode = dbs.DbExecutor.GetColumnMetaAPI(ColumnInfo)
-'
-'    Guard.AssertExpectedError Assert, ErrNo.InvalidParameterErr
-'End Sub
-'

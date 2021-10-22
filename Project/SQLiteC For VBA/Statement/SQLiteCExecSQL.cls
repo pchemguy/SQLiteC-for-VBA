@@ -140,6 +140,11 @@ Public Property Get TableMeta() As SQLiteCColumnMeta()
 End Property
 
 
+Public Property Let TableMeta(ByRef Value() As SQLiteCColumnMeta)
+    this.TableMeta = Value
+End Property
+
+
 '@Ignore ProcedureNotUsed
 Public Property Get FilledPagesCount() As Long
     FilledPagesCount = this.FilledPagesCount
@@ -228,6 +233,7 @@ End Function
 '@Description "Retrieves columns metadata."
 Friend Function ColumnMetaAPI(ByRef ColumnInfo As SQLiteCColumnMeta _
                              ) As SQLiteResultCodes
+Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Dim dbs As SQLiteCStatement
     Set dbs = this.DbStmt
     Dim dbc As SQLiteCConnection
@@ -344,8 +350,7 @@ End Function
 
 '@Description "Collects table metadata."
 Public Function TableMetaCollect() As SQLiteResultCodes
-    Dim dbs As SQLiteCStatement
-    Set dbs = this.DbStmt
+Attribute TableMetaCollect.VB_Description = "Collects table metadata."
     Dim ColumnCount As Long
     ColumnCount = ColumnCountAPI
     If ColumnCount = 0 Then

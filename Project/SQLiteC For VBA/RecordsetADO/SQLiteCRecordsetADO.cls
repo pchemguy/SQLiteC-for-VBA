@@ -79,7 +79,7 @@ Friend Sub AddMeta()
                         .AdoType = adDouble
                     Case SQLITE_TEXT
                         .AdoType = adVarWChar
-                        .AdoSize = 2 ^ 16 - 1
+                        .AdoSize = 2 ^ 13
                     Case SQLITE_BLOB
                         .AdoType = adLongVarBinary
                         .AdoAttr = .AdoAttr Or adFldLong
@@ -103,6 +103,7 @@ Friend Sub AddMeta()
             this.FabRecordset.Fields.Append .OriginName, .AdoType, .AdoSize, .AdoAttr
         End With
     Next ColumnIndex
+    this.DbExec.TableMeta = TableMeta
 End Sub
 
 

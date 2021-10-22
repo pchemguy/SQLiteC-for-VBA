@@ -11,7 +11,6 @@ Private Const LITE_LIB As String = "SQLiteCforVBA"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else

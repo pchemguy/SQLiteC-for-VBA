@@ -12,7 +12,6 @@ Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SE
 
 Public Const LoadingDllErr As Long = 48
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else

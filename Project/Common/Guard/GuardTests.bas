@@ -7,8 +7,6 @@ Attribute VB_Description = "Tests for the Guard class."
 Option Explicit
 Option Private Module
 
-
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else

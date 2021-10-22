@@ -5,7 +5,6 @@ Attribute VB_Name = "SQLiteCStatementTests"
 Option Explicit
 Option Private Module
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -842,6 +841,55 @@ Assert:
     Assert.AreEqual 6, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
     Assert.AreEqual 3, dbr.AdoRecordset.PageSize, "Recordset.PageSize mismatch"
     Assert.AreEqual 3, dbr.AdoRecordset.CacheSize, "Recordset.CacheSize mismatch"
+Cleanup:
+    ResultCode = dbs.Finalize
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query ADO Recordset")
+Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowidVerifyData()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObj.GetConnDbMemory
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+    dbs.DbExecutor.PageSize = 3
+    Dim AffectedRows As Long
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQL.CREATETableITRBrowid & FixSQL.INSERTValuesITRB
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
+    
+    SQLQuery = FixSQL.SELECTTestTable
+    Dim RowSet2D As Variant
+    RowSet2D = dbs.GetRowSet2D(SQLQuery)
+    Dim RowSet2DRst As Variant
+    Dim AdoRecordset As ADODB.Recordset
+    Set AdoRecordset = dbs.GetRecordset(SQLQuery).AdoRecordset
+    AdoRecordset.MoveFirst
+    RowSet2DRst = ArrayLib.TransposeArray(AdoRecordset.GetRows)
+Assert:
+    Assert.AreEqual LBound(RowSet2D, 1), LBound(RowSet2DRst, 1), "R-base mismatch"
+    Assert.AreEqual LBound(RowSet2D, 2), LBound(RowSet2DRst, 2), "C-base mismatch"
+    Assert.AreEqual UBound(RowSet2D, 1), UBound(RowSet2DRst, 1), "R-size mismatch"
+    Assert.AreEqual UBound(RowSet2D, 2), UBound(RowSet2DRst, 2), "C-size mismatch"
+    Assert.AreEqual RowSet2DRst(0, 3), RowSet2D(0, 3), "Value mismatch"
+    Assert.AreEqual RowSet2DRst(0, 5)(2), RowSet2D(0, 5)(2), "Value mismatch"
 Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."

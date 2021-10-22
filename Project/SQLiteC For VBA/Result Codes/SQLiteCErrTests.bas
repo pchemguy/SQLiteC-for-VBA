@@ -7,7 +7,6 @@ Attribute VB_Name = "SQLiteCErrTests"
 Option Explicit
 Option Private Module
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else

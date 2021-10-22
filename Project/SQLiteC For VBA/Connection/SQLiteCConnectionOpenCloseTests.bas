@@ -5,7 +5,6 @@ Attribute VB_Name = "SQLiteCConnectionOpenCloseTests"
 Option Explicit
 Option Private Module
 
-#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else
