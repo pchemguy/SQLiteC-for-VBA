@@ -36,15 +36,15 @@ Private this As TSQL
 Public Function Create(ByVal TableName As String) As SQLlib
 Attribute Create.VB_Description = "Default factory"
 Attribute Create.VB_UserMemId = 0
-    Dim SQLTool As SQLlib
-    Set SQLTool = New SQLlib
-    SQLTool.Init TableName
-    Set Create = SQLTool
+    Dim Instance As SQLlib
+    Set Instance = New SQLlib
+    Instance.Init TableName
+    Set Create = Instance
 End Function
 
 
 '@Description "Default constructor"
-Public Sub Init(ByVal TableName As String)
+Friend Sub Init(ByVal TableName As String)
 Attribute Init.VB_Description = "Default constructor"
     Guard.EmptyString TableName
     this.TableName = TableName

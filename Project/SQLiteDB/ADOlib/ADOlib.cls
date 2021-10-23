@@ -11,8 +11,7 @@ Attribute VB_Description = "Provides ADO related helpers"
 '@Folder "SQLiteDB.ADOlib"
 '@ModuleDescription "Provides ADO related helpers"
 '@PredeclaredId
-'@IgnoreModule IndexedDefaultMemberAccess
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
 Private Type TADOlib
@@ -22,10 +21,10 @@ Private this As TADOlib
 
 
 Public Function Create() As ADOlib
-    Dim ADOTool As ADOlib
-    Set ADOTool = New ADOlib
-    'ADOTool.Init
-    Set Create = ADOTool
+    Dim Instance As ADOlib
+    Set Instance = New ADOlib
+    'Instance.Init
+    Set Create = Instance
 End Function
 
 
@@ -34,13 +33,13 @@ Public Sub SetConnectionString(ByVal ConnectionString As String)
 End Sub
 
 
-Public Function GetSQLiteConnectionString(Optional ByVal DBPath As String = vbNullString, _
+Public Function GetSQLiteConnectionString(Optional ByVal DbPath As String = vbNullString, _
                                           Optional ByVal Features As String = vbNullString) As Scripting.Dictionary
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
     
     Dim Database As String
-    Database = Right$(DBPath, Abs(Len(DBPath) - 7))
+    Database = Right$(DbPath, Abs(Len(DbPath) - 7))
     Database = VerifyOrGetDefaultPath(Database, Array("db", "sqlite"))
     
     Dim Options As String
@@ -110,7 +109,8 @@ Attribute MakeAdoParamsForRecordUpdate.VB_Description = "Prepares ADODB.Paramete
     AdjustedTypes(FieldIndex) = IIf(TypeCast = CastAsIs, FieldTypes(FieldIndex), adVarWChar)
     
     ' Discard any existing parameters
-    Dim AdoParams As ADODB.Parameters: Set AdoParams = AdoCommand.Parameters
+    Dim AdoParams As ADODB.Parameters
+    Set AdoParams = AdoCommand.Parameters
     Dim ParamIndex As Long
     For ParamIndex = AdoParams.Count - 1 To 0 Step -1
         AdoParams.Delete ParamIndex

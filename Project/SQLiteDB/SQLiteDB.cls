@@ -7,38 +7,23 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+Attribute VB_Description = "Provides SQLite specific functionality"
 '@Folder "SQLiteDB"
+'@ModuleDescription "Provides SQLite specific functionality"
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedRecursiveDefaultMemberAccess, FunctionReturnValueDiscarded
 '@IgnoreModule IndexedDefaultMemberAccess, ImplicitDefaultMemberAccess
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule ValueRequired, ProcedureNotUsed
 Option Explicit
 
-
 Private Type TSQLiteDB
-    MainDB As String
+    MainDB As String '''' Absolute file pathname to the main database.
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
-    SQLInfo As SQLiteSQLDbInfo
+    SQLInfo As LiteMetaSQL
 End Type
 Private this As TSQLiteDB
-
-
-Private Sub Class_Initialize()
-    Set this.SQLInfo = SQLiteSQLDbInfo.Create
-End Sub
-
-
-Private Sub Class_Terminate()
-    On Error Resume Next
-    If Not this.AdoConnection Is Nothing Then this.AdoConnection.Close
-    If Not this.AdoCommand Is Nothing Then Set this.AdoCommand.ActiveConnection = Nothing
-    On Error GoTo 0
-    Set this.AdoConnection = Nothing
-    Set this.AdoCommand = Nothing
-    Set this.SQLInfo = Nothing
-End Sub
 
 
 '''' @ClassMethodStrict
@@ -66,15 +51,16 @@ End Function
 ''''     created.
 ''''
 '''' Note:
-''''   VerifyOrGetDefaultPath should always be called with two arguments. If
+''''   VerifyOrGetDefaultPath should be called with two arguments max. If
 ''''   the second argument is not Empty, the third argument will be ignored.
 ''''   The first argument is allowed to refer to a non-existent file only if
-''''   the second argument is Empty and the third argument is True.
+''''   the third argument is True.
 ''''
 '@Description "Default constructor"
-Public Sub Init(ByVal Database As String, _
+Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Boolean = False)
 Attribute Init.VB_Description = "Default constructor"
+    Set this.SQLInfo = LiteMetaSQL.Create()
     If Database = ":memory:" Then
         this.MainDB = Database
     ElseIf AllowNonExistent Then
@@ -87,7 +73,7 @@ Attribute Init.VB_Description = "Default constructor"
         .CommandType = adCmdText
         .CommandText = this.SQLInfo.Engine.Version
         .Prepared = True
-        .ActiveConnection = ConnectionString
+        .ActiveConnection = ConnectionString()
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
@@ -109,7 +95,7 @@ Public Property Get AdoCommand() As ADODB.Command
 End Property
 
 
-Public Property Get SQLInfo() As SQLiteSQLDbInfo
+Public Property Get SQLInfo() As LiteMetaSQL
     Set SQLInfo = this.SQLInfo
 End Property
 
@@ -122,9 +108,11 @@ End Property
 ''''     factory method.
 ''''
 '@Description "Constructs default SQLiteODBC connection string"
-Public Function ConnectionString(Optional ByVal DatabaseName As String = vbNullString) As String
+Public Function ConnectionString( _
+            Optional ByVal DatabaseName As String = vbNullString) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
-    Dim Driver As String: Driver = "SQLite3 ODBC Driver"
+    Dim Driver As String
+    Driver = "SQLite3 ODBC Driver"
 
     Dim Database As String
     If Len(DatabaseName) > 0 Then
@@ -136,7 +124,7 @@ Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC conne
     Dim Options As String
     Options = "SyncPragma=NORMAL;FKSupport=True;"
         
-    ConnectionString = "Driver=" & Driver & ";" & "Database=" & Database & ";" & Options
+    ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & Options
 End Function
 
 
@@ -156,7 +144,7 @@ Attribute GetAdoRecordset.VB_Description = "Returns disconnected Recordset"
         Set .Source = this.AdoCommand
         .CursorLocation = adUseClient
         .CursorType = adOpenStatic
-        .LockType = adLockBatchOptimistic
+        .LockType = adLockReadOnly
         .Open
         Set .ActiveConnection = Nothing
     End With
@@ -169,7 +157,7 @@ End Function
 Public Sub ExecuteNonQuery(ByVal SQLQuery As String)
 Attribute ExecuteNonQuery.VB_Description = "Executes database modifying statement (UPDATE, DELETE, INSERT)"
     this.AdoCommand.CommandText = SQLQuery
-    this.AdoCommand.Execute
+    this.AdoCommand.Execute Options:=adExecuteNoRecords
 End Sub
 
 
@@ -279,7 +267,7 @@ Attribute GetTableColumnsEx.VB_Description = "Retrieves full fields metadata fro
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = GetAdoRecordset(this.SQLInfo.TableColumnsEx(TableName))
     Dim TableSQL As String
-    TableSQL = GetAdoRecordset(this.SQLInfo.TableSQL(TableName))("sql")
+    TableSQL = GetAdoRecordset(this.SQLInfo.TableSQL(TableName)).Fields("sql")
     Debug.Print TableSQL
     Dim CreateTableLines As Variant
     CreateTableLines = Split(TableSQL, vbLf)
@@ -289,34 +277,35 @@ Attribute GetTableColumnsEx.VB_Description = "Retrieves full fields metadata fro
     re.Pattern = "\w*"
     Dim Matches As MatchCollection
      
-    AdoRecordset.MoveFirst
     Dim FieldSQL As String
     Dim ClauseBeg As Long
     Dim ClauseEnd As Long
     Dim ColumnIndex As Long
-    '@Ignore ValueRequired
-    For ColumnIndex = 1 To AdoRecordset.RecordCount
-        FieldSQL = CreateTableLines(ColumnIndex)
-        If InStr(1, FieldSQL, " UNIQUE ", vbBinaryCompare) Then
-            AdoRecordset("unique") = 1
-        Else
-            AdoRecordset("unique") = Null
-        End If
-        ClauseBeg = InStr(1, FieldSQL, " CHECK(", vbBinaryCompare)
-        If ClauseBeg > 0 Then
-            ClauseBeg = ClauseBeg + Len(" CHECK(")
-            ClauseEnd = InStrRev(FieldSQL, ")")
-            AdoRecordset("check") = Mid$(FieldSQL, ClauseBeg, ClauseEnd - ClauseBeg)
-        End If
-        ClauseBeg = InStr(1, FieldSQL, " COLLATE ", vbBinaryCompare)
-        If ClauseBeg > 0 Then
-            ClauseBeg = ClauseBeg + Len(" COLLATE ")
-            Set Matches = re.Execute(Mid$(FieldSQL, ClauseBeg))
-            AdoRecordset("collate") = Matches(0).Value
-        End If
-        AdoRecordset.MoveNext
-    Next ColumnIndex
-    AdoRecordset.MoveFirst
+    With AdoRecordset
+        .MoveFirst
+        For ColumnIndex = 1 To .RecordCount
+            FieldSQL = CreateTableLines(ColumnIndex)
+            If InStr(1, FieldSQL, " UNIQUE ", vbBinaryCompare) Then
+                .Fields("unique") = 1
+            Else
+                .Fields("unique") = Null
+            End If
+            ClauseBeg = InStr(1, FieldSQL, " CHECK(", vbBinaryCompare)
+            If ClauseBeg > 0 Then
+                ClauseBeg = ClauseBeg + Len(" CHECK(")
+                ClauseEnd = InStrRev(FieldSQL, ")")
+                .Fields("check") = Mid$(FieldSQL, ClauseBeg, ClauseEnd - ClauseBeg)
+            End If
+            ClauseBeg = InStr(1, FieldSQL, " COLLATE ", vbBinaryCompare)
+            If ClauseBeg > 0 Then
+                ClauseBeg = ClauseBeg + Len(" COLLATE ")
+                Set Matches = re.Execute(Mid$(FieldSQL, ClauseBeg))
+                .Fields("collate") = Matches(0).Value
+            End If
+            .MoveNext
+        Next ColumnIndex
+        .MoveFirst
+    End With
     
     Set GetTableColumnsEx = AdoRecordset
 End Function
@@ -352,9 +341,11 @@ Attribute IndexSchema.VB_Description = "Retrieves index schema"
     Set SchemaDic = New Scripting.Dictionary
     SchemaDic.CompareMode = TextCompare
     
-    SchemaDic("Name") = ArrayLib.GetRow(IndicesInfo, FieldMap("idx_name"))
-    SchemaDic("SQL") = ArrayLib.GetRow(IndicesInfo, FieldMap("sql"))
-    SchemaDic("Unique") = ArrayLib.GetRow(IndicesInfo, FieldMap("unique"))
+    With ArrayLib
+        SchemaDic("Name") = .GetRow(IndicesInfo, FieldMap("idx_name"))
+        SchemaDic("SQL") = .GetRow(IndicesInfo, FieldMap("sql"))
+        SchemaDic("Unique") = .GetRow(IndicesInfo, FieldMap("unique"))
+    End With
     
     Set IndexSchema = SchemaDic
 End Property
@@ -393,8 +384,7 @@ Public Function JournalModeGet(Optional ByVal SchemaAlias As String = "main") As
 Attribute JournalModeGet.VB_Description = "Queries journal mode for the given database"
     Dim SQLQuery As String
     SQLQuery = "PRAGMA " & SchemaAlias & ".journal_mode"
-    '@Ignore ImplicitDefaultMemberAccess
-    JournalModeGet = GetAdoRecordset(SQLQuery)("journal_mode")
+    JournalModeGet = GetAdoRecordset(SQLQuery).Fields("journal_mode")
 End Function
 
 
@@ -439,10 +429,10 @@ Attribute JournalModeSet.VB_Description = "Sets journal mode for the given datab
     '''' interpretation and fails, when multiple "PRAGMA" statements are inlcuded.
     For DbIndex = LBound(Databases) To UBound(Databases)
         If JournalModeUC = "WAL" Then
-            SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].synchronous='NORMAL'"
+            SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].synchronous = 'NORMAL'"
             ExecuteNonQuery SQLQuery
         End If
-        SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].journal_mode='" & JournalMode & "'"
+        SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].journal_mode = '" & JournalMode & "'"
         ExecuteNonQuery SQLQuery
     Next DbIndex
 End Sub
@@ -453,14 +443,17 @@ End Sub
 '''' placed on the referenced Excel Worksheet via the QueryTable feature.
 ''''
 '@Description "'Debug.Print' for an SQL query"
-Public Sub DebugPrintRecordset(ByVal SQLQuery As String, Optional ByVal OutputRange As Excel.Range = Nothing)
+Public Sub DebugPrintRecordset(ByVal SQLQuery As String, _
+                      Optional ByVal OutputRange As Excel.Range = Nothing)
 Attribute DebugPrintRecordset.VB_Description = "'Debug.Print' for an SQL query"
     Guard.EmptyString SQLQuery
     
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
     
-    If Not OutputRange Is Nothing Then ADOlib.RecordsetToQT AdoRecordset, OutputRange
+    If Not OutputRange Is Nothing Then
+        ADOlib.RecordsetToQT AdoRecordset, OutputRange
+    End If
     
     Dim FieldIndex As Long
     Dim FieldNames() As String
@@ -470,10 +463,9 @@ Attribute DebugPrintRecordset.VB_Description = "'Debug.Print' for an SQL query"
     Next FieldIndex
     
     Dim Table As String
-    Table = Join(FieldNames, vbTab) & vbNewLine & AdoRecordset.GetString(, , vbTab, vbNewLine)
+    Table = Join(FieldNames, vbTab) & vbNewLine & _
+            AdoRecordset.GetString(, , vbTab, vbNewLine)
     Debug.Print Table
-    ' As String
-    ' DebugPrintRecordset = Table
 End Sub
 
 
@@ -502,6 +494,94 @@ End Sub
 '''' database via the SQLiteDB factory. While integrity/FK check should run
 '''' against the specified schema, if provided, I had issues with getting
 '''' expected behavior. Prefer to run checks when a single database being
+'''' checked is attached as "main".
+'''' 1) Verify that existing file is a database and exactly one db is attached.
+'''' 2) Run integrity check and verify that it returns "ok"
+'''' 3) Run foreign key check and verify that nothing is returned.
+''''
+'''' Examples:
+''''   >>> ?SQLiteDB("").CheckDB
+''''   -- Connection check passed
+''''   -- Integrity check passed for: '<Path>\SQLiteDB.db'
+''''   True
+''''
+''''   >>> ?SQLiteDB("ICfailFKCfail.db").CheckDB
+''''   -- Connection check passed
+''''   Error:
+''''       message: Source database failed integrity check
+''''
+''''   >>> ?SQLiteDB("ICokFKCfail.db").CheckDB
+''''   -- Connection check passed
+''''   Error:
+''''       message: Source database failed foreign key check
+''''
+'@Description "Runs SQLite database integrity checks."
+Public Function CheckIntegrity() As Boolean
+Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks."
+    Const SQLITE_NOTADB_MESSAGE As String = "file is not a database (26)"
+    
+    Dim SQLQuery As String
+    Dim CheckResult As Boolean
+    Dim AdoRecordset As ADODB.Recordset
+
+    '''' 1) Verify that existing file is a database and only one db is atttached
+    SQLQuery = this.SQLInfo.Databases
+    Dim AttachedDbCount As Long
+    Dim ErrNumber As Long
+    Dim ErrSource As String
+    Dim ErrDescription As String
+    
+    On Error Resume Next
+    AttachedDbCount = GetAdoRecordset(SQLQuery).RecordCount
+    With Err
+        If .Number <> 0 Then
+            ErrNumber = .Number
+            ErrSource = .Source
+            ErrDescription = .Description
+        End If
+    End With
+    On Error GoTo 0
+    
+    If ErrNumber <> 0 Then
+        If (ErrNumber = ErrNo.OLE_DB_ODBC_Err) _
+                And (ErrDescription = SQLITE_NOTADB_MESSAGE) Then
+            Err.Raise ErrNo.OLE_DB_ODBC_Err, "SQLiteDB", _
+                      "File is not a database"
+        Else
+            With Err
+                .Raise ErrNumber, ErrSource, ErrDescription
+            End With
+        End If
+    End If
+    If AttachedDbCount <> 1 Then
+        Err.Raise ErrNo.CustomErr, "SQLiteDB", _
+                  "Please have exactly one database attached before the check."
+    End If
+    
+    '''' 2) "PRAGMA integrity_check"
+    SQLQuery = this.SQLInfo.CheckIntegrity
+    Set AdoRecordset = GetAdoRecordset(SQLQuery)
+    CheckResult = (AdoRecordset.Fields("integrity_check") = "ok")
+    Guard.ExpressionErr CheckResult, ErrNo.IntegrityCheckErr, _
+                        "SQLiteDB", "Integrity check failed"
+    
+    '''' 3) "PRAGMA foreign_key_check"
+    SQLQuery = this.SQLInfo.CheckFKs
+    Set AdoRecordset = GetAdoRecordset(SQLQuery)
+    CheckResult = (AdoRecordset.RecordCount = 0)
+    Guard.ExpressionErr CheckResult, ErrNo.ConsistencyCheckErr, _
+                        "SQLiteDB", "Foreign key check failed"
+
+    Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
+    CheckIntegrity = True
+End Function
+
+
+'''' N.B.: missing indices?
+'''' The database to be checked should be attached as the "main" and only
+'''' database via the SQLiteDB factory. While integrity/FK check should run
+'''' against the specified schema, if provided, I had issues with getting
+'''' expected behavior. Prefer to run checks when a single database being
 '''' checked is attached as "main". This routine first runs base checks:
 '''' 1) Attach an in-memory database and verify that the database count is 2;
 '''' 2) Remove in-memory database and verify that the database count is 1
@@ -524,8 +604,8 @@ End Sub
 ''''   Error:
 ''''       message: Source database failed foreign key check
 ''''
-'@Description "Runs SQLite database integrity checks."
 '@Ignore FunctionReturnValueAlwaysDiscarded
+'@Description "Runs SQLite database integrity checks."
 Public Function CheckDb() As Boolean
 Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
     Dim SQLQuery As String
@@ -536,16 +616,16 @@ Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
     AttachDatabase ":memory:", "memory"
     SQLQuery = this.SQLInfo.Databases
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
-    '@Ignore ValueRequired, ImplicitDefaultMemberAccess
-    CheckResult = (AdoRecordset.RecordCount = 2) And (AdoRecordset("name") = "main")
+    CheckResult = (AdoRecordset.RecordCount = 2) And _
+                  (AdoRecordset.Fields("name") = "main")
     Set AdoRecordset = Nothing
     
     '''' 2) Detach in-memory db
     DetachDatabase "memory"
     SQLQuery = this.SQLInfo.Databases
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
-    '@Ignore ValueRequired, ImplicitDefaultMemberAccess
-    CheckResult = CheckResult And (AdoRecordset.RecordCount = 1) And (AdoRecordset("name") = "main")
+    CheckResult = CheckResult And (AdoRecordset.RecordCount = 1) And _
+                                  (AdoRecordset.Fields("name") = "main")
     Set AdoRecordset = Nothing
     
     Guard.Expression CheckResult, "SQLiteDB/CheckDb", "Failed connection check"
@@ -554,17 +634,17 @@ Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
     '''' 3) "PRAGMA integrity_check"
     SQLQuery = this.SQLInfo.CheckIntegrity
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
-    '@Ignore ValueRequired, ImplicitDefaultMemberAccess
-    CheckResult = (AdoRecordset.RecordCount = 1) And (AdoRecordset("integrity_check") = "ok")
-    Guard.Expression CheckResult, "SQLiteDB/CloneDb", "Source database failed integrity check"
+    CheckResult = (AdoRecordset.Fields("integrity_check") = "ok")
+    Guard.ExpressionErr CheckResult, ErrNo.IntegrityCheckErr, _
+                        "SQLiteDB/CloneDb", "Integrity check failed"
     Set AdoRecordset = Nothing
     
     '''' 4) "PRAGMA foreign_key_check"
     SQLQuery = this.SQLInfo.CheckFKs
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
-    '@Ignore ValueRequired
     CheckResult = (AdoRecordset.RecordCount = 0)
-    Guard.Expression CheckResult, "SQLiteDB/CloneDb", "Source database failed foreign key check"
+    Guard.ExpressionErr CheckResult, ErrNo.ConsistencyCheckErr, _
+                        "SQLiteDB/CloneDb", "Foreign key check failed"
     Set AdoRecordset = Nothing
 
     Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
@@ -632,7 +712,6 @@ Attribute CloneDb.VB_Description = "Clones SQLite database."
     DbManager.AttachDatabase SrcDbName, "source"
     SQLQuery = this.SQLInfo.Databases
     Set AdoRecordset = DbManager.GetAdoRecordset(SQLQuery)
-    '@Ignore ValueRequired
     CheckResult = (AdoRecordset.RecordCount = 2)
     Set AdoRecordset = Nothing
     Guard.Expression CheckResult, "SQLiteDB/CloneDb", "Attach source db failed"
