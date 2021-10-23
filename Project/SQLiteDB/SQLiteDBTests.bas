@@ -87,6 +87,9 @@ Act:
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "Existing db path mismatch"
+Cleanup:
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
     
 CleanExit:
     Exit Sub
@@ -109,6 +112,9 @@ Act:
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "InMemory path mismatch"
+Cleanup:
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
     
 CleanExit:
     Exit Sub
@@ -133,6 +139,9 @@ Act:
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
+Cleanup:
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
     
 CleanExit:
     Exit Sub
@@ -155,22 +164,12 @@ Act:
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
+Cleanup:
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
     
 CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-
-''@TestMethod("Factory")
-'Private Sub ztcDbManagerFactoryGuard_ThrowsOnInvalidDbFile()
-'    On Error Resume Next
-'    Dim dbm As SQLiteDB
-'    Set dbm = SQLiteDB.Create(vbNullString)
-'    Dim SQLQuery As String
-'    SQLQuery = "SELECT name, file FROM pragma_database_list"
-'    Dim Result As String
-'    Result = dbm.GetAdoRecordset(SQLQuery).GetString
-'    Guard.AssertExpectedError Assert, ErrNo.AdoInvalidTransactionErr
-'End Sub

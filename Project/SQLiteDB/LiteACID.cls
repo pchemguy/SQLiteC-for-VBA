@@ -13,6 +13,7 @@ Attribute VB_Description = "This module provides ACID related functionality"
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule ValueRequired: false positive with ADODB
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 Private Const JOURNAL_MODES As String = "| DELETE | TRUNCATE | WAL |"
@@ -181,6 +182,7 @@ Public Property Let JournalMode(ByVal Mode As String)
     Dim SQLQuery As String
     SQLQuery = "PRAGMA journal_mode(" & Mode & ")"
     On Error GoTo WRITE_FAILED
+        '@Ignore FunctionReturnValueDiscarded
         dbm.ExecuteNonQuery SQLQuery
     On Error GoTo 0
     
@@ -251,9 +253,6 @@ End Function
 
 
 Public Function LockedInTransaction() As Boolean
-    Dim dbm As ILiteADO
-    Set dbm = this.ADOTool
-
     Dim JMode As String
     JMode = JournalMode
     
@@ -261,6 +260,7 @@ Public Function LockedInTransaction() As Boolean
                         ErrNo.IncompatibleStatusErr, "LiteACID", _
                         "Please set DELETE, TRUNCATE, or WAL. Current: " & JMode
                         
+    '@Ignore SelfAssignedDeclaration
     Dim fso As New Scripting.FileSystemObject
     Dim FilePathName As String
     Select Case JMode
@@ -291,11 +291,13 @@ Public Function LockedReadOnly() As Boolean
     End If
     
     On Error Resume Next
+        '@Ignore FunctionReturnValueDiscarded
         JournalModeToggle
         If Err.Number <> 0 Then
             LockedReadOnly = True
         Else
             LockedReadOnly = False
+            '@Ignore FunctionReturnValueDiscarded
             JournalModeToggle
         End If
     On Error GoTo 0

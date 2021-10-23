@@ -34,6 +34,7 @@ End Function
 Public Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
 End Function
 
+'@Ignore FunctionReturnValueAlwaysDiscarded
 Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
 End Function
 

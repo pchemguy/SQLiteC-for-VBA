@@ -2,7 +2,7 @@ Attribute VB_Name = "LiteACIDTests"
 '@Folder "SQLiteDB"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
-'@IgnoreModule IndexedDefaultMemberAccess
+'@IgnoreModule IndexedDefaultMemberAccess, AssignmentNotUsed
 Option Explicit
 Option Private Module
 
@@ -58,11 +58,6 @@ Private Function zfxDefDBM( _
 End Function
 
 
-Private Function zfxFixturePrefix() As String
-    zfxFixturePrefix = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & "Fixtures" & PATH_SEP
-End Function
-
-
 '===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
@@ -110,6 +105,7 @@ Private Sub ztcIntegrityADODB_ThrowsOnFailedFKCheck()
 End Sub
 
 
+'@EntryPoint
 Private Sub ztcTest()
     Dim FilePathName As String
     FilePathName = REL_PREFIX & LIB_NAME & ".db"
@@ -117,6 +113,7 @@ Private Sub ztcTest()
     Dim dbm As ILiteADO
     Set dbm = LiteADO(FilePathName)
     
+    '@Ignore VariableNotUsed
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(FilePathName, False)
         
@@ -130,6 +127,7 @@ Private Sub ztcTest()
     Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
     Do While True
         Debug.Print ACIDTool.LockedReadOnly
+        '@Ignore StopKeyword
         Stop
     Loop
         
@@ -139,31 +137,4 @@ Private Sub ztcTest()
     dbm.AdoConnection.Close
     Set dbm = Nothing
 End Sub
-
-
-
-'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
-'    Dim FilePathName As String
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Dim dbm As ILiteADO
-'    Set dbm = LiteADO(FilePathName)
-'
-'    Dim AdoConnection As ADODB.Connection
-'    Set AdoConnection = dbm.AdoConnection
-'
-'    LiteCheck(FilePathName).ExistsAccesibleValid
-'    Dim Response As Variant
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'    dbm.ExecuteNonQuery "PRAGMA journal_mode='DELETE'"
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'
-'    On Error Resume Next
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Set dbm = LiteADO(FilePathName)
-'    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
-'    LiteCheck(FilePathName & "-shm").ExistsAccesibleValid
-'    dbm.ExecuteNonQuery "ROLLBACK"
-'    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
-'End Sub
-
 

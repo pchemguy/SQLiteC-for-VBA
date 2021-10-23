@@ -267,6 +267,7 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
         If fso.FileExists(FilePathName) Then
             ExistsAccesibleValid = FileAccessibleValid(FilePathName)
         Else
+            '@Ignore VariableNotUsed
             Dim DbPathNameOK As Boolean
             DbPathNameOK = PathExistsAccessible(FilePathName)
             '''' If PathExistsAccessible does not raise an error, Path is OK

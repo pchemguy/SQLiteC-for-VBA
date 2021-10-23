@@ -157,12 +157,12 @@ Act:
     Set dbm = LiteADO.Create(RelativePathName, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
-    
-    Set dbm = Nothing
-    If fso.FileExists(Expected) Then fso.DeleteFile (Expected)
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
-    
+Cleanup:
+    dbm.AdoConnection.Close
+    Set dbm = Nothing
+
 CleanExit:
     Exit Sub
 TestFail:
@@ -184,9 +184,9 @@ Act:
     Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
-
+Cleanup:
+    dbm.AdoConnection.Close
     Set dbm = Nothing
-    If fso.FileExists(Expected) Then fso.DeleteFile (Expected)
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
     
