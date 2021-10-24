@@ -297,7 +297,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbTemp
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 

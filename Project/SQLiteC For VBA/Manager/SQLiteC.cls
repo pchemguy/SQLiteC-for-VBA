@@ -39,7 +39,7 @@ Option Explicit
 Private Type TSQLiteC
     DllMan As DllManager
     DbConnMan As Scripting.Dictionary
-    MainDb As Variant
+    MainDB As Variant
 End Type
 Private this As TSQLiteC
 
@@ -77,12 +77,12 @@ Friend Sub Init(ByVal DllPath As String, _
     Set this.DllMan = DllManager.Create(DllPath, FileNames)
     Set this.DbConnMan = New Scripting.Dictionary
     this.DbConnMan.CompareMode = TextCompare
-    this.MainDb = Null
+    this.MainDB = Null
 End Sub
 
 
 Public Property Get MainDbId() As Variant
-    MainDbId = this.MainDb
+    MainDbId = this.MainDB
 End Property
 
 
@@ -106,7 +106,7 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
     DbConnId = DbConn.DbPathName
     If this.DbConnMan.Exists(DbConnId) Then Err.Raise KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
-    If IsNull(this.MainDb) Then this.MainDb = DbConnId
+    If IsNull(this.MainDB) Then this.MainDB = DbConnId
     Set this.DbConnMan(DbConnId) = DbConn
     Set CreateConnection = DbConn
 End Function
@@ -120,8 +120,8 @@ Attribute ConnDb.VB_Description = "Returns an existing SQLiteCConnection instanc
     '''' SQLiteCConnection is responsible for DbPathName validation/resolution
     If this.DbConnMan.Exists(DbPathName) Then
         Set ConnDb = this.DbConnMan(DbPathName)
-    ElseIf Len(DbPathName) = 0 And this.DbConnMan.Exists(this.MainDb) Then
-        Set ConnDb = this.DbConnMan(this.MainDb)
+    ElseIf Len(DbPathName) = 0 And this.DbConnMan.Exists(this.MainDB) Then
+        Set ConnDb = this.DbConnMan(this.MainDB)
     Else
         Set ConnDb = Nothing
     End If

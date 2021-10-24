@@ -2,11 +2,11 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteAPIwsh"
+Attribute VB_Name = "VBAVarType"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-'@Folder "SQLiteC For VBA"
+'@Folder "Common.Excel Objects"
 Option Explicit
 

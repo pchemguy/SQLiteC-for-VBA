@@ -20,7 +20,7 @@ Private Type TProjectUtils
     Project As VBIDE.VBProject
     ProjectPath As String
     Paths As Scripting.Dictionary
-    Files As Scripting.Dictionary
+    FileMap As Scripting.Dictionary
     fso As Scripting.FileSystemObject
     wsh As IWshRuntimeLibrary.WshShell
     EnvVarNames As Variant
@@ -42,8 +42,8 @@ Private Sub Class_Initialize()
         
         Set .Paths = New Scripting.Dictionary
         .Paths.CompareMode = TextCompare
-        Set .Files = New Scripting.Dictionary
-        .Files.CompareMode = TextCompare
+        Set .FileMap = New Scripting.Dictionary
+        .FileMap.CompareMode = TextCompare
         Set .fso = New Scripting.FileSystemObject
         Set .wsh = New IWshRuntimeLibrary.WshShell
         .ProjectPath = .fso.GetParentFolderName(.Project.FileName) & Application.PathSeparator & PROJECT_FOLDER
@@ -53,32 +53,21 @@ Private Sub Class_Initialize()
 End Sub
 
 
-Private Sub Class_Terminate()
-    With this
-        Set .Project = Nothing
-        Set .Paths = Nothing
-        Set .Files = Nothing
-        Set .fso = Nothing
-        Set .wsh = Nothing
-    End With
-End Sub
-
-
 '@Description "Creates path, including any non-existing subdirectories."
 Private Sub MkPath(ByVal FullPath As String)
 Attribute MkPath.VB_Description = "Creates path, including any non-existing subdirectories."
-    Dim Folders As Variant
-    Folders = Split(FullPath, Application.PathSeparator)
+    Dim Directories As Variant
+    Directories = Split(FullPath, Application.PathSeparator)
     
     Dim Path As String
-    Path = Folders(0)
-    If Dir$(Path, vbDirectory) = vbNullString Then Err.Raise 76, "ProjectUtils", "Path not found"
+    Path = Directories(0)
+    If Dir$(Path, vbDirectory) = vbNullString Then Err.Raise ErrNo.PathNotFoundErr, "ProjectUtils", "Path not found"
     
-    Dim FolderIndex As Long
-    For FolderIndex = 1 To UBound(Folders, 1)
-        Path = Path & Application.PathSeparator & Folders(FolderIndex)
+    Dim DirIndex As Long
+    For DirIndex = 1 To UBound(Directories, 1)
+        Path = Path & Application.PathSeparator & Directories(DirIndex)
         If Dir$(Path, vbDirectory) = vbNullString Then MkDir Path
-    Next FolderIndex
+    Next DirIndex
 End Sub
 
 
@@ -130,10 +119,12 @@ Attribute ReferencesSaveToFile.VB_Description = "Save references info for the Pr
     '''' Save references to a tab separated file in the project folder
     Dim PathName As String
     PathName = this.ProjectPath & Application.PathSeparator & REFERENCES_FILE
-    Dim FileHandle As Long: FileHandle = FreeFile
-    Open PathName For Output As #FileHandle
-    Print #FileHandle, Join(ReferencesArray, vbNewLine)
-    Close #FileHandle
+    Dim FileHandle As Long
+    FileHandle = FreeFile
+    Open PathName For Output As FileHandle
+    '@Ignore VariableNotAssigned, UnassignedVariableUsage, UndeclaredVariable: False positive for "Print"
+    Print FileHandle, Join(ReferencesArray, vbNewLine)
+    Close FileHandle
 End Sub
 
 
@@ -147,10 +138,11 @@ Attribute ReferencesAddFromFile.VB_Description = "Add references from the tsv/cs
     PathNameL = IIf(PathName <> vbNullString, PathName, this.ProjectPath & Application.PathSeparator & REFERENCES_FILE)
     Dim ReadBuffer As String
     
-    Dim FileHandle As Long: FileHandle = FreeFile
-    Open PathNameL For Input As #FileHandle
-    ReadBuffer = Input$(LOF(FileHandle), #FileHandle)
-    Close #FileHandle
+    Dim FileHandle As Long
+    FileHandle = FreeFile
+    Open PathNameL For Input As FileHandle
+    ReadBuffer = Input$(LOF(FileHandle), FileHandle)
+    Close FileHandle
     
     Dim refj As Long
     If Len(ReadBuffer) > 0 Then
@@ -191,7 +183,7 @@ End Sub
 Public Sub ProjectStructureParse()
 Attribute ProjectStructureParse.VB_Description = "Iterates over VBComponents, extracts @Folder annotation and collects File/Folder hierarchy information."
     this.Paths.RemoveAll
-    this.Files.RemoveAll
+    this.FileMap.RemoveAll
     
     Dim Component As VBComponent
     Dim AnnotateStart As Long
@@ -229,7 +221,7 @@ Attribute ProjectStructureParse.VB_Description = "Iterates over VBComponents, ex
         End If
         Path = Replace$(Path, ".", Application.PathSeparator)
         this.Paths(Path) = vbNullString
-        this.Files(Component.Name) = Array(Ext, ComponentType, Path)
+        this.FileMap(Component.Name) = Array(Ext, ComponentType, Path)
     Next Component
 End Sub
 
@@ -265,11 +257,11 @@ Public Sub ProjectFilesExport(Optional ByVal Prefix As String = vbNullString)
 Attribute ProjectFilesExport.VB_Description = "Exports code modules (entire project or prefix matching path) to Project folder."
     ProjectStructureExport Prefix
     
-    Dim File As Variant
+    Dim ProjFile As Variant
     Dim Path As String
     Dim PrefixMatch As String
-    For Each File In this.Files.Keys
-        Path = this.Files(File)(2)
+    For Each ProjFile In this.FileMap.Keys
+        Path = this.FileMap(ProjFile)(2)
         Select Case Len(Path) - Len(Prefix)
             Case Is > 0
                 PrefixMatch = Prefix & Application.PathSeparator
@@ -280,9 +272,9 @@ Attribute ProjectFilesExport.VB_Description = "Exports code modules (entire proj
         End Select
             
         If (Len(PrefixMatch) > 0) And (Left$(Path, Len(PrefixMatch)) = PrefixMatch) Or (Len(Prefix) = 0) Then
-            this.Project.VBComponents(File).Export this.ProjectPath & Application.PathSeparator & Path & Application.PathSeparator & File & this.Files(File)(0)
+            this.Project.VBComponents(ProjFile).Export this.ProjectPath & Application.PathSeparator & Path & Application.PathSeparator & ProjFile & this.FileMap(ProjFile)(0)
         End If
-    Next File
+    Next ProjFile
 End Sub
 
 
@@ -315,14 +307,14 @@ End Sub
 Public Sub CollectFiles(Optional ByVal Prefix As String = vbNullString, Optional ByVal DoNotImportFilesFromRoot As Variant = Empty)
     WalkTree Prefix, DoNotImportFilesFromRoot
     
-    this.Files.RemoveAll
+    this.FileMap.RemoveAll
     
-    Dim File As IWshRuntimeLibrary.File
+    Dim ProjFile As Scripting.File
     Dim Path As Variant
     For Each Path In this.Paths
-        For Each File In this.fso.GetFolder(Path).Files
-            this.Files(this.fso.GetBaseName(File.Name)) = Array(this.fso.GetExtensionName(File.Name), Path)
-        Next File
+        For Each ProjFile In this.fso.GetFolder(Path).Files
+            this.FileMap(this.fso.GetBaseName(ProjFile.Name)) = Array(this.fso.GetExtensionName(ProjFile.Name), Path)
+        Next ProjFile
     Next Path
 End Sub
 
@@ -344,13 +336,13 @@ Public Sub ProjectFilesImport(Optional ByVal Prefix As String = vbNullString, Op
     Dim Module As VBIDE.VBComponent
     Dim DummyModule As VBIDE.VBComponent
     On Error Resume Next
-    For Each FileName In this.Files.Keys
+    For Each FileName In this.FileMap.Keys
         Set Module = this.Project.VBComponents(FileName)
-        Path = this.Files(FileName)(1)
-        Ext = this.Files(FileName)(0)
+        Path = this.FileMap(FileName)(1)
+        Ext = this.FileMap(FileName)(0)
         If Ext = "frx" Then
             Ext = "frm"
-            this.Files(FileName)(0) = Ext
+            this.FileMap(FileName)(0) = Ext
         End If
         PathName = Path & Application.PathSeparator & FileName & "." & Ext
         
@@ -387,8 +379,8 @@ Attribute ProjectNodeSubtreeDelete.VB_Description = "Deletes all modules from th
     
     Dim File As Variant
     Dim Path As String
-    For Each File In this.Files.Keys
-        Path = this.Files(File)(2)
+    For Each File In this.FileMap.Keys
+        Path = this.FileMap(File)(2)
             
         If (Left$(Path, Len(Prefix)) = Prefix) Then
             If this.Project.VBComponents(File).Type <> vbext_ct_Document Then

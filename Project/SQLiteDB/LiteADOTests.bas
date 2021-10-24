@@ -146,12 +146,18 @@ Private Sub ztcCreate_ValidatesNewRelativeDatabasePath()
     On Error GoTo TestFail
 
 Arrange:
+    Dim FileName As String
+    FileName = "NewDB" & GenerateGUID & ".tmp"
     Dim RelativePathName As String
-    RelativePathName = REL_PREFIX & "NewDB.sqlite"
+    RelativePathName = "Temp" & PATH_SEP & FileName
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
-    Dim fso As New Scripting.FileSystemObject
-    If fso.FileExists(Expected) Then fso.DeleteFile Expected
+    '''' This test creates a new db file that remains locked for a certain
+    '''' period of time. If this test is rerun to soon, deletion will fail.
+    On Error Resume Next
+    MkDir ThisWorkbook.Path & PATH_SEP & "Temp"
+    Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
+    On Error GoTo TestFail
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(RelativePathName, AllowNonExistent:=True)
@@ -176,9 +182,7 @@ Private Sub ztcCreate_ValidatesNewAbsoluteDatabasePath()
     
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & "NewDB.sqlite"
-    Dim fso As New Scripting.FileSystemObject
-    If fso.FileExists(Expected) Then fso.DeleteFile Expected
+    Expected = Environ("temp") & PATH_SEP & "NewDB" & Left(GenerateGUID, 8) & ".tmp"
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)

@@ -128,10 +128,18 @@ Private Sub ztcCreate_ValidatesNewRelativeDatabasePath()
     On Error GoTo TestFail
 
 Arrange:
+    Dim FileName As String
+    FileName = "NewDB" & GenerateGUID & ".tmp"
     Dim RelativePathName As String
-    RelativePathName = REL_PREFIX & "NewDB.sqlite"
+    RelativePathName = "Temp" & PATH_SEP & FileName
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
+    '''' This test creates a new db file that remains locked for a certain
+    '''' period of time. If this test is rerun to soon, deletion will fail.
+    On Error Resume Next
+    MkDir ThisWorkbook.Path & PATH_SEP & "Temp"
+    Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
+    On Error GoTo TestFail
 Act:
     Dim dbm As SQLiteDB
     Set dbm = SQLiteDB.Create(RelativePathName, AllowNonExistent:=True)
@@ -155,8 +163,18 @@ Private Sub ztcCreate_ValidatesNewAbsoluteDatabasePath()
     On Error GoTo TestFail
 
 Arrange:
+    Dim FileName As String
+    FileName = "NewDB" & GenerateGUID & ".tmp"
+    Dim RelativePathName As String
+    RelativePathName = "Temp" & PATH_SEP & FileName
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & "NewDB.sqlite"
+    Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
+    '''' This test creates a new db file that remains locked for a certain
+    '''' period of time. If this test is rerun to soon, deletion will fail.
+    On Error Resume Next
+    MkDir ThisWorkbook.Path & PATH_SEP & "Temp"
+    Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
+    On Error GoTo TestFail
 Act:
     Dim dbm As SQLiteDB
     Set dbm = SQLiteDB.Create(Expected, AllowNonExistent:=True)

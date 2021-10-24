@@ -19,6 +19,29 @@ Private Const MsgExpectedErrNotRaised As String = "Expected error was not raised
 Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
 
 
+'@Description("Default class factory")
+Public Function Create() As Guard
+Attribute Create.VB_Description = "Default class factory"
+    Dim Result As Guard
+    Set Result = Guard 'For singleton, return the predeclared class object
+    Set Create = Result
+End Function
+
+
+'@Description("Returns instance reference")
+Public Property Get Self() As Guard
+Attribute Self.VB_Description = "Returns instance reference"
+    Set Self = Me
+End Property
+
+
+'@Description("Returns class reference")
+Public Property Get Class() As Guard
+Attribute Class.VB_Description = "Returns class reference"
+    Set Class = Guard
+End Property
+
+
 '@Description("Raises a run-time error if the specified string is empty.")
 Friend Sub EmptyString(ByVal Text As Variant)
 Attribute EmptyString.VB_Description = "Raises a run-time error if the specified string is empty."
@@ -118,7 +141,6 @@ Attribute Singleton.VB_Description = "Raises a run-time error if the specified i
         If .Trapped Then
             .Name = "SingletonErr"
             .Number = ErrNo.SingletonErr
-            '@Ignore ImplicitUnboundDefaultMemberAccess
             .Source = TypeName(instanceVar) & " type"
             .Message = "Singleton already instantiated"
             .Description = "Creation of non-default instances is not supported. Use predeclared instance."
@@ -142,9 +164,7 @@ Attribute NonDefaultInstance.VB_Description = "Raises a run-time error if the sp
         If .Trapped Then
             .Name = "NonDefaultInstanceErr"
             .Number = ErrNo.NonDefaultInstanceErr
-            '@Ignore ImplicitUnboundDefaultMemberAccess
             .Source = TypeName(classVar) & " Class"
-            '@Ignore ImplicitUnboundDefaultMemberAccess
             .Message = "Default (" & TypeName(classVar) & ") object instance must be used"
             .Description = vbNullString
             RaiseError errorDetails
@@ -260,9 +280,7 @@ Attribute DefaultInstance.VB_Description = "Raises a run-time error if the speci
         If .Trapped Then
             .Name = "DefaultInstanceErr"
             .Number = ErrNo.DefaultInstanceErr
-            '@Ignore ImplicitUnboundDefaultMemberAccess
             .Source = TypeName(classVar) & " Class"
-            '@Ignore ImplicitUnboundDefaultMemberAccess
             .Message = "Non-default (" & TypeName(classVar) & ") object instance must be used"
             .Description = vbNullString
             RaiseError errorDetails

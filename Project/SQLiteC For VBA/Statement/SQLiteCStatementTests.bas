@@ -975,7 +975,7 @@ Private Sub ztcGetRowSet2D_UpdateWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbTemp
+    Set dbc = FixObj.GetConnDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -987,7 +987,7 @@ Act:
     Dim SQLQuery As String
     SQLQuery = FixSQL.CREATETableINSERTValuesITRB
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
-    Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
+    Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch CREATE INSERT <" & CStr(AffectedRows) & ">"
     
     SQLQuery = FixSQL.UPDATETemplateITRB
     ResultCode = dbs.Prepare16V2(SQLQuery)

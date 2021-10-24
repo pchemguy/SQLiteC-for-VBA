@@ -1,7 +1,7 @@
 Attribute VB_Name = "GuardTests"
 Attribute VB_Description = "Tests for the Guard class."
 '@Folder "Common.Guard"
-''@TestModule
+'@TestModule
 '@ModuleDescription("Tests for the Guard class.")
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext
 Option Explicit
@@ -120,45 +120,43 @@ Private Sub DefaultInstance_ThrowsIfDefaultInstance()
 End Sub
 
 
-'''' Disabled test
-'''' @@TestMethod("Guard.Self")
-''Private Sub Self_CheckAvailability()
-''    On Error GoTo TestFail
-''
-''Arrange:
-''    Dim instanceVar As Object
-''    Set instanceVar = Guard.Create
-''Act:
-''    Dim selfVar As Object
-''    Set selfVar = instanceVar.Self
-''Assert:
-''    Assert.AreEqual TypeName(instanceVar), TypeName(selfVar), "Error: type mismatch: " & TypeName(selfVar) & " type."
-''    Assert.AreSame instanceVar, selfVar, "Error: bad Self pointer"
-''
-''CleanExit:
-''    Exit Sub
-''TestFail:
-''    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-''End Sub
+'@TestMethod("Guard.Self")
+Private Sub Self_CheckAvailability()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim instanceVar As Object
+    Set instanceVar = Guard.Create
+Act:
+    Dim selfVar As Object
+    Set selfVar = instanceVar.Self
+Assert:
+    Assert.AreEqual TypeName(instanceVar), TypeName(selfVar), "Error: type mismatch: " & TypeName(selfVar) & " type."
+    Assert.AreSame instanceVar, selfVar, "Error: bad Self pointer"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
 
 
-'''' Disabled test
-'''' @@TestMethod("Guard.Class")
-''Private Sub Class_CheckAvailability()
-''    On Error GoTo TestFail
-''
-''Arrange:
-''    Dim classVar As Object
-''    Set classVar = Guard
-''Act:
-''    Dim classVarReturned As Object
-''    Set classVarReturned = classVar.Create.Class
-''Assert:
-''    Assert.AreEqual TypeName(classVar), TypeName(classVarReturned), "Error: type mismatch: " & TypeName(classVarReturned) & " type."
-''    Assert.AreSame classVar, classVarReturned, "Error: bad Class pointer"
-''
-''CleanExit:
-''    Exit Sub
-''TestFail:
-''    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-''End Sub
+'@TestMethod("Guard.Class")
+Private Sub Class_CheckAvailability()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim classVar As Object
+    Set classVar = Guard
+Act:
+    Dim classVarReturned As Object
+    Set classVarReturned = classVar.Create.Class
+Assert:
+    Assert.AreEqual TypeName(classVar), TypeName(classVarReturned), "Error: type mismatch: " & TypeName(classVarReturned) & " type."
+    Assert.AreSame classVar, classVarReturned, "Error: bad Class pointer"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

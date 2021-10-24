@@ -17,7 +17,7 @@ Private Sub TestADODBSourceCMDCSV()
     Dim sSQL As String
     Dim sQTName As String
 
-    #If Win64 Then
+    #If WIN64 Then
         sDriver = "Microsoft Access Text Driver (*.txt, *.csv)"
     #Else
         sDriver = "{Microsoft Text Driver (*.txt; *.csv)}"
@@ -180,7 +180,7 @@ Private Sub TestADODBSourceCSV()
     Dim AdoConnStr As String
     Dim sSQL As String
 
-    #If Win64 Then
+    #If WIN64 Then
         sDriver = "Microsoft Access Text Driver (*.txt, *.csv)"
     #Else
         sDriver = "{Microsoft Text Driver (*.txt; *.csv)}"
@@ -216,7 +216,7 @@ Private Sub TestADODBConnectCSV()
     Dim AdoConnStr As String
     Dim sSQL As String
 
-    #If Win64 Then
+    #If WIN64 Then
         sDriver = "Microsoft Access Text Driver (*.txt, *.csv)"
     #Else
         sDriver = "{Microsoft Text Driver (*.txt; *.csv)}"

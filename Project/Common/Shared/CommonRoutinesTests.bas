@@ -1,6 +1,6 @@
 Attribute VB_Name = "CommonRoutinesTests"
 '@Folder "Common.Shared"
-''@TestModule
+'@TestModule
 '@IgnoreModule LineLabelNotUsed
 '@IgnoreModule UnhandledOnErrorResumeNext: Test routines validating expected errors do not need to resume error handling
 '@IgnoreModule FunctionReturnValueDiscarded: Test routines validating expected errors may not need the returned value
@@ -8,6 +8,8 @@ Attribute VB_Name = "CommonRoutinesTests"
 Option Explicit
 Option Private Module
 
+
+#Const LateBind = LateBindTests
 #If LateBind Then
     Private Assert As Object
 #Else

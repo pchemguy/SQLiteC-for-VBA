@@ -50,11 +50,11 @@ Act:
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
 Assert:
-        ResultCode = dbc.OpenDb(SQLITE_OPEN_DEFAULT)
+    ResultCode = dbc.OpenDb(SQLITE_OPEN_DEFAULT)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        DbAccessMode = dbc.AccessMode("main")
+    DbAccessMode = dbc.AccessMode("main")
     Assert.AreEqual SQLITE_DB_FULL, DbAccessMode, "Expected full db access mode"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:
@@ -76,11 +76,11 @@ Act:
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
 Assert:
-        ResultCode = dbc.OpenDb(SQLITE_OPEN_READONLY)
+    ResultCode = dbc.OpenDb(SQLITE_OPEN_READONLY)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        DbAccessMode = dbc.AccessMode("main")
+    DbAccessMode = dbc.AccessMode("main")
     Assert.AreEqual SQLITE_DB_READ, DbAccessMode, "Expected read db access mode"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:
@@ -102,11 +102,11 @@ Act:
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
 Assert:
-        ResultCode = dbc.OpenDb(SQLITE_OPEN_DEFAULT)
+    ResultCode = dbc.OpenDb(SQLITE_OPEN_DEFAULT)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-        DbAccessMode = dbc.AccessMode("main")
+    DbAccessMode = dbc.AccessMode("main")
     Assert.AreEqual SQLITE_DB_READ, DbAccessMode, "Expected read db access mode"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
 CleanExit:

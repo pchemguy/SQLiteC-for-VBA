@@ -35,6 +35,11 @@ Public Function GenerateSerialID() As Double
 End Function
 
 
+Public Function GenerateGUID() As String
+    GenerateGUID = Mid$(CreateObject("Scriptlet.TypeLib").GUID, 2, 36)
+End Function
+
+
 '''' When sub/function captures a list of arguments in a ParamArray and passes it
 '''' to the next routine expecting a list of arguments, the second routine receives
 '''' a 2D array instead of 1D with the outer dimension having a single element.

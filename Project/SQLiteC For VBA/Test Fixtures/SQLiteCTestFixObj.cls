@@ -56,6 +56,11 @@ End Function
 Public Function GetConnDbReadOnlyAttr() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & "ReadOnlyAttr.db"
+    '@Ignore SelfAssignedDeclaration
+    Dim fso As New Scripting.FileSystemObject
+    With fso.GetFile(DbPathName)
+        .Attributes = .Attributes Or ReadOnly
+    End With
     Set GetConnDbReadOnlyAttr = GetConnection(DbPathName)
 End Function
 
