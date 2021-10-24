@@ -5,6 +5,7 @@ Option Explicit
 Public Enum ErrNo
     PassedNoErr = 0&
     InvalidProcedureCallOrArgumentErr = 5&
+    OutOfMemoryErr = 7&
     SubscriptOutOfRange = 9&
     TypeMismatchErr = 13&
     BadFileNameOrNumberErr = 52&
@@ -17,9 +18,10 @@ Public Enum ErrNo
     InvalidObjectUseErr = 425&
     MemberNotExistErr = 438&
     ActionNotSupportedErr = 445&
+    KeyAlreadyExistsErr = 457&
     InvalidParameterErr = 1004&
     NoObject = 31004&
-    
+        
     CustomErr = VBA.vbObjectError + 1000&
     NotImplementedErr = VBA.vbObjectError + 1001&
     IncompatibleArraysErr = VBA.vbObjectError + 1002&
@@ -34,6 +36,8 @@ Public Enum ErrNo
     InvalidCharacterErr = VBA.vbObjectError + 2014&
     ConsistencyCheckErr = VBA.vbObjectError + 2024&
     IntegrityCheckErr = VBA.vbObjectError + 2034&
+    ConnectionNotOpenedErr = vbObjectError + 3000
+    StatementNotPreparedErr = vbObjectError + 3001
     TextStreamReadErr = &H80070021
     OLE_DB_ODBC_Err = &H80004005
     AdoFeatureNotAvailableErr = ADODB.ErrorValueEnum.adErrFeatureNotAvailable

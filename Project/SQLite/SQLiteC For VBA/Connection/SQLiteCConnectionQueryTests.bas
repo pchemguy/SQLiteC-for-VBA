@@ -10,8 +10,6 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private FixObj As SQLiteCTestFixObj
-Private FixSQL As SQLiteCTestFixSQL
 
 
 'This method runs once per module.
@@ -22,8 +20,6 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 End Sub
 
 
@@ -31,7 +27,6 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set FixObj = Nothing
 End Sub
 
 
@@ -46,13 +41,13 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.CreateWithValues
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -83,7 +78,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
@@ -91,7 +86,7 @@ Arrange:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.CreateWithValues
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
 Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
@@ -115,14 +110,14 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.CreateWithValues
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -157,14 +152,14 @@ Private Sub ztcExecuteNonQueryPlain_TransactionTriggeredByAttemptedTableDrop()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.DROPTableITRB & vbNewLine & FixSQL.CREATETableINSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.Drop & vbNewLine & FixSQLMain.ITRB.CreateWithValues
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -196,9 +191,9 @@ Private Sub ztcChangesCount_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableINSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.CreateWithValues
     Dim AffectedRecords As Long
     AffectedRecords = -2
     
@@ -218,7 +213,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:

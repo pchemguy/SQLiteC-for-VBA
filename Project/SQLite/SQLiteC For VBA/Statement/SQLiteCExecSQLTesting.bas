@@ -10,8 +10,6 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private FixObj As SQLiteCTestFixObj
-Private FixSQL As SQLiteCTestFixSQL
 
 
 'This method runs once per module.
@@ -22,8 +20,6 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 End Sub
 
 
@@ -31,7 +27,6 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set FixObj = Nothing
 End Sub
 
 
@@ -46,9 +41,9 @@ Private Sub ztcSQLiteTypeName_VerifiesSQLiteTypeName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.GetDefaultDBM
+    Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -72,9 +67,9 @@ Private Sub ztcSQLiteTypeAffinityName_VerifiesSQLiteTypeAffinityName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.GetDefaultDBM
+    Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -98,9 +93,9 @@ Private Sub ztcTypeAffinityFromDeclaredType_VerifiesDeclaredTypeHandling()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.GetDefaultDBM
+    Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -125,9 +120,9 @@ Private Sub ztcTypeAffinityMap_VerifiesMappingToSQLiteTypes()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixObj.GetDefaultDBM
+    Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -151,14 +146,14 @@ Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.SELECTFunctionsPragmaTable
+    SQLQuery = FixSQLMain.Func.SelectPragmaRowid
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
@@ -202,14 +197,14 @@ Private Sub ztcColumnMetaAPI_ThrowsOnUninitializedSQLiteColumnMeta()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.SELECTFunctionsPragmaTable
+    SQLQuery = FixSQLMain.Func.SelectPragmaNoRowid
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
@@ -230,7 +225,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -239,10 +234,10 @@ Arrange:
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     Dim AffectedRows As Long
-    AffectedRows = FixObj.CreateFunctionsTableWithData(dbc)
+    AffectedRows = FixMain.ObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.SELECTFunctionsTable
+    SQLQuery = FixSQLMain.Func.SelectNoRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect
@@ -273,14 +268,14 @@ Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableITRBrowid
+    SQLQuery = FixSQLMain.ITRB.CreateRowid
     Dim AffectedRows As Long
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error."
@@ -297,7 +292,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -307,11 +302,11 @@ Arrange:
 
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-    SQLQuery = FixSQL.CREATETableITRBrowid & FixSQL.INSERTValuesITRB
+    SQLQuery = FixSQLMain.ITRB.CreateRowidWithValues
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.IsTrue AffectedRows = 5, "Failed to INSERT test data."
 Act:
-    SQLQuery = FixSQL.SELECTTestTable
+    SQLQuery = FixSQLMain.ITRB.SelectRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect
@@ -346,7 +341,7 @@ Assert:
         Assert.AreEqual "INT", .DeclaredTypeT, "Expected DeclaredTypeT=INT"
         Assert.AreEqual "BINARY", .Collation, "Expected Collation=BINARY"
         Assert.AreEqual "main", .DbName, "Expected DbName=main"
-        Assert.AreEqual "t1", .TableName, "Expected TableName=t1"
+        Assert.AreEqual "itrb", .TableName, "Expected TableName=itrb"
     End With
     
     With TableMeta(3)

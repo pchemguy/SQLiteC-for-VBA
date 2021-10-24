@@ -245,7 +245,7 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         Dim hStmt As Long
     #End If
     hStmt = dbs.StmtHandle
-    If hStmt = 0 Then Err.Raise StatementNotPreparedErr, "SQLiteCExecSQL", _
+    If hStmt = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, "SQLiteCExecSQL", _
         "Statement is not prepared."
     
     Dim ResultCode As SQLiteResultCodes
@@ -382,7 +382,7 @@ End Function
 ''''
 Friend Function ExecuteStepAPI() As SQLiteResultCodes
     With this.DbStmt
-        If .StmtHandle = 0 Then Err.Raise StatementNotPreparedErr, _
+        If .StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
                 "SQLiteCExecSQL", "Statement is not prepared."
         Dim ResultCode As SQLiteResultCodes
         ResultCode = sqlite3_step(.StmtHandle)
@@ -398,7 +398,7 @@ End Function
 
 
 Public Function ColumnCountAPI() As Long
-    If this.DbStmt.StmtHandle = 0 Then Err.Raise StatementNotPreparedErr, _
+    If this.DbStmt.StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
         "SQLiteCExecSQL", "Statement is not prepared."
     this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     ColumnCountAPI = this.ColumnCount
@@ -431,7 +431,7 @@ Friend Function GetColumnValueAPI( _
         Dim RemoteBufPtr As Long
     #End If
     hStmt = this.DbStmt.StmtHandle
-    If hStmt = 0 Then Err.Raise StatementNotPreparedErr, "SQLiteCExecSQL", _
+    If hStmt = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, "SQLiteCExecSQL", _
         "Statement is not prepared."
     
     Dim ColumnType As SQLiteType

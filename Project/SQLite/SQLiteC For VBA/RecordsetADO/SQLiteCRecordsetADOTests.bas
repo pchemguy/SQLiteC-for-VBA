@@ -10,8 +10,6 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private FixObj As SQLiteCTestFixObj
-Private FixSQL As SQLiteCTestFixSQL
 
 
 'This method runs once per module.
@@ -22,8 +20,6 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set FixObj = New SQLiteCTestFixObj
-    Set FixSQL = New SQLiteCTestFixSQL
 End Sub
 
 
@@ -31,7 +27,6 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set FixObj = Nothing
 End Sub
 
 
@@ -46,7 +41,7 @@ Private Sub ztcAddMeta_InsertPlainSelectFromITRBTableRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -57,9 +52,9 @@ Arrange:
     Dim Attr As ADODB.FieldAttributeEnum
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQL.CREATETableITRBrowid
+    SQLQuery = FixSQLMain.ITRB.CreateRowid
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
-    SQLQuery = FixSQL.SELECTTestTable
+    SQLQuery = FixSQLMain.ITRB.SelectRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect

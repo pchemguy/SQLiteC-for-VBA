@@ -96,7 +96,7 @@ End Property
 '@Description "Creates a new SQLiteCConnection instance."
 Public Function CreateConnection(ByVal DbPathName As String) As SQLiteCConnection
 Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
-    If this.DbConnMan.Exists(DbPathName) Then Err.Raise KeyAlreadyExistsErr, _
+    If this.DbConnMan.Exists(DbPathName) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(DbPathName)
@@ -104,7 +104,7 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
     Dim DbConnId As String
     DbConnId = DbConn.DbPathName
-    If this.DbConnMan.Exists(DbConnId) Then Err.Raise KeyAlreadyExistsErr, _
+    If this.DbConnMan.Exists(DbConnId) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
     If IsNull(this.MainDB) Then this.MainDB = DbConnId
     Set this.DbConnMan(DbConnId) = DbConn

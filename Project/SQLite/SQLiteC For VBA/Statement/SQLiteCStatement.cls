@@ -128,7 +128,7 @@ End Property
 '@Description "Generates SQLite PSO."
 Friend Function Prepare16V2(ByVal SQLQuery As String) As SQLiteResultCodes
 Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
-    If this.DbConn.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+    If this.DbConn.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
         "SQLiteCStatement", "Database connection is not opened!"
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_prepare16_v2(this.DbConn.DbHandle, StrPtr(SQLQuery), _
@@ -432,7 +432,7 @@ Attribute SQLQueryExpanded.VB_Description = "Returns SQL query supplied to the P
     #End If
     SQLQueryPtr = sqlite3_expanded_sql(this.StmtHandle)
     If SQLQueryPtr = 0 Then
-        Err.Raise OutOfMemoryErr, "SQLiteCStatement/SQLQueryExpanded", _
+        Err.Raise ErrNo.OutOfMemoryErr, "SQLiteCStatement/SQLQueryExpanded", _
                   "SQLite DLL returned NULL pointer"
     End If
     Dim SQLQueryText As String
@@ -462,7 +462,7 @@ Attribute SQLQueryOriginal.VB_Description = "Returns original (optionally normal
         SQLQueryPtr = sqlite3_sql(this.StmtHandle)
     End If
     If SQLQueryPtr = 0 Then
-        Err.Raise OutOfMemoryErr, "SQLiteCStatement/SQLQuery", _
+        Err.Raise ErrNo.OutOfMemoryErr, "SQLiteCStatement/SQLQuery", _
                   "SQLite DLL returned NULL pointer"
     End If
     SQLQueryOriginal = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)

@@ -240,7 +240,7 @@ End Function
 ''''   - dictionary, specifying type for each parameter (can be
 ''''     passed as an optional second argument.
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
-    If this.DbStmt.StmtHandle = 0 Then Err.Raise StatementNotPreparedErr, _
+    If this.DbStmt.StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
         "SQLiteCParameters", "Statement is not prepared."
     If TypeName(ParamValues) = "Dictionary" Then
         BindDictOrArray = BindDict(ParamValues)

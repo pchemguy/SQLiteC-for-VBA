@@ -10,7 +10,6 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private FixObj As SQLiteCTestFixObj
 
 
 'This method runs once per module.
@@ -21,7 +20,6 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set FixObj = New SQLiteCTestFixObj
 End Sub
 
 
@@ -29,7 +27,6 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set FixObj = Nothing
 End Sub
 
 
@@ -45,7 +42,7 @@ Private Sub ztcAccessMode_VerifiesDefaultAccess()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
@@ -71,7 +68,7 @@ Private Sub ztcAccessMode_VerifiesReadAccess()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
@@ -97,7 +94,7 @@ Private Sub ztcAccessMode_VerifiesDefaultAccessReadOnlyFile()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbReadOnlyAttr
+    Set dbc = FixMain.ObjC.GetDBCDbReadOnlyAttr
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL

@@ -10,7 +10,6 @@ Option Private Module
 #Else
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
-Private FixObj As SQLiteCTestFixObj
 
 
 'This method runs once per module.
@@ -21,7 +20,6 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
-    Set FixObj = New SQLiteCTestFixObj
 End Sub
 
 
@@ -29,7 +27,6 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-    Set FixObj = Nothing
 End Sub
 
 
@@ -45,7 +42,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbRegular
+    Set dbc = FixMain.ObjC.GetDBCDbRegular
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
@@ -67,7 +64,7 @@ Act:
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -87,7 +84,7 @@ Act:
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbAnon
+    Set dbc = FixMain.ObjC.GetDBCDbAnon
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -103,7 +100,7 @@ Private Sub ztcAttachedDbPathName_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Debug.Print dbc.DbPathName = dbc.AttachedDbPathName
     
     Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
@@ -116,7 +113,7 @@ Private Sub ztcAttachedDbPathName_VerifiesTempDbPathName()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbTemp
+    Set dbc = FixMain.ObjC.GetDBCDbTemp
     Dim ResultCode As SQLiteResultCodes
 Act:
     ResultCode = dbc.OpenDb
@@ -141,7 +138,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbRegular
+    Set dbc = FixMain.ObjC.GetDBCDbRegular
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -165,7 +162,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbAnon
+    Set dbc = FixMain.ObjC.GetDBCDbAnon
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb
@@ -189,7 +186,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithMemoryDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObj.GetConnDbMemory
+    Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
         ResultCode = dbc.OpenDb

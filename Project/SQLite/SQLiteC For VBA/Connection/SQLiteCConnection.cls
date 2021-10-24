@@ -164,7 +164,7 @@ End Property
 
 Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
                                   ) As String
-    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
         "SQLiteCConnection", "Database connection is not opened!"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
@@ -184,7 +184,7 @@ End Property
 Public Function CreateStatement(ByVal StmtName As String) As SQLiteCStatement
 Attribute CreateStatement.VB_Description = "Creates a new SQLiteCStatement instance."
     If this.Statements.Exists(StmtName) Then
-        Err.Raise KeyAlreadyExistsErr, "SQLiteCConnection", _
+        Err.Raise ErrNo.KeyAlreadyExistsErr, "SQLiteCConnection", _
                   "Statement name already exists!"
     End If
     Dim DbStmt As SQLiteCStatement
@@ -301,7 +301,7 @@ End Function
 Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
                           ) As SQLiteDbAccess
 Attribute AccessMode.VB_Description = "Queries database access mode."
-    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
         "SQLiteCConnection", "Database connection is not opened!"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
@@ -315,7 +315,7 @@ End Function
 '@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
 Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
-    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
         "SQLiteCConnection", "Database connection is not opened!"
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
@@ -360,7 +360,7 @@ Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
     
-    If this.DbHandle = 0 Then Err.Raise ConnectionNotOpenedErr, _
+    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
         "SQLiteCConnection", "Database connection is not opened!"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
