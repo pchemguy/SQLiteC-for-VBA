@@ -63,8 +63,8 @@ Friend Sub Init(ByVal DbPathName As String, _
     this.DbPathName = ExistsAccesibleValid(DbPathName, AllowNonExistent)
 End Sub
 
-Public Property Get Database() As String
-    Database = this.DbPathName
+Public Property Get DatabasePathName() As String
+    DatabasePathName = this.DbPathName
 End Property
 
 Public Property Get ErrNumber() As Long
@@ -228,20 +228,29 @@ Friend Function ExistsAccesibleValid(ByVal DbPathName As String, _
 Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and basic integrity checks via OS."
     Const ThisProcName As String = "ExistsAccesibleValid"
     
-    If DbPathName = ":memory:" Then
-        ExistsAccesibleValid = DbPathName
-        Exit Function
-    End If
+    Dim FilePathName As String
+    FilePathName = LCase$(DbPathName)
+    Select Case FilePathName
+        Case ":memory:"
+            ExistsAccesibleValid = FilePathName
+            Exit Function
+        Case ":temp:", ":tmp:"
+            ExistsAccesibleValid = Environ("TEMP") & Application.PathSeparator & _
+                Format(Now, "yyyy_mm_dd-hh_mm_ss-") & Left(GenerateGUID, 8) & ".db"
+            Exit Function
+        Case ":blank:"
+            ExistsAccesibleValid = vbNullString
+            Exit Function
+    End Select
     
     Dim EnableResolve As Boolean
     EnableResolve = (VarType(AllowNonExistent) = vbBoolean)
     
     On Error GoTo FILEPATH_ERROR
-        Dim FilePathName As String
         If EnableResolve Then
             '''' Expected error: FileNotFound
             FilePathName = VerifyOrGetDefaultPath( _
-                               DbPathName, Array("db", "sqlite"), AllowNonExistent)
+                DbPathName, Array("db", "sqlite"), AllowNonExistent)
         Else
             FilePathName = DbPathName
         End If

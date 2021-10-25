@@ -20,10 +20,14 @@ Option Explicit
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
     Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal hLibModule As LongPtr) As Long
     Private Declare PtrSafe Function SetDllDirectory Lib "kernel32" Alias "SetDllDirectoryW" (ByVal lpPathName As String) As Boolean
+    Private Declare PtrSafe Function GetModuleFileName Lib "kernel32" Alias "GetModuleFileNameW" _
+        (ByVal hModule As LongPtr, ByVal lpFilename As LongPtr, ByVal nSize As Long) As Long
 #Else
     Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
     Private Declare Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) As Long
     Private Declare Function SetDllDirectory Lib "kernel32" Alias "SetDllDirectoryW" (ByVal lpPathName As String) As Boolean
+    Private Declare Function GetModuleFileName Lib "kernel32" Alias "GetModuleFileNameW" _
+        (ByVal hModule As Long, ByVal lpFilename As Long, ByVal nSize As Long) As Long
 #End If
 
 Private Const VERBOUS As Boolean = False
@@ -39,7 +43,7 @@ Private Const LoadingDllErr As Long = 48
 
 Private Type TDllManager
     DefaultPath As String
-    Dlls As Scripting.Dictionary
+    Dlls As Scripting.Dictionary '''' Dll file name to handle map
 End Type
 Private this As TDllManager
 
@@ -123,7 +127,9 @@ Public Sub ResetDllSearchPath()
 End Sub
 
 
-Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vbNullString) As DllLoadStatus
+Public Function Load(ByVal DllName As String, _
+            Optional ByVal Path As String = vbNullString, _
+            Optional ByVal ResolvePath As Boolean = True) As DllLoadStatus
     Guard.EmptyString DllName
     
     Dim fso As New Scripting.FileSystemObject
@@ -136,36 +142,40 @@ Public Function Load(ByVal DllName As String, Optional ByVal Path As String = vb
         Exit Function
     End If
     
-    Dim Prefix As String
-    If Len(Path) = 0 Then
-        '''' Default path
-        Prefix = this.DefaultPath
-    Else
-        If fso.FolderExists(Path) Then
-            '''' Absolute existing path is provided
-            Prefix = Path
-        ElseIf fso.FolderExists(fso.BuildPath(ThisWorkbook.Path, Path)) Then
-            '''' Relative existing path is provided
-            Prefix = fso.BuildPath(ThisWorkbook.Path, Path)
+    Dim FilePathName As String
+    If ResolvePath Then
+        Dim Prefix As String
+        If Len(Path) = 0 Then
+            '''' Default path
+            Prefix = this.DefaultPath
+        Else
+            If fso.FolderExists(Path) Then
+                '''' Absolute existing path is provided
+                Prefix = Path
+            ElseIf fso.FolderExists(fso.BuildPath(ThisWorkbook.Path, Path)) Then
+                '''' Relative existing path is provided
+                Prefix = fso.BuildPath(ThisWorkbook.Path, Path)
+            Else
+                Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
+                          "Path not found: <" & Path & ">"
+            End If
+        End If
+        Prefix = fso.GetAbsolutePathName(Prefix)
+        
+        If fso.FileExists(DllName) Then
+            FilePathName = DllName
+        ElseIf fso.FileExists(fso.BuildPath(Prefix, DllName)) Then
+            FilePathName = fso.BuildPath(Prefix, DllName)
+        ElseIf fso.FileExists(fso.BuildPath(this.DefaultPath, DllName)) Then
+            FilePathName = fso.BuildPath(this.DefaultPath, DllName)
         Else
             Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
-                      "Path not found: <" & Path & ">"
+                      "DllName not found: <" & DllName & ">"
         End If
-    End If
-    Prefix = fso.GetAbsolutePathName(Prefix)
-    
-    Dim FilePathName As String
-    If fso.FileExists(DllName) Then
-        FilePathName = DllName
-    ElseIf fso.FileExists(fso.BuildPath(Prefix, DllName)) Then
-        FilePathName = fso.BuildPath(Prefix, DllName)
-    ElseIf fso.FileExists(fso.BuildPath(this.DefaultPath, DllName)) Then
-        FilePathName = fso.BuildPath(this.DefaultPath, DllName)
+        FilePathName = fso.GetAbsolutePathName(FilePathName)
     Else
-        Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
-                  "DllName not found: <" & DllName & ">"
+        FilePathName = DllName
     End If
-    FilePathName = fso.GetAbsolutePathName(FilePathName)
     
     Dim LastDllError As Long
     #If VBA7 Then
@@ -243,4 +253,19 @@ Public Function FreeMultiple(ParamArray DllNames() As Variant) As DllLoadStatus
     Next FileNameIndex
     If Result = LOAD_OK Then Debug.Print "DLLs unloaded"
     FreeMultiple = Result
+End Function
+
+
+Public Function GetDllPath(ByVal DllName As String) As String
+    Guard.EmptyString DllName
+    If Not this.Dlls.Exists(DllName) Then
+        GetDllPath = vbNullString
+        Exit Function
+    End If
+    Const MAX_PATH = 260
+    Dim PathName As String
+    PathName = Space$(MAX_PATH + 1)
+    Dim PathLength As Long
+    PathLength = GetModuleFileName(this.Dlls(DllName), StrPtr(PathName), MAX_PATH)
+    GetDllPath = PathName
 End Function

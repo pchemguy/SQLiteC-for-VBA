@@ -74,7 +74,7 @@ End Function
 '===================================================='
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_TraversesLockedFolder()
     On Error GoTo TestFail
 
@@ -84,7 +84,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual FilePathName, .Database, "Database should be set"
+        Assert.AreEqual FilePathName, .DatabasePathName, "Database should be set"
         Assert.AreEqual 0, .ErrNumber, "ErrNumber should be 0"
         Assert.AreEqual 0, Len(.ErrSource), "ErrSource should be blank"
         Assert.AreEqual 0, Len(.ErrDescription), "ErrDescription should be blank"
@@ -106,7 +106,7 @@ End Sub
 ''''   work properly.
 ''''
 '''' ##########################################################################
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnLastFolderACLLock()
     On Error GoTo TestFail
 
@@ -125,7 +125,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        If Len(.Database) > 0 Then Assert.Inconclusive "Database should not be set"
+        If Len(.DatabasePathName) > 0 Then Assert.Inconclusive "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -139,7 +139,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnIllegalPath()
     On Error GoTo TestFail
 
@@ -157,7 +157,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -171,7 +171,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnNonExistentPath()
     On Error GoTo TestFail
 
@@ -189,7 +189,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -203,7 +203,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnNonExistentFile()
     On Error GoTo TestFail
 
@@ -218,7 +218,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -232,7 +232,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnLT100File()
     On Error GoTo TestFail
 
@@ -248,7 +248,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -262,7 +262,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnBadMagic()
     On Error GoTo TestFail
 
@@ -278,7 +278,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -292,7 +292,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnReadLockedFile()
     On Error GoTo TestFail
 
@@ -315,7 +315,7 @@ Act:
     dbm.ExecuteNonQuery "ROLLBACK"
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -329,7 +329,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Integrity checking")
+'@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnEmptyPath()
     On Error GoTo TestFail
 
@@ -347,7 +347,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -373,7 +373,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
     Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
-    Assert.AreEqual Expected, PathCheck.Database, "Resolved path mismatch"
+    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
 
 CleanExit:
     Exit Sub
@@ -397,7 +397,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, True)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -427,7 +427,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, vbNullString)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.IsTrue InStr(.ErrSource, ErrSource) > 0, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -457,7 +457,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, vbNullString)
 Assert:
     With PathCheck
-        Assert.AreEqual 0, Len(.Database), "Database should not be set"
+        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
         Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
         Assert.IsTrue InStr(.ErrSource, ErrSource) > 0, "ErrSource mismatch"
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
@@ -483,7 +483,7 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
     Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
-    Assert.AreEqual Expected, PathCheck.Database, "Resolved path mismatch"
+    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
 
 CleanExit:
     Exit Sub
@@ -504,8 +504,77 @@ Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
     Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
-    Assert.AreEqual Expected, PathCheck.Database, "Resolved path mismatch"
+    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
 
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesInMemory()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = ":MEmoRy:"
+    Dim Expected As String
+    Expected = LCase$(FilePathName)
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesAnonPath()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = ":blank:"
+    Dim Expected As String
+    Expected = vbNullString
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesTemp()
+    On Error GoTo TestFail
+
+Arrange:
+    FilePathName = ":temp:"
+    Dim Actual As String
+    Dim Prefix As String
+    Dim SuffixPattern As String
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+    Prefix = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_")
+    SuffixPattern = "ss-12345678.db"
+    Actual = PathCheck.DatabasePathName
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Prefix, Left$(Actual, Len(Prefix)), "Resolved path mismatch"
+    Assert.AreEqual ".db", Right$(Actual, 3), "Resolved path mismatch"
+    Assert.AreEqual Len(Prefix) + Len(SuffixPattern), Len(Actual), "Resolved path mismatch"
+    
 CleanExit:
     Exit Sub
 TestFail:

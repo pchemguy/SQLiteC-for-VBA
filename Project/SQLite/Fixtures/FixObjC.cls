@@ -85,11 +85,9 @@ Public Function GetDBCDbTemp() As SQLiteCConnection
     Dim DbFilePath As String
     DbFilePath = Environ("TEMP")
     Dim DbFileName As String
-    DbFileName = Replace(Replace(Replace(Now(), "/", "-"), " ", "_"), ":", "-")
-    Dim DbFileExt As String
-    DbFileExt = ".db"
+    DbFileName = Format(Now, "yyyy_mm_dd-hh_mm_ss") & ".db"
     Dim DbPathName As String
-    DbPathName = fso.BuildPath(DbFilePath, DbFileName) & DbFileExt
+    DbPathName = fso.BuildPath(DbFilePath, DbFileName)
     Set GetDBCDbTemp = GetDBC(DbPathName)
 End Function
 

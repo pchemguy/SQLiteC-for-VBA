@@ -94,12 +94,13 @@ End Property
 '''' vbNullString is an acceptable StmtName.
 '''' Raises an error if DbPathName (or resolved value) has already been used.
 '@Description "Creates a new SQLiteCConnection instance."
-Public Function CreateConnection(ByVal DbPathName As String) As SQLiteCConnection
-Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
+Public Function CreateConnection(ByVal DbPathName As String, _
+                        Optional ByVal AllowNonExistent As Variant = Empty _
+                        ) As SQLiteCConnection
     If this.DbConnMan.Exists(DbPathName) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
     Dim DbConn As SQLiteCConnection
-    Set DbConn = SQLiteCConnection(DbPathName)
+    Set DbConn = SQLiteCConnection(DbPathName, AllowNonExistent)
     If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
     Dim DbConnId As String

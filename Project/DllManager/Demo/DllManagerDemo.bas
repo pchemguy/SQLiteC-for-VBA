@@ -61,6 +61,19 @@ Private Sub SQLiteLoadMultipleArray()
 End Sub
 
 
+Private Sub WinSQLiteLoad()
+    Dim DllName As String
+    DllName = "WinSQLite3"
+    Dim DllMan As DllManager
+    Set DllMan = DllManager.Create(vbNullString)
+    Set this.DllMan = DllMan
+    Dim LoadResult As DllLoadStatus
+    LoadResult = DllMan.Load(DllName, , False)
+    Debug.Print DllMan.GetDllPath(DllName)
+    Set this.DllMan = Nothing
+End Sub
+
+
 ' ========================= '
 ' Additional usage examples '
 ' ========================= '
@@ -137,5 +150,3 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub
-
-

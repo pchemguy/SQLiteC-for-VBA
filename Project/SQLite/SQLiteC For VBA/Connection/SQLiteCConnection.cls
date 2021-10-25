@@ -118,17 +118,24 @@ Private this As TSQLiteCConnection
 
 
 '@DefaultMember
-Public Function Create(ByVal DbPathName As String) As SQLiteCConnection
-Attribute Create.VB_UserMemId = 0
+Public Function Create(ByVal DbPathName As String, _
+              Optional ByVal AllowNonExistent As Variant = Empty _
+              ) As SQLiteCConnection
     Dim Instance As SQLiteCConnection
     Set Instance = New SQLiteCConnection
-    Instance.Init DbPathName
+    Instance.Init DbPathName, AllowNonExistent
     Set Create = Instance
 End Function
 
 
-Friend Sub Init(ByVal DbPathName As String)
+Friend Sub Init(ByVal DbPathName As String, _
+       Optional ByVal AllowNonExistent As Variant = Empty)
     Dim FilePathName As String
+'    Dim PathCheck As LiteFSCheck
+'    Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
+'    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
+'                        "SQLiteCConnection", "Failed to resolve db path."
+'    FilePathName = PathCheck.DatabasePathName
     FilePathName = DbPathName
     '''' TODO: DbPath validation
     ''''       This task should be performed by SQLiteDBVBA.LiteFSCheck class.
