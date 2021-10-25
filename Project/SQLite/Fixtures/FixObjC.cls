@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Provides instantiated library objects"
 '@Folder "SQLite.Fixtures"
-'@ModuleDescription "Provides instantiated library objects"
+'@ModuleDescription "Provides instantiated SQLiteC library objects"
 '@PredeclaredId
 '@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
 Option Explicit
