@@ -1,7 +1,8 @@
 Attribute VB_Name = "FixUtilsTests"
 '@Folder "SQLite.Fixtures"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, UnhandledOnErrorResumeNext
 Option Explicit
 Option Private Module
 

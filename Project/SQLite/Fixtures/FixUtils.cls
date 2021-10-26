@@ -11,6 +11,7 @@ Attribute VB_Description = "Provides convenience utilities"
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides convenience utilities"
 '@PredeclaredId
+'@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
 
 
@@ -23,6 +24,7 @@ Option Explicit
 ''''
 '@Description "Generates VBA string from ASCII byte array"
 Public Function AsciiByteArrayToString(ByRef AsciiBytes() As Byte) As String
+Attribute AsciiByteArrayToString.VB_Description = "Generates VBA string from ASCII byte array"
     AsciiByteArrayToString = StrConv(AsciiBytes, vbUnicode)
 End Function
 
@@ -43,6 +45,7 @@ End Function
 ''''
 '@Description "Generates byte array from either multiple single byte arguments or a single string of ASCII letters"
 Public Function ByteArray(ParamArray Values() As Variant) As Byte()
+Attribute ByteArray.VB_Description = "Generates byte array from either multiple single byte arguments or a single string of ASCII letters"
     Dim ValuesLocal As Variant
     ValuesLocal = UnfoldParamArray(Values)
     Dim Buffer() As Byte
@@ -93,6 +96,7 @@ End Function
 ''''
 '@Description "Given a byte, generates its hex string representation."
 Public Function ByteToHex(ByVal ByteCode As Byte) As String
+Attribute ByteToHex.VB_Description = "Given a byte, generates its hex string representation."
     Dim HexDigitMap As Variant
     HexDigitMap = Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F")
     ByteToHex = HexDigitMap(ByteCode \ 16) & HexDigitMap(ByteCode Mod 16)
@@ -101,6 +105,7 @@ End Function
 
 '@Description "Generates Dictionary from separate arrays of keys and values"
 Public Function KeysValuesToDict(ByVal Keys As Variant, ByVal Values As Variant) As Scripting.Dictionary
+Attribute KeysValuesToDict.VB_Description = "Generates Dictionary from separate arrays of keys and values"
     Guard.NotArray Keys
     Guard.NotArray Values
     Guard.IncompatibleArrays Keys, Values
@@ -159,6 +164,7 @@ End Function
 ''''     with "ArrayType". Automatic typecasting is performed by VBA, if
 ''''     possible. Otherwise, it should raise the TypeMismatch error.
 ''''
+'@Ignore ParameterCanBeByVal: False positive
 '@Description "Populates a dynamic typed array."
 Public Function ArrayXB(ByRef DynamicTypedArray As Variant, _
                    ByVal BaseIndex As Long, _

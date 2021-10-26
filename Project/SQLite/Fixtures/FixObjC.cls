@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Description = "Provides instantiated library objects"
+Attribute VB_Description = "Provides instantiated SQLiteC library objects"
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides instantiated SQLiteC library objects"
 '@PredeclaredId
@@ -77,7 +77,7 @@ End Function
 
 Public Function GetDBCDbAnon() As SQLiteCConnection
     Dim DbPathName As String
-    DbPathName = vbNullString
+    DbPathName = ":blank:"
     Set GetDBCDbAnon = GetDBC(DbPathName)
 End Function
 

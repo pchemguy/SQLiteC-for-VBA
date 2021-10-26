@@ -121,6 +121,7 @@ Private this As TSQLiteCConnection
 Public Function Create(ByVal DbPathName As String, _
               Optional ByVal AllowNonExistent As Variant = Empty _
               ) As SQLiteCConnection
+Attribute Create.VB_UserMemId = 0
     Dim Instance As SQLiteCConnection
     Set Instance = New SQLiteCConnection
     Instance.Init DbPathName, AllowNonExistent
@@ -131,16 +132,16 @@ End Function
 Friend Sub Init(ByVal DbPathName As String, _
        Optional ByVal AllowNonExistent As Variant = Empty)
     Dim FilePathName As String
-'    Dim PathCheck As LiteFSCheck
-'    Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
-'    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
-'                        "SQLiteCConnection", "Failed to resolve db path."
-'    FilePathName = PathCheck.DatabasePathName
-    FilePathName = DbPathName
     '''' TODO: DbPath validation
     ''''       This task should be performed by SQLiteDBVBA.LiteFSCheck class.
     ''''       This functionality will be integrated after the code is merged
     ''''       into the SQLiteDB VBA Library.
+    '''' FilePathName = DbPathName
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
+    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
+                        "SQLiteCConnection", "Failed to resolve db path."
+    FilePathName = PathCheck.DatabasePathName
     this.DbPathName = FilePathName
     Set this.ErrorInfo = SQLiteCErr(Me)
     Set this.Statements = New Scripting.Dictionary
@@ -219,6 +220,7 @@ End Function
 '@Description "Finalizes all statement objects associated with connection."
 Friend Function Finalize() As SQLiteResultCodes
 Attribute Finalize.VB_Description = "Finalizes all statement objects associated with connection."
+    Guard.NullReference this.Statements
     Dim ResultCode As SQLiteResultCodes
     Dim StmtName As Variant
     Dim DbStmt As SQLiteCStatement

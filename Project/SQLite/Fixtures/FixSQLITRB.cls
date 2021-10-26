@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Description = "Provides SQL snippets related to the ITRB table."
+Attribute VB_Description = "Provides SQLite SQL snippets related to the ITRB table."
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides SQLite SQL snippets related to the ITRB table."
 '@PredeclaredId

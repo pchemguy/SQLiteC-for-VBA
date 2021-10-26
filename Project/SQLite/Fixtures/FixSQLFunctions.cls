@@ -35,9 +35,6 @@ Public Function SelectNoRowid() As String
     SelectNoRowid = "SELECT * FROM functions ORDER BY name"
 End Function
 
-Public Function SelectRowid1() As String
-    SelectRowid1 = "SELECT rowid, * FROM functions ORDER BY name"
-End Function
 Public Function SelectPragmaRowid() As String
     SelectPragmaRowid = "SELECT rowid, * FROM pragma_function_list AS functions"
 End Function

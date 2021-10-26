@@ -117,15 +117,9 @@ Attribute InitDBC.VB_Description = "Creates connection object (SQLiteCConnection
     Dim dbm As SQLiteC
     Set dbm = this.dbm
     
-    Dim DbFilePath As String
-    DbFilePath = Environ("TEMP")
-    Dim DbFileName As String
-    DbFileName = Replace(Replace(Replace(Now(), "/", "-"), " ", "_"), ":", "-")
-    Dim DbFileExt As String
-    DbFileExt = ".db"
     Dim DbPathName As String
-    DbPathName = fso.BuildPath(DbFilePath, DbFileName) & DbFileExt
-
+    DbPathName = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_ss-") & _
+                 Left(GenerateGUID, 8) & ".db"
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(DbPathName)
     If dbc Is Nothing Then

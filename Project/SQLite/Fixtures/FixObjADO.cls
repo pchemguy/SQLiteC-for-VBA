@@ -7,6 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Attribute VB_Description = "Provides instantiated LiteADO library objects"
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides instantiated LiteADO library objects"
 '@PredeclaredId

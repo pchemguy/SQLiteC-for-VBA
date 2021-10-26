@@ -38,7 +38,7 @@ End Function
 
 '@Description "SQL for retrieving a single column containing attached databases paths."
 Public Function AttachedDbPaths() As String
-Attribute AttachedDbPaths.VB_Description = "Returns a single column containing attached databases paths."
+Attribute AttachedDbPaths.VB_Description = "SQL for retrieving a single column containing attached databases paths."
     AttachedDbPaths = Join(Array( _
         "SELECT file FROM pragma_database_list;" _
     ), vbNewLine)
@@ -52,7 +52,7 @@ End Function
 
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
-Attribute CountSelectNoCTE.VB_Description = "Wraps a non-CTE SELECT query to yield a query returning RecordCount for the original query."
+Attribute CountSelectNoCTE.VB_Description = "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
     CountSelectNoCTE = _
         "WITH" & vbNewLine & "  subset AS (" & vbNewLine & _
         "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
@@ -62,6 +62,7 @@ End Function
 
 '@Description "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelect(ByVal SQLQuery As String) As String
+Attribute CountSelect.VB_Description = "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
     CountSelect = "SELECT count(*) AS counter FROM " & _
                   "(" & Replace(SQLQuery, ";", vbNullString) & ");"
 End Function

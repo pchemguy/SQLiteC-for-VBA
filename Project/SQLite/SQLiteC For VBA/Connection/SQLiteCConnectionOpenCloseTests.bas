@@ -141,10 +141,10 @@ Act:
     Set dbc = FixMain.ObjC.GetDBCDbRegular
     Dim ResultCode As SQLiteResultCodes
 Assert:
-        ResultCode = dbc.OpenDb
+    ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
     Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
@@ -165,10 +165,10 @@ Act:
     Set dbc = FixMain.ObjC.GetDBCDbAnon
     Dim ResultCode As SQLiteResultCodes
 Assert:
-        ResultCode = dbc.OpenDb
+    ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
     Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
@@ -189,10 +189,10 @@ Act:
     Set dbc = FixMain.ObjC.GetDBCDbMemory
     Dim ResultCode As SQLiteResultCodes
 Assert:
-        ResultCode = dbc.OpenDb
+    ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
     Assert.AreNotEqual 0, dbc.DbHandle, "DbHandle must not be 0"
-        ResultCode = dbc.CloseDb
+    ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 

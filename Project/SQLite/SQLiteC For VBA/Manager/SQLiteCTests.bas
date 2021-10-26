@@ -267,12 +267,12 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM()
     Dim DbPathName As String
-    DbPathName = vbNullString
+    DbPathName = ":blank:"
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.AreEqual DbPathName, dbm.MainDbId
-    Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
+    Assert.AreEqual vbNullString, dbm.MainDbId
+    Assert.AreSame DbConn, dbm.ConnDb(vbNullString)
     
 CleanExit:
     Exit Sub

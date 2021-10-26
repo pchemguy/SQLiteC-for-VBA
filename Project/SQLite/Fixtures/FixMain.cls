@@ -11,6 +11,7 @@ Attribute VB_Description = "Meta package encapsulating individual components"
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Meta package encapsulating individual components"
 '@PredeclaredId
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 Private Type TFixMain
@@ -46,5 +47,4 @@ End Property
 Public Property Get Utils() As FixUtils
     Set Utils = this.Utils
 End Property
-
 

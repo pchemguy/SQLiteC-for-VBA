@@ -262,10 +262,11 @@ Public Function GetDllPath(ByVal DllName As String) As String
         GetDllPath = vbNullString
         Exit Function
     End If
-    Const MAX_PATH = 260
+    Const MAX_PATH As Long = 260
     Dim PathName As String
     PathName = Space$(MAX_PATH + 1)
     Dim PathLength As Long
     PathLength = GetModuleFileName(this.Dlls(DllName), StrPtr(PathName), MAX_PATH)
+    If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, "DllManager", "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
