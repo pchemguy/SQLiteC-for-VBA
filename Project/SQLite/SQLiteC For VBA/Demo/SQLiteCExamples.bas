@@ -1,5 +1,5 @@
 Attribute VB_Name = "SQLiteCExamples"
-'@Folder "SQLite.SQLiteC For VBA.Demo.Examples"
+'@Folder "SQLite.SQLiteC For VBA.Demo"
 '@IgnoreModule
 Option Explicit
 
@@ -666,7 +666,7 @@ End Sub
 
 Private Sub Txn()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbTempWithFunctionsTableAndData
+    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
     
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.OpenDb
@@ -700,3 +700,214 @@ Private Sub Txn()
     ResultCode = dbc.CloseDb
     If ResultCode <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
 End Sub
+
+
+Private Sub TxnSave()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCTemp
+    
+    Dim ResultCode As SQLiteResultCodes
+    Dim SavePointName As String
+    Dim TxnStateCode As SQLiteTxnState
+    Dim AffectedRows As Long
+    
+    ResultCode = dbc.OpenDb
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    SavePointName = Left$(GenerateGUID, 8)
+    ResultCode = dbc.SavePoint(SavePointName)
+    If ResultCode = SQLITE_OK Then
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+        If TxnStateCode <> SQLITE_TXN_NONE Then
+            Debug.Print "Unexpected Txn state"
+            Exit Sub
+        End If
+    Else
+        Debug.Print "Unexpected SavePoint error"
+        Exit Sub
+    End If
+    
+    ResultCode = dbc.ExecuteNonQueryPlain("SELECT * FROM pragma_function_list()", AffectedRows)
+    If ResultCode = SQLITE_OK Then
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+        If TxnStateCode <> SQLITE_TXN_READ Then
+            Debug.Print "Unexpected Txn state"
+            Exit Sub
+        End If
+    Else
+        Debug.Print "Unexpected ExecuteNonQueryPlain error"
+        Exit Sub
+    End If
+    
+    AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
+    If AffectedRows > 10 Then
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+        If TxnStateCode <> SQLITE_TXN_WRITE Then
+            Debug.Print "Unexpected Txn state"
+            Exit Sub
+        End If
+    Else
+        Debug.Print "Unexpected ExecuteNonQueryPlain result"
+        Exit Sub
+    End If
+    
+    ResultCode = dbc.ReleasePoint(SavePointName)
+    If ResultCode = SQLITE_OK Then
+        TxnStateCode = SQLITE_TXN_NULL
+        TxnStateCode = dbc.TxnState("main")
+        If TxnStateCode <> SQLITE_TXN_NONE Then
+            Debug.Print "Unexpected Txn state"
+            Exit Sub
+        End If
+    Else
+        Debug.Print "Unexpected ReleasePoint error"
+        Exit Sub
+    End If
+    
+    ResultCode = dbc.CloseDb
+    If ResultCode <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+End Sub
+
+
+Private Sub TxnBusy()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Dim dbcA As SQLiteCConnection
+    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+
+    
+    Dim ResultCode As SQLiteResultCodes
+    If dbc.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    If dbcA.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected Txn Begin error"
+        Exit Sub
+    End If
+        
+    Dim TxnStateCode As SQLiteTxnState
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
+    If TxnStateCode = SQLITE_TXN_NONE Then
+        Debug.Print "Failed to begin transaction"
+        Exit Sub
+    Else
+        Debug.Print "Transaction has succeessfully begun"
+    End If
+    
+    ResultCode = dbcA.Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected Txn Begin error"
+    End If
+    
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbcA.TxnState("main")
+    If TxnStateCode <> SQLITE_TXN_NONE Then
+        Debug.Print "Transaction has begun unexpectedly"
+    End If
+    
+    If dbc.Rollback <> SQLITE_OK Then Debug.Print "Unexpected Txn Commit error"
+    If dbc.TxnState("main") = SQLITE_TXN_NONE Then
+        Debug.Print "Transaction rolled back."
+    Else
+        Debug.Print "Failed to roll back transaction"
+    End If
+
+    If dbc.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+    If dbcA.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+End Sub
+
+
+Private Sub DbIsLocked()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Dim dbcA As SQLiteCConnection
+    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Dim dbcB As SQLiteCConnection
+    Set dbcB = SQLiteCConnection(dbc.DbPathName, False)
+
+    Dim TxnStateCode As SQLiteTxnState
+    Dim ResultCode As SQLiteResultCodes
+    Dim DbStatus As Variant
+    
+    If dbc.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    If dbcA.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    If dbcB.OpenDb(SQLITE_OPEN_READONLY) <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    Dim DbAccess As SQLiteDbAccess
+    DbAccess = dbcB.AccessMode
+    
+    DbStatus = dbc.DbIsLocked
+    
+    ResultCode = dbcB.Begin(SQLITE_TXN_IMMEDIATE)
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbcB.TxnState("main")
+    If TxnStateCode = SQLITE_TXN_NONE Then
+        Debug.Print "Failed to begin transaction"
+        Exit Sub
+    Else
+        Debug.Print "Transaction has succeessfully begun"
+    End If
+    
+    
+    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected Txn Begin error"
+        Exit Sub
+    End If
+        
+    DbStatus = dbc.DbIsLocked
+    DbStatus = dbcA.DbIsLocked
+    
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
+    If TxnStateCode = SQLITE_TXN_NONE Then
+        Debug.Print "Failed to begin transaction"
+        Exit Sub
+    Else
+        Debug.Print "Transaction has succeessfully begun"
+    End If
+    
+    ResultCode = dbcA.Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected Txn Begin error"
+    End If
+    
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbcA.TxnState("main")
+    If TxnStateCode <> SQLITE_TXN_NONE Then
+        Debug.Print "Transaction has begun unexpectedly"
+    End If
+    
+    If dbc.Rollback <> SQLITE_OK Then Debug.Print "Unexpected Txn Commit error"
+    If dbc.TxnState("main") = SQLITE_TXN_NONE Then
+        Debug.Print "Transaction rolled back."
+    Else
+        Debug.Print "Failed to roll back transaction"
+    End If
+
+    If dbc.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+    If dbcA.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+End Sub
+

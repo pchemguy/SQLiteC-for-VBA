@@ -42,7 +42,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Assert:
@@ -65,7 +65,7 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -85,7 +85,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareSQLiteVersion()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -124,7 +124,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareOfCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -162,7 +162,7 @@ Private Sub ztcPrepare16V2_VerifiesErrorOnInvalidSQL()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -213,7 +213,7 @@ Private Sub ztcPrepare16V2_VerifiesErrorWithSelectFromFakeTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemoryWithITRB
+    Set dbc = FixMain.ObjC.GetDBCMemITRB
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -249,7 +249,7 @@ Private Sub ztcGetBusy_VerifiesBusyStatus()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -291,7 +291,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -319,7 +319,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -350,7 +350,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -381,7 +381,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -409,7 +409,7 @@ Private Sub ztcExecuteNonQuery_VerifiesCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -445,7 +445,7 @@ Private Sub ztcGetPagedRowSet_VerifyPagedRowSetGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -497,7 +497,7 @@ Private Sub ztcGetPagedRowSet_SelectSubsetOfFunctions()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -546,7 +546,7 @@ Private Sub ztcGetRowSet2D_VerifyRowSet2DGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -589,7 +589,7 @@ Private Sub ztcGetRowSet2D_NamedParamsSelectWithDictVsArrayValues()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -635,7 +635,7 @@ Private Sub ztcGetRowSet2D_SelectPragmaTableWithUseTableMetadataAPI()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -677,7 +677,7 @@ Private Sub ztcGetRowSet2D_InsertPlainSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -724,7 +724,7 @@ Private Sub ztcGetRecordset_VerifyGetRecordsetGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -767,7 +767,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -811,7 +811,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -855,7 +855,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowidVerifyData()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -904,7 +904,7 @@ Private Sub ztcGetRowSet2D_InsertWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbTemp
+    Set dbc = FixMain.ObjC.GetDBCTemp
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -970,7 +970,7 @@ Private Sub ztcGetRowSet2D_UpdateWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 

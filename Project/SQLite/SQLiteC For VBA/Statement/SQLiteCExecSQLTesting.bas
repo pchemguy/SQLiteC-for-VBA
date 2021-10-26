@@ -43,7 +43,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -69,7 +69,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -95,7 +95,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -122,7 +122,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixMain.ObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -146,7 +146,7 @@ Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -197,7 +197,7 @@ Private Sub ztcColumnMetaAPI_ThrowsOnUninitializedSQLiteColumnMeta()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -225,7 +225,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -268,7 +268,7 @@ Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -292,7 +292,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 

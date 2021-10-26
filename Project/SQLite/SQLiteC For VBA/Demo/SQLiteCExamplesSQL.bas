@@ -1,5 +1,5 @@
 Attribute VB_Name = "SQLiteCExamplesSQL"
-'@Folder "SQLite.SQLiteC For VBA.Demo.Examples"
+'@Folder "SQLite.SQLiteC For VBA.Demo"
 '@IgnoreModule ProcedureNotUsed
 Option Explicit
 

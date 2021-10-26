@@ -6,8 +6,8 @@ Option Private Module
 
 
 Private Sub GetSQLiteVersionString()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     '@Ignore VariableNotUsed
     Dim dbm As SQLiteC
     '@Ignore AssignmentNotUsed
@@ -39,8 +39,8 @@ End Sub
 
 
 Private Sub OpenCloseDbRegular()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbRegular
     Dim ResultCode As SQLiteResultCodes
@@ -52,8 +52,8 @@ End Sub
 
 
 Private Sub OpenCloseDbInvalidPath()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbInvalidPath
     Dim ResultCode As SQLiteResultCodes
@@ -65,8 +65,8 @@ End Sub
 
 
 Private Sub OpenCloseDbNotDb()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbNotDb
     Dim ResultCode As SQLiteResultCodes
@@ -78,8 +78,8 @@ End Sub
 
 
 Private Sub OpenCloseLockedDb()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     Dim DbConn As SQLiteCConnection
     Set DbConn = ConnFix.ConnDbLockedDb
     Dim ResultCode As SQLiteResultCodes
@@ -91,8 +91,8 @@ End Sub
 
 
 Private Sub TestDbRegular()
-    Dim ConnFix As SQLiteCConnDemoFix
-    Set ConnFix = SQLiteCConnDemoFix.Create
+    Dim ConnFix As FixDemoDeprecate
+    Set ConnFix = FixDemoDeprecate.Create
     Dim dbm As SQLiteC
     Set dbm = ConnFix.dbm
     Dim DbConn As SQLiteCConnection

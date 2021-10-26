@@ -203,7 +203,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbRegular
+    Set dbc = FixMain.ObjC.GetDBCReg
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
 

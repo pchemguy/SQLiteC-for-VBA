@@ -41,7 +41,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
@@ -78,7 +78,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
@@ -110,7 +110,7 @@ Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
@@ -152,7 +152,7 @@ Private Sub ztcExecuteNonQueryPlain_TransactionTriggeredByAttemptedTableDrop()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
 
     Dim AffectedRecords As Long
     Dim ResultCode As SQLiteResultCodes
@@ -191,7 +191,7 @@ Private Sub ztcChangesCount_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim SQLQuery As String
     SQLQuery = FixSQLMain.ITRB.CreateWithValues
     Dim AffectedRecords As Long
@@ -213,7 +213,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:

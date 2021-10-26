@@ -17,7 +17,6 @@ Option Explicit
 Private Type TFixMain
     SQL As FixSQLMain
     ObjC As FixObjC
-    ObjADO As FixObjADO
     Utils As FixUtils
 End Type
 Private this As TFixMain
@@ -27,7 +26,6 @@ Private Sub Class_Initialize()
     With this
         Set .SQL = FixSQLMain
         Set .ObjC = FixObjC
-        Set .ObjADO = FixObjADO
         Set .Utils = FixUtils
     End With
 End Sub
@@ -40,11 +38,6 @@ Public Property Get ObjC() As FixObjC
     Set ObjC = this.ObjC
 End Property
 
-Public Property Get ObjADO() As FixObjADO
-    Set ObjADO = this.ObjADO
-End Property
-
 Public Property Get Utils() As FixUtils
     Set Utils = this.Utils
 End Property
-

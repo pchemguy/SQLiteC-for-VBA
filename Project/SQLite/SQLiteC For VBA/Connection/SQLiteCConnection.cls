@@ -457,6 +457,28 @@ Public Function Rollback(Optional ByVal SavePointName As String = vbNullString _
                         ) As SQLiteResultCodes
 Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction stack up to the first point with matching name or the entire transaction."
     Dim SPClause As String
-    SPClause = IIf(Len(SavePointName) = 0, vbNullString, " TO " & SavePointName)
+    SPClause = IIf(Len(SavePointName) = 0, vbNullString, " TO SAVEPOINT " & SavePointName)
     Rollback = ExecuteNonQueryPlain("ROLLBACK" & SPClause)
 End Function
+
+
+Public Property Get DbIsLocked() As Variant
+    If TxnState("main") <> SQLITE_TXN_NONE Then
+        DbIsLocked = CVErr(ErrNo.AdoInTransactionErr)
+        Exit Property
+    End If
+    
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode = SQLITE_BUSY Then
+        DbIsLocked = True
+    ElseIf ResultCode = SQLITE_OK Then
+        If Commit = SQLITE_OK Then
+            DbIsLocked = False
+        Else
+            DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
+        End If
+    Else
+        DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
+    End If
+End Property

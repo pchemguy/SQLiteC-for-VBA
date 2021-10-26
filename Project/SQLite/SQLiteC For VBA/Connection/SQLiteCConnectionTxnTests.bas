@@ -1,7 +1,7 @@
 Attribute VB_Name = "SQLiteCConnectionTxnTests"
 '@Folder "SQLite.SQLiteC For VBA.Connection"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, IndexedDefaultMemberAccess
 Option Explicit
 Option Private Module
 
@@ -43,26 +43,16 @@ Private Sub ztcBeginCommit_VerifiesTxnDEFERRED()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
-    Dim TxnStateCode As SQLiteTxnState
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_DEFERRED)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_DEFERRED), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -77,29 +67,17 @@ Private Sub ztcBeginCommit_VerifiesTxnIMMEDIATE()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
-    Dim TxnStateCode As SQLiteTxnState
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.IsTrue TxnStateCode > SQLITE_TXN_NONE, "Unexpected Txn state"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -114,29 +92,17 @@ Private Sub ztcBeginCommit_VerifiesTxnEXCLUSIVE()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
-    Dim TxnStateCode As SQLiteTxnState
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_EXCLUSIVE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.IsTrue TxnStateCode > SQLITE_TXN_NONE, "Unexpected Txn state"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_EXCLUSIVE), "Unexpected Txn Begin error"
+    Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -151,28 +117,19 @@ Private Sub ztcBeginCommit_VerifiesTxnRead()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbTempWithFunctionsTableAndData
+    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
     Dim ResultCode As SQLiteResultCodes
-    Dim TxnStateCode As SQLiteTxnState
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_DEFERRED)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_DEFERRED), "Unexpected Txn Begin error"
     ResultCode = dbc.ExecuteNonQueryPlain("SELECT * FROM functions;")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_READ, TxnStateCode, "Unexpected Txn state"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_TXN_READ, dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -187,26 +144,18 @@ Private Sub ztcBeginRollback_VerifiesTxnState()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim ResultCode As SQLiteResultCodes
     Dim TxnStateCode As SQLiteTxnState
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.IsTrue TxnStateCode > SQLITE_TXN_NONE, "Unexpected Txn state"
-    ResultCode = dbc.Rollback
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Rollback error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.AreEqual SQLITE_TXN_NONE, TxnStateCode, "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.Rollback, "Unexpected Txn Rollback error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -221,21 +170,15 @@ Private Sub ztcBeginRollbackCommit_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    ResultCode = dbc.Rollback
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Rollback error"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_OK, dbc.Rollback, "Unexpected Txn Rollback error"
+    Assert.AreEqual SQLITE_ERROR, dbc.Commit, "Expected SQLITE_ERROR error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -250,21 +193,15 @@ Private Sub ztcBeginCommitRollback_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Begin error"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
-    ResultCode = dbc.Rollback
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_ERROR, dbc.Rollback, "Expected SQLITE_ERROR error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -279,17 +216,13 @@ Private Sub ztcReleasePoint_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.ReleasePoint("ABCDEFG")
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
+    Assert.AreEqual SQLITE_ERROR, dbc.ReleasePoint("ABCDEFG"), "Expected SQLITE_ERROR error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -304,23 +237,15 @@ Private Sub ztcSaveRelease_VerifiesTxnState()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
-    Dim TxnStateCode As SQLiteTxnState
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.SavePoint("ABCDEFG")
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
-    TxnStateCode = SQLITE_TXN_NULL
-    TxnStateCode = dbc.TxnState("main")
-    Assert.IsTrue TxnStateCode = SQLITE_TXN_NONE, "Unexpected Txn state"
-    ResultCode = dbc.ReleasePoint("ABCDEFG")
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
+    Assert.AreEqual SQLITE_OK, dbc.SavePoint("ABCDEFG"), "Unexpected Txn SavePoint error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual SQLITE_OK, dbc.ReleasePoint("ABCDEFG"), "Unexpected Txn ReleasePoint error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
@@ -335,21 +260,162 @@ Private Sub ztcSavepointBeginCommit_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
-    Dim ResultCode As SQLiteResultCodes
+    Set dbc = FixMain.ObjC.GetDBCMem
 Act:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
-    ResultCode = dbc.SavePoint("ABCD")
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn SavePoint error"
-    ResultCode = dbc.Begin
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error"
-    ResultCode = dbc.Commit
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_OK, dbc.SavePoint("ABCD"), "Unexpected Txn SavePoint error"
+    Assert.AreEqual SQLITE_ERROR, dbc.Begin, "Expected SQLITE_ERROR error"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
 Cleanup:
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Transactions")
+Private Sub ztcBeginCommit_VerifiesBusyStatusWithLockingTransaction()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Dim dbcA As SQLiteCConnection
+    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
+    
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_TXN_WRITE, dbc.TxnState("main"), "Unexpected Txn state"
+Act:
+Assert:
+    Assert.AreEqual SQLITE_BUSY, dbcA.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin status"
+    Assert.AreEqual SQLITE_TXN_NONE, dbcA.TxnState("main"), "Unexpected Txn state"
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_OK, dbcA.CloseDb, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Transactions")
+Private Sub ztcBeginCommit_VerifiesNoTransactionLockingWithMemoryDb()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCMemFuncWithData
+    Dim dbcA As SQLiteCConnection
+    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
+    
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_TXN_WRITE, dbc.TxnState("main"), "Unexpected Txn state"
+Act:
+Assert:
+    Assert.AreEqual SQLITE_OK, dbcA.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin status"
+    Assert.AreEqual SQLITE_TXN_WRITE, dbcA.TxnState("main"), "Unexpected Txn state"
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbcA.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
+    Assert.AreEqual SQLITE_OK, dbcA.CloseDb, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Transactions")
+Private Sub ztcSavePointRelease_VerifiesTransactionStates()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCTemp
+    
+    Dim ResultCode As SQLiteResultCodes
+    Dim SavePointName As String
+    Dim TxnStateCode As SQLiteTxnState
+    Dim AffectedRows As Long
+    
+    '''' If save point name starts with a digit, the
+    '''' "unrecognized token" error is returned.
+    SavePointName = "AA" & Left$(GenerateGUID, 8)
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+Act:
+Assert:
+    Assert.AreEqual SQLITE_OK, dbc.SavePoint(SavePointName), "Unexpected SavePoint error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
+        
+    ResultCode = dbc.ExecuteNonQueryPlain("SELECT * FROM pragma_function_list()")
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
+    Assert.AreEqual SQLITE_TXN_READ, dbc.TxnState("main"), "Unexpected Txn state"
+        
+    AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
+    Assert.IsTrue AffectedRows > 10, "Unexpected ExecuteNonQueryPlain result"
+    Assert.AreEqual SQLITE_TXN_WRITE, dbc.TxnState("main"), "Unexpected Txn state"
+    
+    ResultCode = dbc.Rollback(SavePointName)
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Rollback Txn error"
+    If SQLITE_TXN_WRITE <> dbc.TxnState("main") Then Assert.Inconclusive _
+        "Previously, Rollback SavePoint failed to reset transaction"
+    
+    Assert.AreEqual SQLITE_OK, dbc.ReleasePoint(SavePointName), "Unexpected ReleasePoint Txn error"
+    Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
+    
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb(SQLITE_OPEN_READONLY), "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_DB_READ, dbc.AccessMode, "Unexpected db access mode"
+    
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
+    Assert.AreEqual SQLITE_TXN_READ, dbc.TxnState("main"), "Unexpected Txn state"
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Transactions")
+Private Sub ztcDbIsLocked_VerifiesLockState()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Dim dbcA As SQLiteCConnection
+    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    
+    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
+    Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
+Act:
+Assert:
+    Assert.IsFalse dbc.DbIsLocked, "Unexpected lock state"
+    
+    Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Begin Txn error"
+    Assert.AreEqual SQLITE_TXN_WRITE, dbc.TxnState("main"), "Unexpected Txn state"
+    Assert.AreEqual CVErr(ErrNo.AdoInTransactionErr), dbc.DbIsLocked, "Unexpected lock state"
+    Assert.AreEqual True, dbcA.DbIsLocked, "Unexpected lock state"
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub

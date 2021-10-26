@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteCConnDemoFix"
+Attribute VB_Name = "FixDemoDeprecate"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Provides fixtures for testing and as usage patterns"
-'@Folder "SQLite.SQLiteC For VBA.Demo"
+'@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides fixtures for testing and as usage patterns"
 '@PredeclaredId
 Option Explicit
@@ -41,9 +41,9 @@ End Type
 Private this As TSQLiteCConnDemoFix
 
 
-Public Function Create() As SQLiteCConnDemoFix
-    Dim Instance As SQLiteCConnDemoFix
-    Set Instance = New SQLiteCConnDemoFix
+Public Function Create() As FixDemoDeprecate
+    Dim Instance As FixDemoDeprecate
+    Set Instance = New FixDemoDeprecate
     Instance.Init
     Set Create = Instance
 End Function

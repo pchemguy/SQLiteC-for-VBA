@@ -18,8 +18,6 @@ Private Const LITE_LIB As String = "SQLiteCDBVBA"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
 '@Ignore SelfAssignedDeclaration
-Private fso As New Scripting.FileSystemObject
-
 Private Type TFixObjC
     DllMan As DllManager
     LibDir As String
@@ -55,41 +53,26 @@ Public Function GetDBC(ByVal DbPathName As String, _
     Set GetDBC = dbc
 End Function
 
-Public Function GetDBCDbRegular() As SQLiteCConnection
+Public Function GetDBCReg() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = this.LibDir & LITE_LIB & ".db"
-    Set GetDBCDbRegular = GetDBC(DbPathName)
+    Set GetDBCReg = GetDBC(DbPathName)
 End Function
 
-Public Function GetDBCDbReadOnlyAttr() As SQLiteCConnection
+Public Function GetDBCReadOnlyAttr() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = this.LibDir & "ReadOnlyAttr.db"
+    Dim fso As New Scripting.FileSystemObject
     With fso.GetFile(DbPathName)
         .Attributes = .Attributes Or ReadOnly
     End With
-    Set GetDBCDbReadOnlyAttr = GetDBC(DbPathName)
+    Set GetDBCReadOnlyAttr = GetDBC(DbPathName)
 End Function
 
-Public Function GetDBCDbMemory() As SQLiteCConnection
-    Dim DbPathName As String
-    DbPathName = ":memory:"
-    Set GetDBCDbMemory = GetDBC(DbPathName)
-End Function
-
-Public Function GetDBCDbAnon() As SQLiteCConnection
+Public Function GetDBCAnon() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":blank:"
-    Set GetDBCDbAnon = GetDBC(DbPathName)
-End Function
-
-Public Function GetDBCDbTemp() As SQLiteCConnection
-    Dim DbFilePath As String
-    DbFilePath = Environ("TEMP")
-    Dim DbFileName As String
-    DbFileName = Format(Now, "yyyy_mm_dd-hh_mm_ss") & ".db"
-    Dim DbPathName As String
-    DbPathName = fso.BuildPath(DbFilePath, DbFileName)
-    Set GetDBCDbTemp = GetDBC(DbPathName)
+    Set GetDBCAnon = GetDBC(DbPathName)
 End Function
 
 Public Function GetDBCInvalidPath() As SQLiteCConnection
@@ -98,15 +81,34 @@ Public Function GetDBCInvalidPath() As SQLiteCConnection
     Set GetDBCInvalidPath = GetDBC(DbPathName)
 End Function
 
-Public Function GetDBCDbMemoryWithITRB() As SQLiteCConnection
+Public Function GetDBCMem() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
-    Set GetDBCDbMemoryWithITRB = GetDBC(DbPathName)
-    With GetDBCDbMemoryWithITRB
+    Set GetDBCMem = GetDBC(DbPathName)
+End Function
+
+Public Function GetDBCMemITRB() As SQLiteCConnection
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Set GetDBCMemITRB = GetDBC(DbPathName)
+    With GetDBCMemITRB
         .OpenDb
         .ExecuteNonQueryPlain FixSQLITRB.Create
         .CloseDb
     End With
+End Function
+
+Public Function GetDBCMemFuncWithData() As SQLiteCConnection
+    Dim AllowNonExistent As Boolean
+    AllowNonExistent = True
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    Dim AffectedRows As Long
+    AffectedRows = CreateFunctionsTableWithData(dbc)
+    If AffectedRows <= 0 Then Set dbc = Nothing
+    Set GetDBCMemFuncWithData = dbc
 End Function
 
 Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long
@@ -136,7 +138,14 @@ Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As 
     CreateFunctionsTableWithData = AffectedRows
 End Function
 
-Public Function GetDBCDbTempWithFunctionsTableAndData() As SQLiteCConnection
+Public Function GetDBCTemp() As SQLiteCConnection
+    Dim DbPathName As String
+    DbPathName = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_ss") & _
+                 "-" & Left(GenerateGUID, 8) & ".db"
+    Set GetDBCTemp = GetDBC(DbPathName)
+End Function
+
+Public Function GetDBCTempFuncWithData() As SQLiteCConnection
     Dim AllowNonExistent As Boolean
     AllowNonExistent = True
     Dim DbPathName As String
@@ -147,5 +156,6 @@ Public Function GetDBCDbTempWithFunctionsTableAndData() As SQLiteCConnection
     Dim AffectedRows As Long
     AffectedRows = CreateFunctionsTableWithData(dbc)
     If AffectedRows <= 0 Then Set dbc = Nothing
-    Set GetDBCDbTempWithFunctionsTableAndData = dbc
+    Set GetDBCTempFuncWithData = dbc
 End Function
+

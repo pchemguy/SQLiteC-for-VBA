@@ -41,7 +41,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithBlobLiteralAtParam()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -86,7 +86,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithLiteralAtParam()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -163,7 +163,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAnonParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -201,7 +201,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithNumberedParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -239,7 +239,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithColonParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -277,7 +277,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithSParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -315,7 +315,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -353,7 +353,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParamsSeqValues()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -394,7 +394,7 @@ Private Sub ztcBindDictOrArray_ThrowsOnSequntialParamCountMismatch()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCDbMemory
+    Set dbc = FixMain.ObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
