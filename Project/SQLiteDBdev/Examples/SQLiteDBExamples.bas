@@ -17,7 +17,7 @@ Private Sub CloneDb()
     TargetDb = REL_PREFIX & "Dest.db"
 
     '@Ignore FunctionReturnValueDiscarded
-    SQLiteDB.CloneDb TargetDb, SourceDb
+    LiteDB.CloneDb TargetDb, SourceDb
 End Sub
 
 
@@ -25,8 +25,8 @@ Private Sub SetJournalMode()
     Dim FileName As String
     FileName = REL_PREFIX & "TestA.db"
     
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB(FileName)
+    Dim DbManager As LiteDB
+    Set DbManager = LiteDB(FileName)
     DbManager.AttachDatabase REL_PREFIX & "TestB.db"
     DbManager.AttachDatabase REL_PREFIX & "TestC.db"
     
@@ -41,8 +41,8 @@ Private Sub PrintTable()
     Dim FileName As String
     FileName = REL_PREFIX & LIB_NAME & ".db"
     
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB(FileName)
+    Dim DbManager As LiteDB
+    Set DbManager = LiteDB(FileName)
     
     Dim SQLTool As SQLlib
     Set SQLTool = SQLlib("contacts")

@@ -18,7 +18,7 @@ Option Explicit
 
 Private Type TTableOFromDbHelper
     TableName As String
-    DbManager As SQLiteDB
+    DbManager As LiteDB
     FieldCount As Long
 End Type
 Private this As TTableOFromDbHelper
@@ -27,7 +27,7 @@ Private this As TTableOFromDbHelper
 '@DefaultMember
 '@Description "Default factory"
 Public Function Create(ByVal TableName As String, _
-                       ByVal DbManager As SQLiteDB) As TableOFromDbHelper
+                       ByVal DbManager As LiteDB) As TableOFromDbHelper
 Attribute Create.VB_Description = "Default factory"
 Attribute Create.VB_UserMemId = 0
     Dim Instance As TableOFromDbHelper
@@ -39,7 +39,7 @@ End Function
 
 '@Description "Default constructor"
 Friend Sub Init(ByVal TableName As String, _
-                ByVal DbManager As SQLiteDB)
+                ByVal DbManager As LiteDB)
 Attribute Init.VB_Description = "Default constructor"
     Guard.EmptyString TableName
     Guard.NullReference DbManager
@@ -72,7 +72,7 @@ Friend Function GetDbFields() As Variant
 Attribute GetDbFields.VB_Description = "Gets fields metadata from the database."
     Dim TableName As String
     TableName = this.TableName
-    Dim DbManager As SQLiteDB
+    Dim DbManager As LiteDB
     Set DbManager = this.DbManager
     
     Dim AdoRecordset As ADODB.Recordset
@@ -126,7 +126,7 @@ Friend Function GetConstraints() As Scripting.Dictionary
 Attribute GetConstraints.VB_Description = "Parses table schema from the database and returns constraints."
     Dim TableName As String
     TableName = this.TableName
-    Dim DbManager As SQLiteDB
+    Dim DbManager As LiteDB
     Set DbManager = this.DbManager
     Dim FieldCount As Long
     FieldCount = this.FieldCount

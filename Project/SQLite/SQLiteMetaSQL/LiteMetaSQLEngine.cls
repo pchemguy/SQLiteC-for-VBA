@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "SQL queries for retrieving information about the engine configuration and available features."
-'@Folder "SQLite.Introspection SQL"
+'@Folder "SQLite.SQLiteMetaSQL"
 '@ModuleDescription "SQL queries for retrieving information about the engine configuration and available features."
 '@PredeclaredId
 '@Exposed

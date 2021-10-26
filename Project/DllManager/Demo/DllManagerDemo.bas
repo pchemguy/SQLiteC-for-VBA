@@ -81,6 +81,7 @@ Private Sub WinSQLiteLoad()
     Set this.DllMan = DllMan
     Dim LoadResult As DllLoadStatus
     LoadResult = DllMan.Load(DllName, , False)
+    Debug.Assert LoadResult = LOAD_OK
     Debug.Print DllMan.GetDllPath(DllName)
     Set this.DllMan = Nothing
 End Sub

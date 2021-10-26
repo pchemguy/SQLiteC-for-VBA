@@ -104,12 +104,16 @@ Arrange:
     FilePathName = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
     Dim dbm As ILiteADO
     Set dbm = LiteADO(FilePathName)
+    Dim dbmCI As LiteADO
+    Set dbmCI = dbm
 Act:
     Dim dbmClone As ILiteADO
-    Set dbmClone = LiteADO.FromConnection(dbm.AdoConnection)
+    Set dbmClone = LiteADO.FromConnection(dbmCI.AdoConnection)
+    Dim dbmCloneCI As LiteADO
+    Set dbmCloneCI = dbm
 Assert:
     Assert.AreEqual dbm.MainDB, dbmClone.MainDB, "Db path mismatch"
-    Assert.IsTrue dbm.AdoConnection Is dbmClone.AdoConnection, "Bad connection"
+    Assert.IsTrue dbmCI.AdoConnection Is dbmCloneCI.AdoConnection, "Bad connection"
     
 CleanExit:
     Exit Sub
@@ -160,13 +164,16 @@ Arrange:
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(RelativePathName, AllowNonExistent:=True)
+    Dim dbmCI As LiteADO
+    Set dbmCI = dbm
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
 Cleanup:
-    dbm.AdoConnection.Close
+    dbmCI.AdoConnection.Close
     Set dbm = Nothing
+    Set dbmCI = Nothing
 
 CleanExit:
     Exit Sub
@@ -185,10 +192,12 @@ Arrange:
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)
+    Dim dbmCI As LiteADO
+    Set dbmCI = dbm
     Dim Actual As String
     Actual = dbm.MainDB
 Cleanup:
-    dbm.AdoConnection.Close
+    dbmCI.AdoConnection.Close
     Set dbm = Nothing
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
@@ -276,15 +285,17 @@ Private Sub ztcCreate_ValidatesDefaultRecordset()
 Arrange:
     Dim dbm As ILiteADO
     Set dbm = zfxDefaultDbManager()
+    Dim dbmCI As LiteADO
+    Set dbmCI = dbm
     Dim DefaultSQL As String
     DefaultSQL = "SELECT sqlite_version() AS version"
 Act:
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = dbm.GetAdoRecordset
 Assert:
-    Assert.IsNotNothing dbm.AdoCommand, "AdoCommand is not set"
-    Assert.IsNotNothing dbm.AdoConnection, "AdoConnection is not set"
-    Assert.AreEqual DefaultSQL, dbm.AdoCommand.CommandText, "SQL mismatch"
+    Assert.IsNotNothing dbmCI.AdoCommand, "AdoCommand is not set"
+    Assert.IsNotNothing dbmCI.AdoConnection, "AdoConnection is not set"
+    Assert.AreEqual DefaultSQL, dbmCI.AdoCommand.CommandText, "SQL mismatch"
     Assert.IsNotNothing AdoRecordset, "AdoRecordset is not set"
     Assert.IsNothing AdoRecordset.ActiveConnection, "AdoRecordset is not disconnected"
     Assert.AreEqual 1, AdoRecordset.RecordCount, "Expected record count mismatch"

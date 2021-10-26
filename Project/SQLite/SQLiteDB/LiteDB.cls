@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "SQLiteDB"
+Attribute VB_Name = "LiteDB"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -17,13 +17,13 @@ Attribute VB_Description = "Provides SQLite specific functionality"
 '@IgnoreModule ValueRequired, ProcedureNotUsed
 Option Explicit
 
-Private Type TSQLiteDB
+Private Type TLiteDB
     MainDB As String '''' Absolute file pathname to the main database.
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
     SQLInfo As LiteMetaSQL
 End Type
-Private this As TSQLiteDB
+Private this As TLiteDB
 
 
 '''' @ClassMethodStrict
@@ -32,11 +32,11 @@ Private this As TSQLiteDB
 '@DefaultMember
 '@Description "Default factory"
 Public Function Create(ByVal Database As String, _
-              Optional ByVal AllowNonExistent As Boolean = False) As SQLiteDB
+              Optional ByVal AllowNonExistent As Boolean = False) As LiteDB
 Attribute Create.VB_Description = "Default factory"
 Attribute Create.VB_UserMemId = 0
-    Dim Instance As SQLiteDB
-    Set Instance = New SQLiteDB
+    Dim Instance As LiteDB
+    Set Instance = New LiteDB
     Instance.Init Database, AllowNonExistent
     Set Create = Instance
 End Function
@@ -410,7 +410,7 @@ Attribute JournalModeSet.VB_Description = "Sets journal mode for the given datab
     JournalModeUC = UCase$(JournalMode)
     Dim CheckResult As Boolean
     CheckResult = CBool(InStr("| " & JOURNAL_MODES & " |", "| " & JournalModeUC & " |"))
-    Guard.Expression CheckResult, "SQLiteDB/JournalModeSet", _
+    Guard.Expression CheckResult, "LiteDB/JournalModeSet", _
         "Invalid journal mode: '" & JournalMode & "'. Valid values are: " _
         & JOURNAL_MODES
     
@@ -545,7 +545,7 @@ Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks
     If ErrNumber <> 0 Then
         If (ErrNumber = ErrNo.OLE_DB_ODBC_Err) _
                 And (ErrDescription = SQLITE_NOTADB_MESSAGE) Then
-            Err.Raise ErrNo.OLE_DB_ODBC_Err, "SQLiteDB", _
+            Err.Raise ErrNo.OLE_DB_ODBC_Err, "LiteDB", _
                       "File is not a database"
         Else
             With Err
@@ -554,7 +554,7 @@ Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks
         End If
     End If
     If AttachedDbCount <> 1 Then
-        Err.Raise ErrNo.CustomErr, "SQLiteDB", _
+        Err.Raise ErrNo.CustomErr, "LiteDB", _
                   "Please have exactly one database attached before the check."
     End If
     
@@ -563,14 +563,14 @@ Attribute CheckIntegrity.VB_Description = "Runs SQLite database integrity checks
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.Fields("integrity_check") = "ok")
     Guard.ExpressionErr CheckResult, ErrNo.IntegrityCheckErr, _
-                        "SQLiteDB", "Integrity check failed"
+                        "LiteDB", "Integrity check failed"
     
     '''' 3) "PRAGMA foreign_key_check"
     SQLQuery = this.SQLInfo.CheckFKs
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.RecordCount = 0)
     Guard.ExpressionErr CheckResult, ErrNo.ConsistencyCheckErr, _
-                        "SQLiteDB", "Foreign key check failed"
+                        "LiteDB", "Foreign key check failed"
 
     Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
     CheckIntegrity = True
@@ -628,7 +628,7 @@ Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
                                   (AdoRecordset.Fields("name") = "main")
     Set AdoRecordset = Nothing
     
-    Guard.Expression CheckResult, "SQLiteDB/CheckDb", "Failed connection check"
+    Guard.Expression CheckResult, "LiteDB/CheckDb", "Failed connection check"
     Debug.Print "-- Connection check passed"
     
     '''' 3) "PRAGMA integrity_check"
@@ -636,7 +636,7 @@ Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.Fields("integrity_check") = "ok")
     Guard.ExpressionErr CheckResult, ErrNo.IntegrityCheckErr, _
-                        "SQLiteDB/CloneDb", "Integrity check failed"
+                        "LiteDB/CloneDb", "Integrity check failed"
     Set AdoRecordset = Nothing
     
     '''' 4) "PRAGMA foreign_key_check"
@@ -644,7 +644,7 @@ Attribute CheckDb.VB_Description = "Runs SQLite database integrity checks."
     Set AdoRecordset = GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.RecordCount = 0)
     Guard.ExpressionErr CheckResult, ErrNo.ConsistencyCheckErr, _
-                        "SQLiteDB/CloneDb", "Foreign key check failed"
+                        "LiteDB/CloneDb", "Foreign key check failed"
     Set AdoRecordset = Nothing
 
     Debug.Print "-- Integrity check passed for: '" & this.MainDB & "'"
@@ -688,11 +688,11 @@ End Function
 ''''     Commit transaction
 ''''  7) Start transaction; Clone data; Commit transaction
 ''''  8) Start transaction; Execute trigger schema; Commit transaction; Enable foreign keys
-''''  9) Verify transfer and run integrity check on the destination database.
+''''  9) TODO: clone indices
+'''' 10) Verify transfer and run integrity check on the destination database.
 ''''
 '@Description "Clones SQLite database."
-'@Ignore FunctionReturnValueAlwaysDiscarded
-Public Function CloneDb(ByVal DstDbName As String, ByVal SrcDbName As String) As SQLiteDB
+Public Function CloneDb(ByVal DstDbName As String, ByVal SrcDbName As String) As LiteDB
 Attribute CloneDb.VB_Description = "Clones SQLite database."
     Dim SQLQuery As String
     Dim AdoRecordset As ADODB.Recordset
@@ -700,11 +700,11 @@ Attribute CloneDb.VB_Description = "Clones SQLite database."
     
     '''' 1) Check source integrity
     ''''      SQLiteDB reference is not saved, so the db is released at check exit.
-    SQLiteDB(SrcDbName).CheckDb
+    LiteDB(SrcDbName).CheckDb
     
     '''' 2) Attach destination db
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB(DstDbName, True)
+    Dim DbManager As LiteDB
+    Set DbManager = LiteDB(DstDbName, True)
     Debug.Assert Not DbManager Is Nothing
     Debug.Print "-- Destination db is attached"
         
@@ -714,7 +714,7 @@ Attribute CloneDb.VB_Description = "Clones SQLite database."
     Set AdoRecordset = DbManager.GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.RecordCount = 2)
     Set AdoRecordset = Nothing
-    Guard.Expression CheckResult, "SQLiteDB/CloneDb", "Attach source db failed"
+    Guard.Expression CheckResult, "LiteDB/CloneDb", "Attach source db failed"
     Debug.Print "-- Source db is attached"
     
     '''' 4) Get schema without triggers and trigger schema

@@ -1,5 +1,5 @@
 Attribute VB_Name = "SQLiteIntropectionExample"
-'@Folder "SQLite.Introspection SQL.Examples"
+'@Folder "SQLite.SQLiteMetaSQL.Examples"
 '@IgnoreModule VariableNotUsed, IndexedDefaultMemberAccess
 Option Explicit
 Option Private Module
@@ -12,8 +12,8 @@ Private Sub Engine()
 Attribute Engine.VB_Description = "Collects SQLite engine information and ouputs via QueryTables and to 'immediate'"
     Dim SourceDb As String
     SourceDb = ":memory:"
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB.Create(SourceDb)
+    Dim DbManager As LiteDB
+    Set DbManager = LiteDB.Create(SourceDb)
     DbManager.DebugPrintRecordset LiteMetaSQLEngine.Version, EngineInfo.Range("A1")
     DbManager.DebugPrintRecordset LiteMetaSQLEngine.CompileOptions, EngineInfo.Range("B1")
     DbManager.DebugPrintRecordset LiteMetaSQLEngine.Modules, EngineInfo.Range("C1")
@@ -28,8 +28,8 @@ Private Sub Database()
 Attribute Database.VB_Description = "Collects SQLite database metadata"
     Dim SourceDb As String
     SourceDb = "SQLiteDB.db"
-    Dim DbManager As SQLiteDB
-    Set DbManager = SQLiteDB.Create(SourceDb)
+    Dim DbManager As LiteDB
+    Set DbManager = LiteDB.Create(SourceDb)
     DbManager.DebugPrintRecordset DbManager.SQLInfo.Tables, Tables.Range("A1")
     DbManager.DebugPrintRecordset DbManager.SQLInfo.ForeingKeys, ForeignKeys.Range("A1")
     DbManager.DebugPrintRecordset DbManager.SQLInfo.Indices(True), Indices.Range("A1")
@@ -48,5 +48,5 @@ Private Sub CloneDb()
     TargetDb = "Dest.db"
 
     '@Ignore FunctionReturnValueDiscarded
-    SQLiteDB.CloneDb TargetDb, SourceDb
+    LiteDB.CloneDb TargetDb, SourceDb
 End Sub

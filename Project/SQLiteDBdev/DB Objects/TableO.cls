@@ -25,7 +25,7 @@ Private Type TTableO
     CKs As Scripting.Dictionary
     FKs As Scripting.Dictionary
     PK As ConstraintPK
-    DbManager As SQLiteDB
+    DbManager As LiteDB
     FromDbHelper As TableOFromDbHelper
     '''' Interpreted values:
     ''''   vbNullString - No Action
@@ -78,7 +78,7 @@ End Function
 
 '@Description "Factory, pulling metadata from database"
 Public Function FromDb(ByVal TableName As String, _
-                       ByVal DbManager As SQLiteDB) As TableO
+                       ByVal DbManager As LiteDB) As TableO
 Attribute FromDb.VB_Description = "Factory, pulling metadata from database"
     Dim Instance As TableO
     Set Instance = New TableO
@@ -357,11 +357,11 @@ Public Property Set PK(ByVal PKInstance As ConstraintPK)
     Set this.PK = PKInstance
 End Property
 
-Public Property Get DbManager() As SQLiteDB
+Public Property Get DbManager() As LiteDB
     Set DbManager = this.DbManager
 End Property
 
-Public Property Set DbManager(ByVal DbManagerInstance As SQLiteDB)
+Public Property Set DbManager(ByVal DbManagerInstance As LiteDB)
     Set this.DbManager = DbManagerInstance
 End Property
 

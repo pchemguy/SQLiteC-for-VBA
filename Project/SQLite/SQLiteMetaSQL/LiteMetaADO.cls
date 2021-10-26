@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Retrieves metadata from an SQLite database"
-'@Folder "SQLite.SQLiteDB"
+'@Folder "SQLite.SQLiteMetaSQL"
 '@ModuleDescription "Retrieves metadata from an SQLite database"
 '@PredeclaredId
 '@Exposed
@@ -34,7 +34,6 @@ End Function
 
 Friend Sub Init(ByVal ADOTool As ILiteADO)
     Guard.NullReference ADOTool
-    Guard.NullReference ADOTool.AdoConnection
     Guard.EmptyString ADOTool.MainDB
     
     Set this.ADOTool = ADOTool

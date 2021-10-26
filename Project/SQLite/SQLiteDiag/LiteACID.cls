@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "This module provides ACID related functionality"
-'@Folder "SQLite.SQLiteDB"
+'@Folder "SQLite.SQLiteDiag"
 '@ModuleDescription "This module provides ACID related functionality"
 '@PredeclaredId
 '@Exposed

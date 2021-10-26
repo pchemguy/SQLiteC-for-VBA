@@ -662,3 +662,41 @@ Private Sub GetFabRecordset()
     SQLQuery = SQLiteCExamplesSQL.SelectFromFunctionsTable
     Set this.dbr = this.dbs.GetRecordset(SQLQuery)
 End Sub
+
+
+Private Sub Txn()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCDbTempWithFunctionsTableAndData
+    
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.OpenDb
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    ResultCode = dbc.Begin(SQLITE_TXN_IMMEDIATE)
+    If ResultCode <> SQLITE_OK Then
+        Debug.Print "Unexpected Txn Begin error"
+        Exit Sub
+    End If
+    Dim TxnStateCode As SQLiteTxnState
+    TxnStateCode = SQLITE_TXN_NULL
+    TxnStateCode = dbc.TxnState("main")
+    If TxnStateCode = SQLITE_TXN_NONE Then
+        Debug.Print "Failed to begin transaction"
+        Exit Sub
+    Else
+        Debug.Print "Transaction has succeessfully begun"
+    End If
+    ResultCode = dbc.Rollback
+    If ResultCode <> SQLITE_OK Then Debug.Print "Unexpected Txn Commit error"
+    TxnStateCode = dbc.TxnState("main")
+    If TxnStateCode = SQLITE_TXN_NONE Then
+        Debug.Print "Transaction rolled back."
+    Else
+        Debug.Print "Failed to roll back transaction"
+    End If
+    ResultCode = dbc.CloseDb
+    If ResultCode <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
+End Sub

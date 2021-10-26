@@ -1,4 +1,4 @@
-Attribute VB_Name = "SQLiteDBTests"
+Attribute VB_Name = "LiteDBTests"
 '@Folder "SQLite.SQLiteDB"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
@@ -47,18 +47,18 @@ End Sub
 '===================================================='
 
 
-Private Function zfxDefaultDbManager() As SQLiteDB
+Private Function zfxDefaultDbManager() As LiteDB
     Dim FilePathName As String
     FilePathName = REL_PREFIX & LIB_NAME & ".db"
     
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(FilePathName)
+    Dim dbm As LiteDB
+    Set dbm = LiteDB.Create(FilePathName)
     Set zfxDefaultDbManager = dbm
 End Function
 
 
-Private Function zfxMemoryDbManager() As SQLiteDB
-    Set zfxMemoryDbManager = SQLiteDB.Create(":memory:")
+Private Function zfxMemoryDbManager() As LiteDB
+    Set zfxMemoryDbManager = LiteDB.Create(":memory:")
 End Function
 
 
@@ -80,7 +80,7 @@ Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
 Act:
-    Dim dbm As SQLiteDB
+    Dim dbm As LiteDB
     Set dbm = zfxDefaultDbManager()
     Dim Actual As String
     Actual = dbm.MainDB
@@ -105,7 +105,7 @@ Arrange:
     Dim Expected As String
     Expected = ":memory:"
 Act:
-    Dim dbm As SQLiteDB
+    Dim dbm As LiteDB
     Set dbm = zfxMemoryDbManager()
     Dim Actual As String
     Actual = dbm.MainDB
@@ -140,8 +140,8 @@ Arrange:
     Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
     On Error GoTo TestFail
 Act:
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(RelativePathName, AllowNonExistent:=True)
+    Dim dbm As LiteDB
+    Set dbm = LiteDB.Create(RelativePathName, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
@@ -175,8 +175,8 @@ Arrange:
     Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
     On Error GoTo TestFail
 Act:
-    Dim dbm As SQLiteDB
-    Set dbm = SQLiteDB.Create(Expected, AllowNonExistent:=True)
+    Dim dbm As LiteDB
+    Set dbm = LiteDB.Create(Expected, AllowNonExistent:=True)
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:

@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-'@Folder "SQLite.SQLiteDB"
+'@Folder "SQLite.SQLiteAbstract"
 '@Interface
 '@Exposed
 Option Explicit
@@ -19,22 +19,12 @@ End Property
 Public Property Get ConnectionString() As String
 End Property
 
-Public Property Get AdoConnection() As ADODB.Connection
-End Property
-
-Public Property Get AdoCommand() As ADODB.Command
-End Property
-
-Public Property Get ACIDTool() As LiteACID
-End Property
+Public Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
+End Function
 
 Public Function GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset
 End Function
 
-Public Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
-End Function
-
-'@Ignore FunctionReturnValueAlwaysDiscarded
 Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
 End Function
 

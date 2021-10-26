@@ -1,5 +1,5 @@
 Attribute VB_Name = "LiteACIDTests"
-'@Folder "SQLite.SQLiteDB"
+'@Folder "SQLite.SQLiteDiag"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
 '@IgnoreModule IndexedDefaultMemberAccess, AssignmentNotUsed
@@ -111,6 +111,8 @@ Private Sub ztcTest()
         
     Dim dbm As ILiteADO
     Set dbm = LiteADO(FilePathName)
+    Dim dbmCI As LiteADO
+    Set dbmCI = dbm
     
     '@Ignore VariableNotUsed
     Dim PathCheck As LiteFSCheck
@@ -118,11 +120,10 @@ Private Sub ztcTest()
         
     Dim ACIDTool As LiteACID
     Set ACIDTool = LiteACID(dbm)
-    Set ACIDTool = dbm.ACIDTool
     
     Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
     dbm.ExecuteNonQuery "PRAGMA busy_timeout=1000"
-    dbm.AdoCommand.CommandTimeout = 1
+    dbmCI.AdoCommand.CommandTimeout = 1
     Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
     Do While True
         Debug.Print ACIDTool.LockedReadOnly
@@ -133,6 +134,6 @@ Private Sub ztcTest()
     Debug.Print ACIDTool.JournalModeToggle
     Debug.Print ACIDTool.JournalModeToggle
     Debug.Print ACIDTool.JournalModeToggle
-    dbm.AdoConnection.Close
+    dbmCI.AdoConnection.Close
     Set dbm = Nothing
 End Sub

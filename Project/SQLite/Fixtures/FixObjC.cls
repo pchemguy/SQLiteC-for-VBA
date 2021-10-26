@@ -42,13 +42,14 @@ Public Function GetDBM() As SQLiteC
     Set GetDBM = dbm
 End Function
 
-Public Function GetDBC(ByVal DbPathName As String) As SQLiteCConnection
+Public Function GetDBC(ByVal DbPathName As String, _
+              Optional ByVal AllowNonExistent As Variant = True) As SQLiteCConnection
     Dim dbm As SQLiteC
     Set dbm = GetDBM()
     '''' Keep a reference to the DllManager to prevent library unloading due to object destruction
     Set this.DllMan = dbm.DllMan
     Dim dbc As SQLiteCConnection
-    Set dbc = dbm.CreateConnection(DbPathName)
+    Set dbc = dbm.CreateConnection(DbPathName, AllowNonExistent)
     If dbc Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "FixObjC", "Failed to create an SQLiteCConnection instance."
     Set GetDBC = dbc
@@ -109,16 +110,42 @@ Public Function GetDBCDbMemoryWithITRB() As SQLiteCConnection
 End Function
 
 Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long
+    Dim HandleConnection As Boolean
+    HandleConnection = (dbc.DbHandle = 0)
     Dim SQLQuery As String
     SQLQuery = FixSQLFunctions.CreateWithData
     Dim AffectedRows As Long
     AffectedRows = -2
     Dim ResultCode As SQLiteResultCodes
+    If HandleConnection Then
+        If dbc.OpenDb <> SQLITE_OK Then
+            Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to open db table."
+        End If
+    End If
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     If ResultCode <> SQLITE_OK Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", "Failed to create table."
+        Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to create table."
     Else
         Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
     End If
+    If HandleConnection Then
+        If dbc.CloseDb <> SQLITE_OK Then
+            Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to close db table."
+        End If
+    End If
     CreateFunctionsTableWithData = AffectedRows
+End Function
+
+Public Function GetDBCDbTempWithFunctionsTableAndData() As SQLiteCConnection
+    Dim AllowNonExistent As Boolean
+    AllowNonExistent = True
+    Dim DbPathName As String
+    DbPathName = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_ss") & _
+                 "-" & Left(GenerateGUID, 8) & ".db"
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    Dim AffectedRows As Long
+    AffectedRows = CreateFunctionsTableWithData(dbc)
+    If AffectedRows <= 0 Then Set dbc = Nothing
+    Set GetDBCDbTempWithFunctionsTableAndData = dbc
 End Function

@@ -22,7 +22,6 @@ Private Type TLiteADO
     ConnectionString As String
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
-    ACIDTool As LiteACID
 End Type
 Private this As TLiteADO
 
@@ -63,7 +62,6 @@ Friend Sub Init(ByVal Database As String, _
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
-    Set this.ACIDTool = LiteACID(Me)
 End Sub
 
 
@@ -92,6 +90,16 @@ Attribute InitFromConnection.VB_Description = "Generate ILiteADO instance from a
     this.MainDB = GetScalar("SELECT file FROM pragma_database_list WHERE name='main'")
     this.AdoCommand.CommandText = LiteMetaSQL.Create.Engine.Version
 End Sub
+
+
+Public Property Get AdoConnection() As ADODB.Connection
+    Set AdoConnection = this.AdoConnection
+End Property
+
+
+Public Property Get AdoCommand() As ADODB.Command
+    Set AdoCommand = this.AdoCommand
+End Property
 
 
 '''' Args:
@@ -202,17 +210,9 @@ Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.ConnectionString
 End Property
 
-Private Property Get ILiteADO_AdoConnection() As ADODB.Connection
-    Set ILiteADO_AdoConnection = this.AdoConnection
-End Property
-
-Private Property Get ILiteADO_AdoCommand() As ADODB.Command
-    Set ILiteADO_AdoCommand = this.AdoCommand
-End Property
-
-Private Property Get ILiteADO_ACIDTool() As LiteACID
-    Set ILiteADO_ACIDTool = this.ACIDTool
-End Property
+Private Function ILiteADO_GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
+    ILiteADO_GetScalar = GetScalar(SQLQuery)
+End Function
 
 Private Function ILiteADO_GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset
     Set ILiteADO_GetAdoRecordset = GetAdoRecordset(SQLQuery)
@@ -220,8 +220,4 @@ End Function
 
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String) As Long
     ILiteADO_ExecuteNonQuery = ExecuteNonQuery(SQLQuery)
-End Function
-
-Private Function ILiteADO_GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
-    ILiteADO_GetScalar = GetScalar(SQLQuery)
 End Function
