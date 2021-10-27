@@ -74,7 +74,7 @@ Attribute ByteArray.VB_Description = "Generates byte array from either multiple 
         Size = Len(ValuesLocal(0)) - 1
         ReDim Buffer(0 To Size)
         For ByteIndex = 0 To Size
-            Buffer(ByteIndex) = Asc(Mid(ValuesLocal(0), ByteIndex + 1, 1))
+            Buffer(ByteIndex) = Asc(Mid$(ValuesLocal(0), ByteIndex + 1, 1))
         Next ByteIndex
     Else
         GoTo INVALID_INPUT:
@@ -133,7 +133,7 @@ Attribute XorElements.VB_Description = "Calculates XOR-hash of a whole number ar
     Guard.NotArray Elements
     Select Case VarType(Elements(LBound(Elements)))
         Case vbByte, vbInteger, vbLong, vbLongLong, vbBoolean, vbCurrency
-            #If WIN64 Then
+            #If Win64 Then
                 Dim Result As LongLong
             #Else
                 Dim Result As Long

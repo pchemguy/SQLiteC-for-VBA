@@ -11,6 +11,7 @@ Attribute VB_Description = "SQL snippets focused on the function list provided b
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "SQL snippets focused on the function list provided by the function_list pragma."
 '@PredeclaredId
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 

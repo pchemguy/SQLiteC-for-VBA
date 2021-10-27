@@ -24,7 +24,9 @@ End Type
 Private this As TLiteMetaADO
 
 
+'@DefaultMember
 Public Function Create(ByVal ADOTool As ILiteADO) As LiteMetaADO
+Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteMetaADO
     Set Instance = New LiteMetaADO
     Instance.Init ADOTool
@@ -229,90 +231,3 @@ Attribute IndexSchema.VB_Description = "Retrieves index schema"
     
     Set IndexSchema = SchemaDic
 End Property
-
-
-'''' This routines queries the database to get the list of databases attached
-'''' to the current connection. For each database, two pragmas are generated:
-'''' one sets sync mode to 'NORMAL', the other sets journal mode according to
-'''' the provided argument. 'WAL' mode is more efficient and should be used
-'''' in most circumstances unless ACID transactions across multiple attached
-'''' databases are required, in which case 'DELETE' or 'TRUNCATE' should be
-'''' used.
-''''
-'@Description "Sets NORMAL sync and journal mode to WAL or DELETE for all attached dbs"
-Public Sub ToggleJournalMode(Optional ByVal JournalMode As String = "WAL")
-Attribute ToggleJournalMode.VB_Description = "Sets NORMAL sync and journal mode to WAL or DELETE for all attached dbs"
-    Dim Databases As Variant
-    Databases = this.ADOTool.GetAdoRecordset(this.MetaSQL.Databases).GetRows
-    Databases = ArrayLib.GetRow(Databases, 0)
-    
-    Dim DbIndex As Long
-    For DbIndex = LBound(Databases) To UBound(Databases)
-        Databases(DbIndex) = _
-            "PRAGMA " & Databases(DbIndex) & ".synchronous='NORMAL';" & vbNewLine & _
-            "PRAGMA " & Databases(DbIndex) & ".journal_mode='" & JournalMode & "'"
-    Next DbIndex
-    
-    Dim SQLQuery As String
-    SQLQuery = Join(Databases, ";" & vbNewLine) & ";"
-    this.ADOTool.ExecuteNonQuery SQLQuery
-End Sub
-
-
-'@Description "Queries journal mode for the given database"
-Public Function JournalModeGet(Optional ByVal SchemaAlias As String = "main") As String
-Attribute JournalModeGet.VB_Description = "Queries journal mode for the given database"
-    Dim SQLQuery As String
-    SQLQuery = "PRAGMA " & SchemaAlias & ".journal_mode"
-    JournalModeGet = this.ADOTool.GetScalar(SQLQuery)
-End Function
-
-
-'''' Args:
-''''   JournalMode (string, optional, "WAL"):
-''''     New journal mode. 'WAL' mode is more efficient and should be used in
-''''     most circumstances unless ACID transactions across multiple attached
-''''     databases are required, in which case 'DELETE' or 'TRUNCATE' should be
-''''     used.
-''''
-''''   SchemaAlias (string, optional, "main"):
-''''     Database alias, for which journal mode should be set. If "ALL" is provided,
-''''     the mode will be set for all attached databases.
-''''
-''''   This routine also sets sync mode to 'NORMAL'.
-''''
-'@Description "Sets journal mode for the given database"
-Public Sub JournalModeSet(Optional ByVal JournalMode As String = "WAL", _
-                          Optional ByVal SchemaAlias As String = "main")
-Attribute JournalModeSet.VB_Description = "Sets journal mode for the given database"
-    Const JOURNAL_MODES As String = "DELETE | TRUNCATE | PERSIST | MEMORY | WAL | OFF"
-    Dim JournalModeUC As String
-    JournalModeUC = UCase$(JournalMode)
-    Dim CheckResult As Boolean
-    CheckResult = CBool(InStr("| " & JOURNAL_MODES & " |", "| " & JournalModeUC & " |"))
-    Guard.Expression CheckResult, "SQLiteDB/JournalModeSet", _
-        "Invalid journal mode: '" & JournalMode & "'. Valid values are: " _
-        & JOURNAL_MODES
-    
-    Dim SQLQuery As String
-    Dim Databases As Variant
-    If UCase$(SchemaAlias) <> "ALL" Then
-        Databases = Array(SchemaAlias)
-    Else
-        SQLQuery = "SELECT name FROM pragma_database_list"
-        Databases = ArrayLib.GetRow(this.ADOTool.GetAdoRecordset(SQLQuery).GetRows, 0)
-    End If
-    
-    Dim DbIndex As Long
-    
-    '''' The driver SQLite ODBC has a bug. It tries to do some statement
-    '''' interpretation and fails, when multiple "PRAGMA" statements are inlcuded.
-    For DbIndex = LBound(Databases) To UBound(Databases)
-        If JournalModeUC = "WAL" Then
-            SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].synchronous = 'NORMAL'"
-            this.ADOTool.ExecuteNonQuery SQLQuery
-        End If
-        SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].journal_mode = '" & JournalMode & "'"
-        this.ADOTool.ExecuteNonQuery SQLQuery
-    Next DbIndex
-End Sub

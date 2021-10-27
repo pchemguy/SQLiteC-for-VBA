@@ -17,8 +17,8 @@ Attribute TableODevHelper.VB_Description = "Sets sample TableO workflow - popula
     re.Pattern = ExtPattern
     Database = re.Replace(ThisWorkbook.Name, ".db")
     
-    Dim DbManager As LiteDB
-    Set DbManager = LiteDB(Database)
+    Dim DbManager As ILiteADO
+    Set DbManager = LiteADO(Database)
     
     Dim TableName As String
     TableName = "test_table"

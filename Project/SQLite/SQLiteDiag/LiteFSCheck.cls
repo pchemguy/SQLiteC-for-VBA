@@ -235,8 +235,8 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
             ExistsAccesibleValid = FilePathName
             Exit Function
         Case ":temp:", ":tmp:"
-            ExistsAccesibleValid = Environ("TEMP") & Application.PathSeparator & _
-                Format(Now, "yyyy_mm_dd-hh_mm_ss-") & Left(GenerateGUID, 8) & ".db"
+            ExistsAccesibleValid = Environ$("TEMP") & Application.PathSeparator & _
+                Format$(Now, "yyyy_mm_dd-hh_mm_ss-") & Left$(GenerateGUID, 8) & ".db"
             Exit Function
         Case ":blank:"
             ExistsAccesibleValid = vbNullString

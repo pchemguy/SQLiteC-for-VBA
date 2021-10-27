@@ -566,7 +566,7 @@ Arrange:
     Dim SuffixPattern As String
 Act:
     Set PathCheck = LiteFSCheck(FilePathName, True)
-    Prefix = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_")
+    Prefix = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_")
     SuffixPattern = "ss-12345678.db"
     Actual = PathCheck.DatabasePathName
 Assert:

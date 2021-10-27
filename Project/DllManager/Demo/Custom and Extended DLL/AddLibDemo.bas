@@ -22,6 +22,7 @@ Private Sub GetSum()
     #If VBA7 Then
         '''' TODO
         '''' DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\AddLib\x64"
+        DllPath = vbNullString
     #Else
         DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\AddLib\x32"
     #End If

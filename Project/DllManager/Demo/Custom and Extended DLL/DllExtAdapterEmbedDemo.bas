@@ -24,6 +24,7 @@ Private Sub GetSQLiteVersion()
     #If VBA7 Then
         '''' TODO
         '''' DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\SQLite\x64"
+        DllPath = vbNullString
     #Else
         DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\SQLite\x32"
     #End If

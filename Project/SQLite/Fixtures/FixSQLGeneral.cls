@@ -11,6 +11,7 @@ Attribute VB_Description = "Assorted snippets."
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Assorted snippets."
 '@PredeclaredId
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 

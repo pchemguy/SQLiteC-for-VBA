@@ -18,7 +18,7 @@ Option Explicit
 
 Private Type TTableOFromDbHelper
     TableName As String
-    DbManager As LiteDB
+    DbManager As ILiteADO
     FieldCount As Long
 End Type
 Private this As TTableOFromDbHelper
@@ -27,7 +27,7 @@ Private this As TTableOFromDbHelper
 '@DefaultMember
 '@Description "Default factory"
 Public Function Create(ByVal TableName As String, _
-                       ByVal DbManager As LiteDB) As TableOFromDbHelper
+                       ByVal DbManager As ILiteADO) As TableOFromDbHelper
 Attribute Create.VB_Description = "Default factory"
 Attribute Create.VB_UserMemId = 0
     Dim Instance As TableOFromDbHelper
@@ -39,7 +39,7 @@ End Function
 
 '@Description "Default constructor"
 Friend Sub Init(ByVal TableName As String, _
-                ByVal DbManager As LiteDB)
+                ByVal DbManager As ILiteADO)
 Attribute Init.VB_Description = "Default constructor"
     Guard.EmptyString TableName
     Guard.NullReference DbManager
@@ -72,11 +72,13 @@ Friend Function GetDbFields() As Variant
 Attribute GetDbFields.VB_Description = "Gets fields metadata from the database."
     Dim TableName As String
     TableName = this.TableName
-    Dim DbManager As LiteDB
+    Dim DbManager As ILiteADO
     Set DbManager = this.DbManager
+    Dim MetaADO As LiteMetaADO
+    Set MetaADO = LiteMetaADO(DbManager)
     
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = DbManager.GetTableColumnsEx(TableName)
+    Set AdoRecordset = MetaADO.GetTableColumnsEx(TableName)
     Dim DbFieldsProps As Variant
     DbFieldsProps = ArrayLib.TransposeArray(AdoRecordset.GetRows)
     Dim FieldPropMap As Scripting.Dictionary
@@ -126,7 +128,7 @@ Friend Function GetConstraints() As Scripting.Dictionary
 Attribute GetConstraints.VB_Description = "Parses table schema from the database and returns constraints."
     Dim TableName As String
     TableName = this.TableName
-    Dim DbManager As LiteDB
+    Dim DbManager As ILiteADO
     Set DbManager = this.DbManager
     Dim FieldCount As Long
     FieldCount = this.FieldCount

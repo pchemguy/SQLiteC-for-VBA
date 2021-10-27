@@ -17,7 +17,7 @@ Private Sub CloneDb()
     TargetDb = REL_PREFIX & "Dest.db"
 
     '@Ignore FunctionReturnValueDiscarded
-    LiteDB.CloneDb TargetDb, SourceDb
+    LiteUtils.CloneDb TargetDb, SourceDb
 End Sub
 
 
@@ -25,12 +25,13 @@ Private Sub SetJournalMode()
     Dim FileName As String
     FileName = REL_PREFIX & "TestA.db"
     
-    Dim DbManager As LiteDB
-    Set DbManager = LiteDB(FileName)
-    DbManager.AttachDatabase REL_PREFIX & "TestB.db"
-    DbManager.AttachDatabase REL_PREFIX & "TestC.db"
+    Dim Utils As LiteUtils
+    Set Utils = LiteUtils(LiteADO(FileName))
+
+    Utils.AttachDatabase REL_PREFIX & "TestB.db"
+    Utils.AttachDatabase REL_PREFIX & "TestC.db"
     
-    DbManager.JournalModeSet "WAL", "ALL"
+    Utils.JournalModeSet "WAL", "ALL"
 End Sub
 
 
@@ -41,11 +42,11 @@ Private Sub PrintTable()
     Dim FileName As String
     FileName = REL_PREFIX & LIB_NAME & ".db"
     
-    Dim DbManager As LiteDB
-    Set DbManager = LiteDB(FileName)
+    Dim Utils As LiteUtils
+    Set Utils = LiteUtils(LiteADO(FileName))
     
     Dim SQLTool As SQLlib
     Set SQLTool = SQLlib("contacts")
     SQLTool.Limit = 1000
-    DbManager.DebugPrintRecordset SQLTool.SelectAll, OutputWS.Range("A1")
+    Utils.DebugPrintRecordset SQLTool.SelectAll, OutputWS.Range("A1")
 End Sub

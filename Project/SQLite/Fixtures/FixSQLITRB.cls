@@ -11,6 +11,7 @@ Attribute VB_Description = "Provides SQLite SQL snippets related to the ITRB tab
 '@Folder "SQLite.Fixtures"
 '@ModuleDescription "Provides SQLite SQL snippets related to the ITRB table."
 '@PredeclaredId
+'@IgnoreModule ProcedureNotUsed
 Option Explicit
 
 

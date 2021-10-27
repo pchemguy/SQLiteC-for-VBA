@@ -42,8 +42,8 @@ Private Const SQLITE_NOTADB_MSG As String = "file is not a database (26)"
 Private Const SQLITE_NOTADB_CODE As Long = 26
 
 Private Type TLiteACID
-    ADOTool As ILiteADO
-    SQLInfo As LiteMetaSQL
+    ExecADO As ILiteADO
+    MetaSQL As LiteMetaSQL
     ErrNumber As Long
     ErrSource As String
     ErrDescription As String
@@ -54,21 +54,21 @@ Private this As TLiteACID
 
 
 '@DefaultMember
-Public Function Create(ByVal ADOTool As ILiteADO) As LiteACID
+Public Function Create(ByVal ExecADO As ILiteADO) As LiteACID
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteACID
     Set Instance = New LiteACID
-    Instance.Init ADOTool
+    Instance.Init ExecADO
     Set Create = Instance
 End Function
 
 
-Friend Sub Init(ByVal ADOTool As ILiteADO)
-    Guard.NullReference ADOTool
-    Guard.EmptyString ADOTool.MainDB
+Friend Sub Init(ByVal ExecADO As ILiteADO)
+    Guard.NullReference ExecADO
+    Guard.EmptyString ExecADO.MainDB
     
-    Set this.ADOTool = ADOTool
-    Set this.SQLInfo = LiteMetaSQL.Create()
+    Set this.ExecADO = ExecADO
+    Set this.MetaSQL = LiteMetaSQL.Create()
 End Sub
 
 
@@ -103,15 +103,15 @@ End Property
 '''' 3) Run foreign key check and verify that nothing is returned.
 ''''
 '''' Examples:
-''''   >>> ?LiteACID(LiteADO("Library\SQLiteDBVBA\SQLiteDBVBA.db")).IntegrityADODB
+''''   >>> ?LiteACID(LiteADO("SQLiteDBVBA.db")).IntegrityADODB
 ''''   -- Integrity check passed for: '<Path>\SQLiteDBVBA.db'
 ''''   True
 ''''
-''''   >>> ?LiteACID(LiteADO("Library\SQLiteDBVBA\ICfailFKCfail.db")).IntegrityADODB
+''''   >>> ?LiteACID(LiteADO("ICfailFKCfail.db")).IntegrityADODB
 ''''   Error:
 ''''       message: Integrity check failed
 ''''
-''''   >>> ?LiteACID(LiteADO("Library\SQLiteDBVBA\ICokFKCfail.db")).IntegrityADODB
+''''   >>> ?LiteACID(LiteADO("ICokFKCfail.db")).IntegrityADODB
 ''''   Error:
 ''''       message: Foreign key check failed
 ''''
@@ -124,17 +124,17 @@ Friend Function IntegrityADODB() As Boolean
 Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks via ADODB/SQL."
     Const ThisProcName As String = "IntegrityADODB"
     
-    Dim ADOTool As ILiteADO
-    Set ADOTool = this.ADOTool
-    Dim SQLInfo As LiteMetaSQL
-    Set SQLInfo = this.SQLInfo
+    Dim ExecADO As ILiteADO
+    Set ExecADO = this.ExecADO
+    Dim MetaSQL As LiteMetaSQL
+    Set MetaSQL = this.MetaSQL
 
     '''' 1) Verify that existing file is a database and only one db is atttached
     '''' Expected error: OLE_DB_ODBC_Err due to damaged database file.
     '''' Database file damage may not be detected until the first query.
     On Error GoTo INTEGRITY_ERROR
     Dim AttachedDbCount As Long
-    AttachedDbCount = ADOTool.GetAdoRecordset(SQLInfo.Databases).RecordCount
+    AttachedDbCount = ExecADO.GetAdoRecordset(MetaSQL.Databases).RecordCount
     On Error GoTo 0
     
     If AttachedDbCount <> 1 Then
@@ -145,7 +145,7 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     '''' 2) "PRAGMA integrity_check"
     On Error GoTo INTEGRITY_ERROR
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = ADOTool.GetAdoRecordset(SQLInfo.CheckIntegrity)
+    Set AdoRecordset = ExecADO.GetAdoRecordset(MetaSQL.CheckIntegrity)
     On Error GoTo 0
     '@Ignore ImplicitDefaultMemberAccess, IndexedDefaultMemberAccess
     If Not AdoRecordset.Fields("integrity_check") = "ok" Then
@@ -154,13 +154,13 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     
     '''' 3) "PRAGMA foreign_key_check"
     On Error GoTo INTEGRITY_ERROR
-    Set AdoRecordset = ADOTool.GetAdoRecordset(SQLInfo.CheckFKs)
+    Set AdoRecordset = ExecADO.GetAdoRecordset(MetaSQL.CheckFKs)
     On Error GoTo 0
     If Not AdoRecordset.RecordCount = 0 Then
         Err.Raise ErrNo.ConsistencyCheckErr, "LiteACID", "Foreign key check failed"
     End If
 
-    Debug.Print "-- Integrity check passed for: '" & ADOTool.MainDB & "'"
+    Debug.Print "-- Integrity check passed for: '" & ExecADO.MainDB & "'"
     IntegrityADODB = True
     Exit Function
     
@@ -183,7 +183,7 @@ End Function
 
 
 Public Property Get JournalMode() As String
-    JournalMode = UCase$(CStr(this.ADOTool.GetScalar("PRAGMA journal_mode")))
+    JournalMode = UCase$(CStr(this.ExecADO.GetScalar("PRAGMA journal_mode")))
 End Property
 
 
@@ -193,14 +193,14 @@ Public Property Let JournalMode(ByVal Mode As String)
                         "Please use DELETE, TRUNCATE, or WAL. Received: " & Mode
     Const ThisProcName As String = "JournalModeLet"
     
-    Dim dbm As ILiteADO
-    Set dbm = this.ADOTool
+    Dim dbe As ILiteADO
+    Set dbe = this.ExecADO
     
     Dim SQLQuery As String
     SQLQuery = "PRAGMA journal_mode(" & Mode & ")"
     On Error GoTo WRITE_FAILED
         '@Ignore FunctionReturnValueDiscarded
-        dbm.ExecuteNonQuery SQLQuery
+        dbe.ExecuteNonQuery SQLQuery
     On Error GoTo 0
     
     Exit Property
@@ -282,7 +282,7 @@ Public Function LockedInTransaction() As Boolean
     Dim FilePathName As String
     Select Case JMode
         Case "WAL"
-            FilePathName = this.ADOTool.MainDB & "-shm"
+            FilePathName = this.ExecADO.MainDB & "-shm"
             If fso.FileExists(FilePathName) And fso.GetFile(FilePathName).Size > 0 Then
                 Dim TextFile As Scripting.TextStream
                 On Error Resume Next
@@ -293,7 +293,7 @@ Public Function LockedInTransaction() As Boolean
                 On Error GoTo 0
             End If
         Case "DELETE", "TRUNCATE"
-            FilePathName = this.ADOTool.MainDB & "-journal"
+            FilePathName = this.ExecADO.MainDB & "-journal"
             If fso.FileExists(FilePathName) Then
                 If fso.GetFile(FilePathName).Size > 0 Then LockedInTransaction = True
             End If
@@ -301,6 +301,9 @@ Public Function LockedInTransaction() As Boolean
 End Function
 
 
+'''' DO NOT USE EXCEPT FOR TESTING PURPOSES
+'''' When database is locked in transaction, this routine hangs the process
+'''' for half a minute, possibly longer. I could not achieve a sane behavior.
 Public Function LockedReadOnly() As Boolean
     If LockedInTransaction Then
         LockedReadOnly = True
@@ -319,55 +322,3 @@ Public Function LockedReadOnly() As Boolean
         End If
     On Error GoTo 0
 End Function
-
-'    Dim JournalModeUC As String
-'    JournalModeUC = UCase$(JournalMode)
-'    Dim CheckResult As Boolean
-'    CheckResult = CBool(InStr("| " & JOURNAL_MODES & " |", "| " & JournalModeUC & " |"))
-'    Guard.Expression CheckResult, "SQLiteDB/JournalModeSet", _
-'        "Invalid journal mode: '" & JournalMode & "'. Valid values are: " _
-'        & JOURNAL_MODES
-'
-'    Dim SQLQuery As String
-'    Dim Databases As Variant
-'    If UCase$(SchemaAlias) <> "ALL" Then
-'        Databases = Array(SchemaAlias)
-'    Else
-'        SQLQuery = "SELECT name FROM pragma_database_list"
-'        Databases = ArrayLib.GetRow(GetAdoRecordset(SQLQuery).GetRows, 0)
-'    End If
-'
-
-'Public Function DbIsWriteLocked() As Boolean
-'    Dim dbm As ILiteADO
-'    Set dbm = this.ADOTool
-'
-'    Dim JournalMode As String
-'    JournalMode = dbm.GetScalar
-'End Function
-
-
-
-'Private Sub ztcExistsAccesibleValid_ThrowsOnBadMagicA()
-'    Dim FilePathName As String
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Dim dbm As ILiteADO
-'    Set dbm = LiteADO(FilePathName)
-'
-'    Dim AdoConnection As ADODB.Connection
-'    Set AdoConnection = dbm.AdoConnection
-'
-'    LiteCheck(FilePathName).ExistsAccesibleValid
-'    Dim Response As Variant
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'    dbm.ExecuteNonQuery "PRAGMA journal_mode='DELETE'"
-'    Response = dbm.GetScalar("PRAGMA journal_mode")
-'
-'    On Error Resume Next
-'    FilePathName = zfxFixturePrefix & "TestCWAL.db"
-'    Set dbm = LiteADO(FilePathName)
-'    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
-'    LiteCheck(FilePathName & "-shm").ExistsAccesibleValid
-'    dbm.ExecuteNonQuery "ROLLBACK"
-'    Guard.AssertExpectedError Assert, ErrNo.TextStreamReadErr
-'End Sub

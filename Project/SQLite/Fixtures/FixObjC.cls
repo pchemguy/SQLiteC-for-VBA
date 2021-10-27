@@ -140,8 +140,8 @@ End Function
 
 Public Function GetDBCTemp() As SQLiteCConnection
     Dim DbPathName As String
-    DbPathName = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_ss") & _
-                 "-" & Left(GenerateGUID, 8) & ".db"
+    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
+                 "-" & Left$(GenerateGUID, 8) & ".db"
     Set GetDBCTemp = GetDBC(DbPathName)
 End Function
 
@@ -149,8 +149,8 @@ Public Function GetDBCTempFuncWithData() As SQLiteCConnection
     Dim AllowNonExistent As Boolean
     AllowNonExistent = True
     Dim DbPathName As String
-    DbPathName = Environ("TEMP") & PATH_SEP & Format(Now, "yyyy_mm_dd-hh_mm_ss") & _
-                 "-" & Left(GenerateGUID, 8) & ".db"
+    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
+                 "-" & Left$(GenerateGUID, 8) & ".db"
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBC(DbPathName, AllowNonExistent)
     Dim AffectedRows As Long
@@ -158,4 +158,3 @@ Public Function GetDBCTempFuncWithData() As SQLiteCConnection
     If AffectedRows <= 0 Then Set dbc = Nothing
     Set GetDBCTempFuncWithData = dbc
 End Function
-

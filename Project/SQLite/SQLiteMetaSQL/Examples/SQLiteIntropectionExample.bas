@@ -12,13 +12,17 @@ Private Sub Engine()
 Attribute Engine.VB_Description = "Collects SQLite engine information and ouputs via QueryTables and to 'immediate'"
     Dim SourceDb As String
     SourceDb = ":memory:"
-    Dim DbManager As LiteDB
-    Set DbManager = LiteDB.Create(SourceDb)
-    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Version, EngineInfo.Range("A1")
-    DbManager.DebugPrintRecordset LiteMetaSQLEngine.CompileOptions, EngineInfo.Range("B1")
-    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Modules, EngineInfo.Range("C1")
-    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Pragmas, EngineInfo.Range("D1")
-    DbManager.DebugPrintRecordset LiteMetaSQLEngine.Functions, EngineInfo.Range("E1")
+    Dim dbmADO As LiteDB
+    Set dbmADO = LiteDB(SourceDb)
+    Dim dbu As LiteUtils
+    Set dbu = dbmADO.Util
+    With LiteMetaSQLEngine
+        dbu.DebugPrintRecordset .Version, EngineInfo.Range("A1")
+        dbu.DebugPrintRecordset .Modules, EngineInfo.Range("C1")
+        dbu.DebugPrintRecordset .Pragmas, EngineInfo.Range("D1")
+        dbu.DebugPrintRecordset .Functions, EngineInfo.Range("E1")
+        dbu.DebugPrintRecordset .CompileOptions, EngineInfo.Range("B1")
+    End With
 End Sub
 
 
@@ -27,26 +31,34 @@ End Sub
 Private Sub Database()
 Attribute Database.VB_Description = "Collects SQLite database metadata"
     Dim SourceDb As String
-    SourceDb = "SQLiteDB.db"
-    Dim DbManager As LiteDB
-    Set DbManager = LiteDB.Create(SourceDb)
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.Tables, Tables.Range("A1")
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.ForeingKeys, ForeignKeys.Range("A1")
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.Indices(True), Indices.Range("A1")
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.FKChildIndices, FKChildIndices.Range("A1")
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.SimilarIndices, SimilarIndices.Range("A1")
-    DbManager.DebugPrintRecordset DbManager.SQLInfo.TableColumns("companies"), Columns.Range("A1")
-    ADOlib.RecordsetToQT DbManager.GetTableColumnsEx("test_table"), ColumnsEx.Range("A1")
+    SourceDb = "SQLiteCDBVBA.db"
+    
+    Dim dbmADO As LiteDB
+    Set dbmADO = LiteDB(SourceDb)
+    Dim dbu As LiteUtils
+    Set dbu = dbmADO.Util
+    With LiteMetaSQL.Create()
+        dbu.DebugPrintRecordset .Tables, Tables.Range("A1")
+        dbu.DebugPrintRecordset .ForeingKeys, ForeignKeys.Range("A1")
+        dbu.DebugPrintRecordset .Indices(True), Indices.Range("A1")
+        dbu.DebugPrintRecordset .FKChildIndices, FKChildIndices.Range("A1")
+        dbu.DebugPrintRecordset .SimilarIndices, SimilarIndices.Range("A1")
+        dbu.DebugPrintRecordset .TableColumns("companies"), Columns.Range("A1")
+    End With
+    ADOlib.RecordsetToQT dbmADO.Meta.GetTableColumnsEx("test_table"), ColumnsEx.Range("A1")
 End Sub
 
 
 '@EntryPoint
 Private Sub CloneDb()
     Dim SourceDb As String
-    SourceDb = "SQLiteDB.db"
+    SourceDb = "SQLiteCDBVBA.db"
     Dim TargetDb As String
     TargetDb = "Dest.db"
 
-    '@Ignore FunctionReturnValueDiscarded
-    LiteDB.CloneDb TargetDb, SourceDb
+    Dim dbmADO As LiteDB
+    Set dbmADO = LiteDB(SourceDb)
+    Dim dbeTarget As ILiteADO
+    Set dbeTarget = dbmADO.Util.CloneDb(TargetDb, SourceDb)
+    Debug.Print dbeTarget.MainDB
 End Sub
