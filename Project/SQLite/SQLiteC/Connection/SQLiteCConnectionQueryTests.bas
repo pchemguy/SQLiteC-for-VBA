@@ -47,7 +47,7 @@ Arrange:
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -86,7 +86,7 @@ Arrange:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRecords)
 Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
@@ -117,7 +117,7 @@ Arrange:
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -159,7 +159,7 @@ Arrange:
     Dim TxnStateCode As SQLiteTxnState
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.Drop & vbNewLine & FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.Drop & vbNewLine & FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
@@ -193,7 +193,7 @@ Private Sub ztcChangesCount_ThrowsOnClosedConnection()
     Dim dbc As SQLiteCConnection
     Set dbc = FixMain.ObjC.GetDBCMem
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     Dim AffectedRecords As Long
     AffectedRecords = -2
     

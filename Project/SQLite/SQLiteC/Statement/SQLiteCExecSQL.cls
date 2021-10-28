@@ -562,6 +562,9 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
     If IsError(PagedRowSet) Then
         GetRowSet2D = PagedRowSet
         Exit Function
+    ElseIf this.RowCount = 0 Then
+        GetRowSet2D = Empty
+        Exit Function
     End If
     
     Dim RowSetArray() As Variant

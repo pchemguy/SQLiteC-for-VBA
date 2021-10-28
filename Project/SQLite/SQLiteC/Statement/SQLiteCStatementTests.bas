@@ -208,42 +208,6 @@ End Sub
 
 
 '@TestMethod("Query")
-Private Sub ztcPrepare16V2_VerifiesErrorWithSelectFromFakeTable()
-    On Error GoTo TestFail
-
-Arrange:
-    Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMemITRB
-    Dim dbs As SQLiteCStatement
-    Set dbs = dbc.CreateStatement(vbNullString)
-    Dim ResultCode As SQLiteResultCodes
-Act:
-Assert:
-    ResultCode = dbc.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-    
-    Dim SQLQuery As String
-    
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
-    ResultCode = dbs.Prepare16V2(SQLQuery)
-    Assert.AreEqual SQLITE_ERROR, ResultCode, "Expected SQLITE_ERROR error."
-    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
-    
-    ResultCode = dbs.Finalize
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
-    
-    ResultCode = dbc.CloseDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
-    
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Query")
 Private Sub ztcGetBusy_VerifiesBusyStatus()
     On Error GoTo TestFail
 
@@ -687,7 +651,7 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
@@ -778,7 +742,7 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
@@ -822,7 +786,7 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
@@ -866,7 +830,7 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
@@ -980,7 +944,7 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch CREATE INSERT <" & CStr(AffectedRows) & ">"
     
@@ -1015,6 +979,37 @@ Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Query")
+Private Sub ztcGetScalar_VerifiesGetScalar()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixMain.ObjC.GetDBCMemITRB
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(vbNullString)
+    Dim ResultCode As SQLiteResultCodes
+
+    ResultCode = dbc.OpenDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
+Act:
+    Dim SQLQuery As String
+    SQLQuery = "SELECT name FROM pragma_database_list()"
+    Dim Result As Variant
+    Result = dbs.GetScalar(SQLQuery)
+Assert:
+    Assert.AreEqual "main", Result, "Expected 'name'"
+Cleanup:
+    ResultCode = dbc.CloseDb
+    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
+    
 CleanExit:
     Exit Sub
 TestFail:

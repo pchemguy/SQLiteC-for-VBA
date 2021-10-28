@@ -33,9 +33,9 @@ End Property
 
 
 '@Description "Generates query returning available SQLite functions"
-Public Property Get Functions() As String
-Attribute Functions.VB_Description = "Generates query returning available SQLite functions"
-    Functions = "SELECT * FROM pragma_function_list AS functions ORDER BY name"
+Public Property Get functions() As String
+Attribute functions.VB_Description = "Generates query returning available SQLite functions"
+    functions = "SELECT * FROM pragma_function_list AS functions ORDER BY name"
 End Property
 
 

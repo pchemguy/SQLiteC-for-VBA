@@ -14,6 +14,8 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
+Option Explicit
+
 #If VBA7 Then
 '''' Engine test, no db is necessary
 Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
@@ -22,6 +24,8 @@ Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As L
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, _
     ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As LongPtr, ByVal nPage As Long) As Long
+Private Declare PtrSafe Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 #Else
 '''' Engine test, no db is necessary
@@ -31,10 +35,10 @@ Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, _
     ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
 Private Declare Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As Long, ByVal nPage As Long) As Long
+Private Declare Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As Long) As Long
+Private Declare Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As Long) As Long
 Private Declare Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As Long) As Long
 #End If
-
-Option Explicit
 
 Private Type TSQLiteC
     DllMan As DllManager
@@ -134,33 +138,55 @@ End Function
 '''' Reference: https://www.sqlite.org/backup.html
 '''' Reference: https://www.sqlite.org/lang_vacuum.html#vacuuminto
 ''''
+'''' Returns:
+''''    number of pages copied
+''''
 '@Description "Performs online database backup."
 Public Function DupDbOnlineFull(ByVal DbConnDest As SQLiteCConnection, _
                        Optional ByVal DstAlias As String = "main", _
                        Optional ByVal DbConnSrc As SQLiteCConnection, _
-                       Optional ByVal SrcAlias As String = "main") As SQLiteResultCodes
+                       Optional ByVal SrcAlias As String = "main") As Long
 Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
     Dim DbConnDst As SQLiteCConnection
     Set DbConnDst = IIf(DbConnDest Is Nothing, DbConnSrc, DbConnDest)
-    #If VBA7 Then
-        Dim DbHandleBak As LongPtr
-    #Else
-        Dim DbHandleBak As Long
-    #End If
     FixGuard.DbNotOpened DbConnSrc, "SQLiteC/DupDbOnlineFull"
     FixGuard.DbNotOpened DbConnDst, "SQLiteC/DupDbOnlineFull"
-    DbHandleBak = sqlite3_backup_init(DbConnDst.DbHandle, DstAlias, _
-                                      DbConnSrc.DbHandle, SrcAlias)
+    #If VBA7 Then
+        Dim DbHandleBak As LongPtr
+        Dim SrcAliasPtr As LongPtr
+        Dim DstAliasPtr As LongPtr
+    #Else
+        Dim DbHandleBak As Long
+        Dim SrcAliasPtr As Long
+        Dim DstAliasPtr As Long
+    #End If
+    
+    Dim SrcAliasUTF8B() As Byte
+    Dim DstAliasUTF8B() As Byte
+    SrcAliasUTF8B = UTFlib.UTF8BytesFromStr(SrcAlias)
+    DstAliasUTF8B = UTFlib.UTF8BytesFromStr(DstAlias)
+    SrcAliasPtr = VarPtr(SrcAliasUTF8B(0))
+    DstAliasPtr = VarPtr(DstAliasUTF8B(0))
+    
+    DbHandleBak = sqlite3_backup_init(DbConnDst.DbHandle, DstAliasPtr, _
+                                      DbConnSrc.DbHandle, SrcAliasPtr)
     If DbHandleBak = 0 Then GoTo RESULT_CODE:
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_backup_step(DbHandleBak, -1)
     If ResultCode <> SQLITE_DONE Then GoTo RESULT_CODE:
+    Dim PagesLeft As Long
+    PagesLeft = sqlite3_backup_remaining(DbHandleBak)
+    If PagesLeft <> 0 Then GoTo RESULT_CODE:
+    Dim PagesDone As Long
+    PagesDone = sqlite3_backup_pagecount(DbHandleBak)
     ResultCode = sqlite3_backup_finish(DbHandleBak)
     Debug.Assert ResultCode = SQLITE_OK
+    DupDbOnlineFull = PagesDone
+    Exit Function
     
 RESULT_CODE:
     ResultCode = DbConnDst.ErrInfoRetrieve
-    DupDbOnlineFull = ResultCode
+    DupDbOnlineFull = 0
 End Function
 
 

@@ -302,7 +302,7 @@ Arrange:
 
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithValues
+    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.IsTrue AffectedRows = 5, "Failed to INSERT test data."
 Act:

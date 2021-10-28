@@ -87,17 +87,21 @@ Public Function GetDBCMem() As SQLiteCConnection
     Set GetDBCMem = GetDBC(DbPathName)
 End Function
 
+'''' Returns opened in-memory database with "ITRB" table
 Public Function GetDBCMemITRB() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = ":memory:"
     Set GetDBCMemITRB = GetDBC(DbPathName)
     With GetDBCMemITRB
-        .OpenDb
+        If .OpenDb <> SQLITE_OK Then
+            Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to open db table."
+        End If
         .ExecuteNonQueryPlain FixSQLITRB.Create
-        .CloseDb
+        '''' DO NOT CLOSE In-Memory Database!
     End With
 End Function
 
+'''' Returns opened in-memory database with "functions" table and data
 Public Function GetDBCMemFuncWithData() As SQLiteCConnection
     Dim AllowNonExistent As Boolean
     AllowNonExistent = True
@@ -105,10 +109,32 @@ Public Function GetDBCMemFuncWithData() As SQLiteCConnection
     DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    If dbc.OpenDb <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to open db table."
+    End If
     Dim AffectedRows As Long
     AffectedRows = CreateFunctionsTableWithData(dbc)
     If AffectedRows <= 0 Then Set dbc = Nothing
+    '''' DO NOT CLOSE In-Memory Database!
     Set GetDBCMemFuncWithData = dbc
+End Function
+
+'''' Returns opened in-memory database with "itrb" table and data
+Public Function GetDBCMemITRBWithData() As SQLiteCConnection
+    Dim AllowNonExistent As Boolean
+    AllowNonExistent = True
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    If dbc.OpenDb <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to open db table."
+    End If
+    Dim AffectedRows As Long
+    AffectedRows = CreateITRBTableWithData(dbc)
+    If AffectedRows <= 0 Then Set dbc = Nothing
+    '''' DO NOT CLOSE In-Memory Database!
+    Set GetDBCMemITRBWithData = dbc
 End Function
 
 Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As Long
@@ -138,6 +164,33 @@ Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As 
     CreateFunctionsTableWithData = AffectedRows
 End Function
 
+Public Function CreateITRBTableWithData(ByVal dbc As SQLiteCConnection) As Long
+    Dim HandleConnection As Boolean
+    HandleConnection = (dbc.DbHandle = 0)
+    Dim SQLQuery As String
+    SQLQuery = FixSQLITRB.CreateWithData
+    Dim AffectedRows As Long
+    AffectedRows = -2
+    Dim ResultCode As SQLiteResultCodes
+    If HandleConnection Then
+        If dbc.OpenDb <> SQLITE_OK Then
+            Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to open db table."
+        End If
+    End If
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to create table."
+    Else
+        Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    End If
+    If HandleConnection Then
+        If dbc.CloseDb <> SQLITE_OK Then
+            Err.Raise ErrNo.UnknownClassErr, "FixObjC", "Failed to close db table."
+        End If
+    End If
+    CreateITRBTableWithData = AffectedRows
+End Function
+
 Public Function GetDBCTemp() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
@@ -158,3 +211,18 @@ Public Function GetDBCTempFuncWithData() As SQLiteCConnection
     If AffectedRows <= 0 Then Set dbc = Nothing
     Set GetDBCTempFuncWithData = dbc
 End Function
+
+Public Function GetDBCTempITRBWithData() As SQLiteCConnection
+    Dim AllowNonExistent As Boolean
+    AllowNonExistent = True
+    Dim DbPathName As String
+    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
+                 "-" & Left$(GenerateGUID, 8) & ".db"
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    Dim AffectedRows As Long
+    AffectedRows = CreateITRBTableWithData(dbc)
+    If AffectedRows <= 0 Then Set dbc = Nothing
+    Set GetDBCTempITRBWithData = dbc
+End Function
+

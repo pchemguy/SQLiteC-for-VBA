@@ -70,12 +70,12 @@ Public Function InsertPlain() As String
     ), vbNewLine)
 End Function
 
-Public Function CreateWithValues() As String
-    CreateWithValues = Create & vbNewLine & InsertPlain
+Public Function CreateWithData() As String
+    CreateWithData = Create & vbNewLine & InsertPlain
 End Function
 
-Public Function CreateRowidWithValues() As String
-    CreateRowidWithValues = CreateRowid & vbNewLine & InsertPlain
+Public Function CreateRowidWithData() As String
+    CreateRowidWithData = CreateRowid & vbNewLine & InsertPlain
 End Function
 
 Public Function InsertParamName() As String

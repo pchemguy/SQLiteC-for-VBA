@@ -20,7 +20,7 @@ Attribute Engine.VB_Description = "Collects SQLite engine information and ouputs
         dbu.DebugPrintRecordset .Version, EngineInfo.Range("A1")
         dbu.DebugPrintRecordset .Modules, EngineInfo.Range("C1")
         dbu.DebugPrintRecordset .Pragmas, EngineInfo.Range("D1")
-        dbu.DebugPrintRecordset .Functions, EngineInfo.Range("E1")
+        dbu.DebugPrintRecordset .functions, EngineInfo.Range("E1")
         dbu.DebugPrintRecordset .CompileOptions, EngineInfo.Range("B1")
     End With
 End Sub

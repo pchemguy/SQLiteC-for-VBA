@@ -51,6 +51,10 @@ Attribute Collations.VB_Description = "SQL for retrieving a single column with S
     Collations = "SELECT name FROM pragma_collation_list AS collations ORDER BY name;"
 End Function
 
+Public Function CreateBasicTable() As String
+    CreateBasicTable = "CREATE TABLE t(x)"
+End Function
+
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
 Attribute CountSelectNoCTE.VB_Description = "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."

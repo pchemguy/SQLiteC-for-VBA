@@ -249,6 +249,10 @@ Public Function OpenDb( _
             Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
             Optional ByVal vfsName As String = vbNullString) As SQLiteResultCodes
 Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
+    If this.DbHandle > 0 Then
+        OpenDb = SQLITE_OK
+        Exit Function
+    End If
     Dim ResultCode As SQLiteResultCodes
     If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
         ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
