@@ -238,6 +238,7 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Set dbs = this.DbStmt
     Dim dbc As SQLiteCConnection
     Set dbc = dbs.DbConnection
+    FixGuard.StmtNotPrepared dbs, "SQLiteCExecSQL/ColumnMetaAPI"
     
     #If VBA7 Then
         Dim hStmt As LongPtr
@@ -245,11 +246,8 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         Dim hStmt As Long
     #End If
     hStmt = dbs.StmtHandle
-    If hStmt = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, "SQLiteCExecSQL", _
-        "Statement is not prepared."
     
     Dim ResultCode As SQLiteResultCodes
-    
     With ColumnInfo
         If .Initialized <> -1 Then Err.Raise ErrNo.InvalidParameterErr, _
             "SQLiteCExecSQL", "Set .ColumnIndex and .Initialized=-1 before the call!"
@@ -398,8 +396,7 @@ End Function
 
 
 Public Function ColumnCountAPI() As Long
-    If this.DbStmt.StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
-        "SQLiteCExecSQL", "Statement is not prepared."
+    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/ColumnCountAPI"
     this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     ColumnCountAPI = this.ColumnCount
 End Function
@@ -423,6 +420,7 @@ End Function
 Friend Function GetColumnValueAPI( _
             Optional ByVal ColumnIndex As Long = 0, _
             Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/GetColumnValueAPI"
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim RemoteBufPtr As LongPtr
@@ -431,8 +429,6 @@ Friend Function GetColumnValueAPI( _
         Dim RemoteBufPtr As Long
     #End If
     hStmt = this.DbStmt.StmtHandle
-    If hStmt = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, "SQLiteCExecSQL", _
-        "Statement is not prepared."
     
     Dim ColumnType As SQLiteType
     '''' Must query value type API to check for NULL.

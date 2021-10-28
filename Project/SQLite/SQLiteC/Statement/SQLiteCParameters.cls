@@ -125,6 +125,8 @@ End Function
 '@Description "Binds a single parameter. A particular interface is selected based on the value type."
 Public Function BindOne(ByVal ParamIndex As Long, ByVal Value As Variant) As SQLiteResultCodes
 Attribute BindOne.VB_Description = "Binds a single parameter. A particular interface is selected based on the value type."
+    '''' Place the Guard at higher level
+    '''' FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCParameters/BindOne"
     #If VBA7 Then
         Dim hStmt As LongPtr
     #Else
@@ -240,8 +242,7 @@ End Function
 ''''   - dictionary, specifying type for each parameter (can be
 ''''     passed as an optional second argument.
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
-    If this.DbStmt.StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
-        "SQLiteCParameters", "Statement is not prepared."
+    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCParameters/BindDictOrArray"
     If TypeName(ParamValues) = "Dictionary" Then
         BindDictOrArray = BindDict(ParamValues)
     Else

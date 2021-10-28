@@ -910,3 +910,35 @@ Private Sub DbIsLocked()
     If dbc.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
     If dbcA.CloseDb <> SQLITE_OK Then Debug.Print "Unexpected CloseDb error"
 End Sub
+
+
+Private Sub DemoDupInMemoryToTemp()
+    Dim dbcSrc As SQLiteCConnection
+    Set dbcSrc = FixObjC.GetDBCMemFuncWithData
+    Dim dbcDst As SQLiteCConnection
+    Set dbcDst = FixObjC.GetDBCTemp
+    
+    
+    Dim DbStmtName As String
+    DbStmtName = vbNullString
+    Dim dbsSrc As SQLiteCStatement
+    Set dbsSrc = dbcSrc.CreateStatement(DbStmtName)
+    If dbsSrc Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteCStatement instance."
+    Else
+        Debug.Print "Database SQLiteCStatement instance is ready."
+    End If
+
+    If dbcSrc.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    Dim Result As Variant
+    Result = dbsSrc.GetScalar("SELECT count(*) As counter FROM pragma_function_list")
+    If Result < 10 Then
+        Debug.Print "Too few functions in the source db."
+        Exit Sub
+    End If
+End Sub

@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Class for common guards."
 '@Folder "Common.Guard"
-'@ModuleDescription("Class for common guards.")
+'@ModuleDescription "Class for common guards."
 '@PredeclaredId
 '@IgnoreModule ProcedureNotUsed
 Option Explicit
@@ -18,14 +18,26 @@ Option Compare Text
 Private Const MsgExpectedErrNotRaised As String = "Expected error was not raised."
 Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
 
+Private Type TGuard
+    ModuleName As String
+End Type
+Private this As TGuard
+
 
 '@Description("Default class factory")
-Public Function Create() As Guard
+Public Function Create(ByVal ModuleName As String) As Guard
 Attribute Create.VB_Description = "Default class factory"
-    Dim Result As Guard
-    Set Result = Guard 'For singleton, return the predeclared class object
-    Set Create = Result
+    Dim Instance As Guard
+    Set Instance = New Guard
+    Instance.Init ModuleName
+    Set Create = Instance
 End Function
+
+
+Friend Sub Init(ByVal ModuleName As String)
+    Guard.EmptyString ModuleName
+    this.ModuleName = ModuleName
+End Sub
 
 
 '@Description("Returns instance reference")
@@ -43,7 +55,7 @@ End Property
 
 
 '@Description("Raises a run-time error if the specified string is empty.")
-Friend Sub EmptyString(ByVal Text As Variant)
+Public Sub EmptyString(ByVal Text As Variant)
 Attribute EmptyString.VB_Description = "Raises a run-time error if the specified string is empty."
     Dim errorDetails As TError
     With errorDetails
@@ -71,7 +83,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified object reference is Nothing.")
-Friend Sub NullReference(ByVal instanceVar As Variant)
+Public Sub NullReference(ByVal instanceVar As Variant)
 Attribute NullReference.VB_Description = "Raises a run-time error if the specified object reference is Nothing."
     Dim errorDetails As TError
     With errorDetails
@@ -99,7 +111,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified object reference is not Nothing.")
-Friend Sub NonNullReference(ByVal instanceVar As Variant)
+Public Sub NonNullReference(ByVal instanceVar As Variant)
 Attribute NonNullReference.VB_Description = "Raises a run-time error if the specified object reference is not Nothing."
     Dim errorDetails As TError
     With errorDetails
@@ -127,7 +139,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified instance isn't the default instance (singleton).")
-Friend Sub Singleton(ByVal instanceVar As Object)
+Public Sub Singleton(ByVal instanceVar As Object)
 Attribute Singleton.VB_Description = "Raises a run-time error if the specified instance isn't the default instance (singleton)."
     Debug.Assert IsObject(instanceVar)
     Guard.NullReference instanceVar
@@ -151,7 +163,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified instance isn't the default instance.")
-Friend Sub NonDefaultInstance(ByVal instanceVar As Object)
+Public Sub NonDefaultInstance(ByVal instanceVar As Object)
 Attribute NonDefaultInstance.VB_Description = "Raises a run-time error if the specified instance isn't the default instance."
     Guard.NullReference instanceVar
     
@@ -174,7 +186,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified expression is false.")
-Friend Sub Expression(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
+Public Sub Expression(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
 Attribute Expression.VB_Description = "Raises a run-time error if the specified expression is false."
     Dim errorDetails As TError
     With errorDetails
@@ -192,7 +204,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified expression is false.")
-Friend Sub ExpressionErr(ByVal AssertIsTrue As Boolean, _
+Public Sub ExpressionErr(ByVal AssertIsTrue As Boolean, _
                          ByVal ErrorCode As ErrNo, _
                          ByVal Source As String, _
                          ByVal Message As String)
@@ -213,7 +225,7 @@ End Sub
 
 
 '@Description("Raises a run-time InvalidCharcterErr if the specified expression is false.")
-Friend Sub InvalidCharacter(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
+Public Sub InvalidCharacter(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
 Attribute InvalidCharacter.VB_Description = "Raises a run-time InvalidCharcterErr if the specified expression is false."
     Dim errorDetails As TError
     With errorDetails
@@ -231,7 +243,7 @@ End Sub
 
 
 '@Description("Raises a run-time ActionNotSupportedErr if the specified expression is false.")
-Friend Sub ActionNotSupported(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
+Public Sub ActionNotSupported(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
 Attribute ActionNotSupported.VB_Description = "Raises a run-time ActionNotSupportedErr if the specified expression is false."
     Dim errorDetails As TError
     With errorDetails
@@ -249,7 +261,7 @@ End Sub
 
 
 '@Description("Raises a run-time TypeMismatchErr if the specified expression is false.")
-Friend Sub TypeMismatch(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
+Public Sub TypeMismatch(ByVal AssertIsTrue As Boolean, ByVal Source As String, ByVal Message As String)
 Attribute TypeMismatch.VB_Description = "Raises a run-time TypeMismatchErr if the specified expression is false."
     Dim errorDetails As TError
     With errorDetails
@@ -290,7 +302,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified file does not exist.")
-Friend Sub FileNotExist(ByVal FilePathName As String)
+Public Sub FileNotExist(ByVal FilePathName As String)
 Attribute FileNotExist.VB_Description = "Raises a run-time error if the specified file does not exist."
     Dim fsObject As Scripting.FileSystemObject
     Set fsObject = New Scripting.FileSystemObject
@@ -311,7 +323,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if transaction is requested but not supported. (Trapped on True)")
-Friend Sub InvalidTransaction(ByVal TransactoinsDisabled As Boolean)
+Public Sub InvalidTransaction(ByVal TransactoinsDisabled As Boolean)
 Attribute InvalidTransaction.VB_Description = "Raises a run-time error if transaction is requested but not supported. (Trapped on True)"
     Debug.Assert VarType(TransactoinsDisabled) = vbBoolean
     
@@ -331,7 +343,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified connection has active transaction. (Trapped on True)")
-Friend Sub InTransaction(ByVal HasActiveTransaction As Boolean)
+Public Sub InTransaction(ByVal HasActiveTransaction As Boolean)
 Attribute InTransaction.VB_Description = "Raises a run-time error if the specified connection has active transaction. (Trapped on True)"
     Debug.Assert VarType(HasActiveTransaction) = vbBoolean
     
@@ -351,7 +363,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified connection has no active transaction. (Trapped on False)")
-Friend Sub NotInTransaction(ByVal HasActiveTransaction As Boolean)
+Public Sub NotInTransaction(ByVal HasActiveTransaction As Boolean)
 Attribute NotInTransaction.VB_Description = "Raises a run-time error if the specified connection has no active transaction. (Trapped on False)"
     Debug.Assert VarType(HasActiveTransaction) = vbBoolean
     
@@ -371,7 +383,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified connection string is not valid or provider cannot be found. (Trapped on Nothing or vbNullString)")
-Friend Sub ConnectionString(ByVal dboOrConnStr As Variant)
+Public Sub ConnectionString(ByVal dboOrConnStr As Variant)
 Attribute ConnectionString.VB_Description = "Raises a run-time error if the specified connection string is not valid or provider cannot be found. (Trapped on Nothing or vbNullString)"
     Dim errorDetails As TError
     With errorDetails
@@ -389,7 +401,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified references are not both arrays having same base and size")
-Friend Sub IncompatibleArrays(ByVal ArrayA As Variant, ByVal ArrayB As Variant)
+Public Sub IncompatibleArrays(ByVal ArrayA As Variant, ByVal ArrayB As Variant)
 Attribute IncompatibleArrays.VB_Description = "Raises a run-time error if the specified references are not both arrays having same base and size"
     Dim errorDetails As TError
     With errorDetails
@@ -431,7 +443,7 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified references are not both arrays having same base and size")
-Friend Sub NotArray(ByVal ArrayArg As Variant)
+Public Sub NotArray(ByVal ArrayArg As Variant)
 Attribute NotArray.VB_Description = "Raises a run-time error if the specified references are not both arrays having same base and size"
     Dim errorDetails As TError
     With errorDetails
@@ -465,4 +477,32 @@ Friend Sub AssertExpectedError(ByVal Assert As Rubberduck.PermissiveAssertClass,
     End Select
     
     Err.Clear
+End Sub
+
+
+'@Ignore ProcedureNotUsed
+'@Description("Re-raises the current error, if there is one.")
+Friend Sub RethrowOnError()
+    With VBA.Err
+        If .Number <> 0 Then
+            Debug.Print "Error " & .Number, .Description
+            .Raise .Number, .Source, .Description
+        End If
+    End With
+End Sub
+
+
+'@Description("Formats and raises a run-time error.")
+Friend Sub RaiseError(ByRef errorDetails As TError)
+    With errorDetails
+        Dim Message As Variant
+        Message = Array("Error:", _
+            "name: " & .Name, _
+            "number: " & .Number, _
+            "message: " & .Message, _
+            "description: " & .Description, _
+            "source: " & .Source)
+        Debug.Print Join(Message, vbNewLine & vbTab)
+        VBA.Err.Raise .Number, .Source, .Message
+    End With
 End Sub

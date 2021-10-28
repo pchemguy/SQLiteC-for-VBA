@@ -140,7 +140,6 @@ Public Function DupDbOnlineFull(ByVal DbConnDest As SQLiteCConnection, _
                        Optional ByVal DbConnSrc As SQLiteCConnection, _
                        Optional ByVal SrcAlias As String = "main") As SQLiteResultCodes
 Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
-    Guard.NullReference DbConnSrc
     Dim DbConnDst As SQLiteCConnection
     Set DbConnDst = IIf(DbConnDest Is Nothing, DbConnSrc, DbConnDest)
     #If VBA7 Then
@@ -148,10 +147,12 @@ Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
     #Else
         Dim DbHandleBak As Long
     #End If
+    FixGuard.DbNotOpened DbConnSrc, "SQLiteC/DupDbOnlineFull"
+    FixGuard.DbNotOpened DbConnDst, "SQLiteC/DupDbOnlineFull"
     DbHandleBak = sqlite3_backup_init(DbConnDst.DbHandle, DstAlias, _
                                       DbConnSrc.DbHandle, SrcAlias)
-    Dim ResultCode As SQLiteResultCodes
     If DbHandleBak = 0 Then GoTo RESULT_CODE:
+    Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_backup_step(DbHandleBak, -1)
     If ResultCode <> SQLITE_DONE Then GoTo RESULT_CODE:
     ResultCode = sqlite3_backup_finish(DbHandleBak)
@@ -160,7 +161,6 @@ Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
 RESULT_CODE:
     ResultCode = DbConnDst.ErrInfoRetrieve
     DupDbOnlineFull = ResultCode
-    Exit Function
 End Function
 
 

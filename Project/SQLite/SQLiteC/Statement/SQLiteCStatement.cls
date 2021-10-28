@@ -128,8 +128,7 @@ End Property
 '@Description "Generates SQLite PSO."
 Friend Function Prepare16V2(ByVal SQLQuery As String) As SQLiteResultCodes
 Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
-    If this.DbConn.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
-        "SQLiteCStatement", "Database connection is not opened!"
+    FixGuard.DbNotOpened this.DbConn, "SQLiteCStatement/Prepare16V2"
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_prepare16_v2(this.DbConn.DbHandle, StrPtr(SQLQuery), _
                                       Len(SQLQuery) * 2 + 2, this.StmtHandle, 0)
@@ -203,6 +202,7 @@ End Function
 Friend Function PreparedStatementsGet(ByVal DbConn As SQLiteCConnection, _
                              Optional ByVal FinStmt As Boolean = True) As Variant
 Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with buys status."
+    FixGuard.DbNotOpened DbConn, "SQLiteCStatement/PreparedStatementsGet"
     #If VBA7 Then
         Dim hStmt As LongPtr
     #Else

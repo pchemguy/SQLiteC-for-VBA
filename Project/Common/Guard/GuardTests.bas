@@ -126,7 +126,7 @@ Private Sub Self_CheckAvailability()
 
 Arrange:
     Dim instanceVar As Object
-    Set instanceVar = Guard.Create
+    Set instanceVar = Guard.Create("Dummy")
 Act:
     Dim selfVar As Object
     Set selfVar = instanceVar.Self
@@ -150,7 +150,7 @@ Arrange:
     Set classVar = Guard
 Act:
     Dim classVarReturned As Object
-    Set classVarReturned = classVar.Create.Class
+    Set classVarReturned = classVar.Create("Dummy").Class
 Assert:
     Assert.AreEqual TypeName(classVar), TypeName(classVarReturned), "Error: type mismatch: " & TypeName(classVarReturned) & " type."
     Assert.AreSame classVar, classVarReturned, "Error: bad Class pointer"

@@ -172,8 +172,7 @@ End Property
 
 Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
                                   ) As String
-    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
-        "SQLiteCConnection", "Database connection is not opened!"
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/AttachedDbPathName"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AttachedDbPathName = UTFlib.StrFromUTF8Ptr( _
@@ -310,8 +309,7 @@ End Function
 Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
                           ) As SQLiteDbAccess
 Attribute AccessMode.VB_Description = "Queries database access mode."
-    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
-        "SQLiteCConnection", "Database connection is not opened!"
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/AccessMode"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
@@ -324,8 +322,7 @@ End Function
 '@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
 Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
-    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
-        "SQLiteCConnection", "Database connection is not opened!"
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/ChangesCount"
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
     Else
@@ -369,8 +366,7 @@ Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
     
-    If this.DbHandle = 0 Then Err.Raise ErrNo.ConnectionNotOpenedErr, _
-        "SQLiteCConnection", "Database connection is not opened!"
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
     SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
