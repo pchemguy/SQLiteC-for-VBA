@@ -912,7 +912,7 @@ Private Sub DbIsLocked()
 End Sub
 
 
-Private Sub DemoDupInMemoryToTemp()
+Private Sub DupInMemoryToTempOnline()
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCMemITRBWithData
     Dim dbcDst As SQLiteCConnection
@@ -948,4 +948,113 @@ Private Sub DemoDupInMemoryToTemp()
         
     Dim ResultCode As SQLiteResultCodes
     ResultCode = SQLiteC.DupDbOnlineFull(dbcDst, "main", dbcSrc, "main")
+End Sub
+
+
+Private Sub DupInMemoryToTempVacuum()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCMemITRBWithData
+    
+    
+    Dim DbStmtName As String
+    DbStmtName = vbNullString
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(DbStmtName)
+    If dbs Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteCStatement instance."
+    Else
+        Debug.Print "Database SQLiteCStatement instance is ready."
+    End If
+
+    If dbc.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    Dim Result As Variant
+    Result = dbs.GetScalar("SELECT count(*) As counter FROM itrb")
+    If Result <> 5 Then
+        Debug.Print "Unexpected RowCount."
+        Exit Sub
+    End If
+        
+    Dim ResultCode As SQLiteResultCodes
+End Sub
+
+
+Private Sub AttachDetach()
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCTemp
+    Dim dbcTemp As SQLiteCConnection
+    Set dbcTemp = FixObjC.GetDBCTemp
+    
+    If dbcTemp.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    If dbcTemp.ExecuteNonQueryPlain(FixSQLGeneral.CreateBasicTable) <> SQLITE_OK Then
+        Debug.Print "Unexpected ExecuteNonQueryPlain error"
+        Exit Sub
+    End If
+    If dbcTemp.CloseDb <> SQLITE_OK Then
+        Debug.Print "Unexpected CloseDb error"
+        Exit Sub
+    End If
+    
+    If dbc.OpenDb <> SQLITE_OK Then
+        Debug.Print "Unexpected OpenDb error"
+        Exit Sub
+    End If
+    
+    Dim DbStmtName As String
+    DbStmtName = vbNullString
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(DbStmtName)
+    If dbs Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteCStatement instance."
+    Else
+        Debug.Print "Database SQLiteCStatement instance is ready."
+    End If
+    
+    Dim fso As New Scripting.FileSystemObject
+    Dim SQLDbCount As String
+    SQLDbCount = "SELECT count(*) As counter FROM pragma_database_list"
+    
+    If dbc.AttachDatabase(dbcTemp.DbPathName) <> SQLITE_OK Then
+        Debug.Print "Unexpected AttachDatabase error"
+        Exit Sub
+    End If
+    If dbs.GetScalar(SQLDbCount) <> 2 Then
+        Debug.Print "Unexpected DbCount."
+        Exit Sub
+    End If
+    
+    If dbc.AttachDatabase(":memory:") <> SQLITE_OK Then
+        Debug.Print "Unexpected AttachDatabase error"
+        Exit Sub
+    End If
+    If dbs.GetScalar(SQLDbCount) <> 3 Then
+        Debug.Print "Unexpected DbCount."
+        Exit Sub
+    End If
+    
+    If dbc.DetachDatabase("memory") <> SQLITE_OK Then
+        Debug.Print "Unexpected AttachDatabase error"
+        Exit Sub
+    End If
+    If dbs.GetScalar(SQLDbCount) <> 2 Then
+        Debug.Print "Unexpected DbCount."
+        Exit Sub
+    End If
+    
+    If dbc.DetachDatabase(fso.GetBaseName(dbcTemp.DbPathName)) <> SQLITE_OK Then
+        Debug.Print "Unexpected AttachDatabase error"
+        Exit Sub
+    End If
+    If dbs.GetScalar(SQLDbCount) <> 1 Then
+        Debug.Print "Unexpected DbCount."
+        Exit Sub
+    End If
 End Sub

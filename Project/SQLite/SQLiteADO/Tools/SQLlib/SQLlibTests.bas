@@ -213,18 +213,21 @@ End Sub
 
 
 '@TestMethod("SQL")
-Private Sub ztcAttach_ValidatesQueryWithDefaultAlias()
+Private Sub ztcAttach_ValidatesQueryWithMissingAlias()
     On Error GoTo TestFail
 
 Arrange:
     Dim SQL As SQLlib
     Set SQL = zfxGetSQL
+    Dim fso As New Scripting.FileSystemObject
+    Dim DbPathName As String
+    DbPathName = ThisWorkbook.Path & Application.PathSeparator & _
+                 ThisWorkbook.VBProject.Name & ".db"
     Dim Expected As String
-    Expected = "ATTACH '" & ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name & "' AS [" & _
-               Left$(ThisWorkbook.Name, InStr(ThisWorkbook.Name, ".") - 1) & "]"
+    Expected = "ATTACH '" & DbPathName & "' AS [" & ThisWorkbook.VBProject.Name & "]"
 Act:
     Dim Actual As String
-    Actual = SQL.Attach(ThisWorkbook.Name)
+    Actual = SQL.Attach(DbPathName)
 Assert:
     Assert.AreEqual Expected, Actual, "ATTACH query mismatch"
 
@@ -233,4 +236,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-

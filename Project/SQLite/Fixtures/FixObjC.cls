@@ -191,21 +191,22 @@ Public Function CreateITRBTableWithData(ByVal dbc As SQLiteCConnection) As Long
     CreateITRBTableWithData = AffectedRows
 End Function
 
-Public Function GetDBCTemp() As SQLiteCConnection
-    Dim DbPathName As String
-    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
-                 "-" & Left$(GenerateGUID, 8) & ".db"
-    Set GetDBCTemp = GetDBC(DbPathName)
+Public Function RandomTempFileName(Optional ByVal FileExt As String = ".db")
+    RandomTempFileName = Environ$("TEMP") & PATH_SEP & _
+        Format$(Now, "yyyy_mm_dd-hh_mm_ss") & "-" & Left$(GenerateGUID, 8) & FileExt
 End Function
 
-Public Function GetDBCTempFuncWithData() As SQLiteCConnection
+Public Function GetDBCTemp() As SQLiteCConnection
     Dim AllowNonExistent As Boolean
     AllowNonExistent = True
     Dim DbPathName As String
-    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
-                 "-" & Left$(GenerateGUID, 8) & ".db"
+    DbPathName = RandomTempFileName()
+    Set GetDBCTemp = GetDBC(DbPathName, AllowNonExistent)
+End Function
+
+Public Function GetDBCTempFuncWithData() As SQLiteCConnection
     Dim dbc As SQLiteCConnection
-    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    Set dbc = GetDBCTemp()
     Dim AffectedRows As Long
     AffectedRows = CreateFunctionsTableWithData(dbc)
     If AffectedRows <= 0 Then Set dbc = Nothing
@@ -213,16 +214,10 @@ Public Function GetDBCTempFuncWithData() As SQLiteCConnection
 End Function
 
 Public Function GetDBCTempITRBWithData() As SQLiteCConnection
-    Dim AllowNonExistent As Boolean
-    AllowNonExistent = True
-    Dim DbPathName As String
-    DbPathName = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_ss") & _
-                 "-" & Left$(GenerateGUID, 8) & ".db"
     Dim dbc As SQLiteCConnection
-    Set dbc = GetDBC(DbPathName, AllowNonExistent)
+    Set dbc = GetDBCTemp()
     Dim AffectedRows As Long
     AffectedRows = CreateITRBTableWithData(dbc)
     If AffectedRows <= 0 Then Set dbc = Nothing
     Set GetDBCTempITRBWithData = dbc
 End Function
-

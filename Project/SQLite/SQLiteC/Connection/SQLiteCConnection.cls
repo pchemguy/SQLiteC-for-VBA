@@ -105,7 +105,7 @@ Public Enum SQLiteJournalMode
 End Enum
 
 Private Type TSQLiteCConnection
-    DbPathName As String
+    DbPathName As String                    ' Resolved file pathname of the "main" database.
     #If VBA7 Then
         DbHandle As LongPtr
     #Else
@@ -132,11 +132,6 @@ End Function
 Friend Sub Init(ByVal DbPathName As String, _
        Optional ByVal AllowNonExistent As Variant = Empty)
     Dim FilePathName As String
-    '''' TODO: DbPath validation
-    ''''       This task should be performed by SQLiteDBVBA.LiteFSCheck class.
-    ''''       This functionality will be integrated after the code is merged
-    ''''       into the SQLiteDB VBA Library.
-    '''' FilePathName = DbPathName
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
     Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
@@ -170,13 +165,41 @@ Public Property Get DbPathName() As String
 End Property
 
 
+'@Description "Retrieves database path for SchemaAlias."
 Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
                                   ) As String
+Attribute AttachedDbPathName.VB_Description = "Retrieves database path for SchemaAlias."
     FixGuard.DbNotOpened Me, "SQLiteCConnection/AttachedDbPathName"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AttachedDbPathName = UTFlib.StrFromUTF8Ptr( _
         sqlite3_db_filename(this.DbHandle, VarPtr(SchemaUTF8(0))))
+End Function
+
+
+'@Description "Attaches database to the current connection."
+Public Function AttachDatabase(ByVal DbPathName As String, _
+                      Optional ByVal SchemaAlias As String = vbNullString _
+                      ) As SQLiteResultCodes
+Attribute AttachDatabase.VB_Description = "Attaches database to the current connection."
+    Dim FilePathName As String
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(DbPathName, True)
+    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
+                        "SQLiteCConnection", "Failed to resolve db path."
+    FilePathName = PathCheck.DatabasePathName
+    Dim SQLQuery As String
+    SQLQuery = SQLlib.Attach(FilePathName, SchemaAlias)
+    AttachDatabase = ExecuteNonQueryPlain(SQLQuery)
+End Function
+
+
+'@Description "Detaches a database from the current connection."
+Public Function DetachDatabase(ByVal SchemaAlias As String) As SQLiteResultCodes
+    Guard.EmptyString SchemaAlias
+    Dim SQLQuery As String
+    SQLQuery = SQLlib.Detach(SchemaAlias)
+    DetachDatabase = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
 
@@ -462,10 +485,10 @@ Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction s
 End Function
 
 
-Public Property Get DbIsLocked() As Variant
+Public Function DbIsLocked() As Variant
     If TxnState("main") <> SQLITE_TXN_NONE Then
         DbIsLocked = CVErr(ErrNo.AdoInTransactionErr)
-        Exit Property
+        Exit Function
     End If
     
     Dim ResultCode As SQLiteResultCodes
@@ -481,4 +504,4 @@ Public Property Get DbIsLocked() As Variant
     Else
         DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
     End If
-End Property
+End Function

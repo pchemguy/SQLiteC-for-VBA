@@ -279,3 +279,87 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("SQLiteVersion")
+Private Sub ztcDupDbOnlineFull_VerifiesDbCopyMemToTemp()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbcSrc As SQLiteCConnection
+    Set dbcSrc = FixObjC.GetDBCMemITRBWithData
+    Dim dbcDst As SQLiteCConnection
+    Set dbcDst = FixObjC.GetDBCTemp
+
+    Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
+    Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
+    
+    Dim DbStmtNameSrc As String
+    DbStmtNameSrc = Left(GenerateGUID, 8)
+    Dim dbsSrc As SQLiteCStatement
+    Set dbsSrc = dbcSrc.CreateStatement(DbStmtNameSrc)
+    Dim DbStmtNameDst As String
+    DbStmtNameDst = Left(GenerateGUID, 8)
+    Dim dbsDst As SQLiteCStatement
+    Set dbsDst = dbcDst.CreateStatement(DbStmtNameDst)
+    
+    Dim SQLQuery As String
+    SQLQuery = "SELECT count(*) As counter FROM itrb"
+    Assert.AreEqual 5, dbsSrc.GetScalar(SQLQuery), "Unexpected RowCount."
+Act:
+    Dim PagesDone As Long
+    PagesDone = SQLiteC.DupDbOnlineFull(dbcDst, "main", dbcSrc, "main")
+Assert:
+    Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
+    Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("SQLiteVersion")
+Private Sub ztcDupDbOnlineFull_VerifiesDbCopyTempToMem()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbcSrc As SQLiteCConnection
+    Set dbcSrc = FixObjC.GetDBCTempITRBWithData
+    Dim dbcDst As SQLiteCConnection
+    Set dbcDst = FixObjC.GetDBCMem
+
+    Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
+    Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
+    
+    Dim DbStmtNameSrc As String
+    DbStmtNameSrc = Left(GenerateGUID, 8)
+    Dim dbsSrc As SQLiteCStatement
+    Set dbsSrc = dbcSrc.CreateStatement(DbStmtNameSrc)
+    Dim DbStmtNameDst As String
+    DbStmtNameDst = Left(GenerateGUID, 8)
+    Dim dbsDst As SQLiteCStatement
+    Set dbsDst = dbcDst.CreateStatement(DbStmtNameDst)
+    
+    Dim SQLQuery As String
+    SQLQuery = "SELECT count(*) As counter FROM itrb"
+    Assert.AreEqual 5, dbsSrc.GetScalar(SQLQuery), "Unexpected RowCount."
+Act:
+    Dim PagesDone As Long
+    PagesDone = SQLiteC.DupDbOnlineFull(dbcDst, "main", dbcSrc, "main")
+Assert:
+    Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
+    Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
+Cleanup:
+    Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
+    Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

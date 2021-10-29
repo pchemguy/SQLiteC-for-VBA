@@ -263,46 +263,33 @@ End Function
 ''''
 '''' Args:
 ''''   DatabaseName (string):
-''''     the name of the SQLite database to be attached. This argument is passed to
-''''     the VerifyOrGetDefaultPath routine to generate a full path.
+''''     name of the SQLite database to be attached. This argument must be
+''''     cleared by the caller. It can be ":memory:", a valid file pathname or
+''''     an empty string.
 ''''   DatabaseAlias (string, optional, vbNullString):
 ''''     database alias; defaults to the database file name without extension.
 ''''
 '''' Returns:
-''''   String, containing parametrized UPDATE statement
-''''
-'''' Raises:
-''''   ErrNo.FileNotFoundErr:
-''''     if DatabaseName file is not found.
+''''   String, containing ATTACH statement
 ''''
 '''' Examples:
-''''   >>> ?SQLlib.Attach("SQLiteDB.db")
-''''   "ATTACH '<Thisworkbook.Path>\SQLiteDB.db' AS [SQLiteDB]"
-''''
-''''   >>> ?SQLlib.Attach("SQLiteDB.db", "sqlitedb")
-''''   "ATTACH '<Thisworkbook.Path>\SQLiteDB.db' AS [sqlitedb]"
-''''
-''''   >>> ?SQLlib.Attach(":memory:", "memeory")
-''''   "ATTACH ':memory:' AS [memeory]"
+''''   >>> ?SQLlib.Attach(":memory:", "memory")
+''''   "ATTACH ':memory:' AS [memory]"
 ''''
 '@Description "Generates SQLite ATTACH statement"
-Public Function Attach(ByVal DatabaseName As String, _
+Public Function Attach(ByVal Database As String, _
               Optional ByVal DatabaseAlias As String = vbNullString) As String
 Attribute Attach.VB_Description = "Generates SQLite ATTACH statement"
-    Dim Database As String
-    If DatabaseName = ":memory:" Then
-        Database = DatabaseName
-    Else
-        Database = VerifyOrGetDefaultPath(DatabaseName)
-    End If
+    Dim fso As New Scripting.FileSystemObject
     Dim Alias As String
     If Len(DatabaseAlias) > 0 Then
         Alias = DatabaseAlias
+    ElseIf Database = ":memory:" Then
+        Alias = "memory"
     Else
-        Alias = Dir$(Database)
-        Alias = Left$(Alias, InStr(IIf(Len(Alias) > 8, Len(Alias) - 8, 1), Alias, ".") - 1)
+        Alias = fso.GetBaseName(Database)
     End If
-    Attach = "ATTACH '" & Database & "' AS [" & Alias & "]"
+    Attach = "ATTACH '" & Replace(Database, "'", "''") & "' AS [" & Alias & "]"
 End Function
 
 
