@@ -666,7 +666,7 @@ End Sub
 
 Private Sub Txn()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTempFuncWithData
     
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.OpenDb
@@ -704,7 +704,7 @@ End Sub
 
 Private Sub TxnSave()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTemp
     
     Dim ResultCode As SQLiteResultCodes
     Dim SavePointName As String
@@ -777,7 +777,7 @@ End Sub
 
 Private Sub TxnBusy()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTempFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
 
@@ -993,7 +993,7 @@ Private Sub AttachDetach()
         Debug.Print "Unexpected OpenDb error"
         Exit Sub
     End If
-    If dbcTemp.ExecuteNonQueryPlain(FixSQLGeneral.CreateBasicTable) <> SQLITE_OK Then
+    If dbcTemp.ExecuteNonQueryPlain(FixSQLMisc.CreateBasicTable) <> SQLITE_OK Then
         Debug.Print "Unexpected ExecuteNonQueryPlain error"
         Exit Sub
     End If
@@ -1022,7 +1022,7 @@ Private Sub AttachDetach()
     Dim SQLDbCount As String
     SQLDbCount = "SELECT count(*) As counter FROM pragma_database_list"
     
-    If dbc.AttachDatabase(dbcTemp.DbPathName) <> SQLITE_OK Then
+    If dbc.Attach(dbcTemp.DbPathName) <> SQLITE_OK Then
         Debug.Print "Unexpected AttachDatabase error"
         Exit Sub
     End If
@@ -1031,7 +1031,7 @@ Private Sub AttachDetach()
         Exit Sub
     End If
     
-    If dbc.AttachDatabase(":memory:") <> SQLITE_OK Then
+    If dbc.Attach(":memory:") <> SQLITE_OK Then
         Debug.Print "Unexpected AttachDatabase error"
         Exit Sub
     End If
@@ -1040,7 +1040,7 @@ Private Sub AttachDetach()
         Exit Sub
     End If
     
-    If dbc.DetachDatabase("memory") <> SQLITE_OK Then
+    If dbc.Detach("memory") <> SQLITE_OK Then
         Debug.Print "Unexpected AttachDatabase error"
         Exit Sub
     End If
@@ -1049,7 +1049,7 @@ Private Sub AttachDetach()
         Exit Sub
     End If
     
-    If dbc.DetachDatabase(fso.GetBaseName(dbcTemp.DbPathName)) <> SQLITE_OK Then
+    If dbc.Detach(fso.GetBaseName(dbcTemp.DbPathName)) <> SQLITE_OK Then
         Debug.Print "Unexpected AttachDatabase error"
         Exit Sub
     End If
@@ -1057,4 +1057,16 @@ Private Sub AttachDetach()
         Debug.Print "Unexpected DbCount."
         Exit Sub
     End If
+End Sub
+
+
+Private Sub ReadDbHeader()
+    Dim dbc As SQLiteCConnection
+    Set dbc = SQLiteCConnection("blank.db", False) '''' FixObjC.GetDBCTempInit
+    Dim dbh As SQLiteCHeader
+    Set dbh = SQLiteCHeader(dbc)
+    dbh.LoadHeader
+    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbh = SQLiteCHeader(dbc)
+    dbh.LoadHeader
 End Sub

@@ -1,5 +1,5 @@
 Attribute VB_Name = "ADOlibTests"
-'@Folder "SQLite.SQLiteADO.Tools.ADOlib"
+'@Folder "SQLite.SQLiteADO.ADOlib"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, IndexedDefaultMemberAccess
 Option Explicit

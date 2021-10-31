@@ -327,7 +327,7 @@ Arrange:
     Dim DotPathSep As String
     DotPathSep = "." & Application.PathSeparator
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & DotPathSep & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(DotPathSep & ThisWorkbook.Name, vbNullString)

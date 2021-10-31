@@ -129,11 +129,12 @@ End Function
 '''' Resolves file pathname
 ''''
 '''' This helper routines attempts to interpret provided pathname as
-'''' a reference to an existing file:
+'''' a file reference:
 '''' 1) check if provided reference is a valid absolute file pathname, if not,
-'''' 2) if AllowNonExistent, return FilePathName, possibly prefixed with
-''''      ThisWorkbook.Path
-''''    if absolute path is provided, fail resolution at this point.
+'''' 2) if AllowNonExistent and parent folder exists and the reference does not
+''''      point to an existing folder, return FilePathName, possibly prefixed
+''''      with ThisWorkbook.Path
+'''' If absolute path is provided and not resolved, fail resolution at this point.
 '''' 3) construct an array of possible file locations:
 ''''      - ThisWorkbook.Path & Application.PathSeparator
 ''''      - Environ("APPDATA") & Application.PathSeparator &
@@ -222,14 +223,15 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
                                     ThisWorkbook.Path & PATHuSEP & FilePathName)
         Else
             PathNameCandidate = fso.GetAbsolutePathName(FilePathName)
-            If Not fso.FolderExists(fso.GetParentFolderName(PathNameCandidate)) Then
-                GoTo FILE_NOT_FOUND
-            End If
+        End If
+        If Not fso.FolderExists(fso.GetParentFolderName(PathNameCandidate)) Then
+            GoTo FILE_NOT_FOUND
         End If
         VerifyOrGetDefaultPath = PathNameCandidate
         Exit Function
     End If
     
+    '''' Absolute path name, if valid, should be resolved in (1) or (2)
     If Len(fso.GetDriveName(FilePathName)) > 0 Then GoTo FILE_NOT_FOUND
     
     '''' === (3a) === Array of prefixes
@@ -285,8 +287,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
         For PrefixIndex = 0 To UBound(Prefixes)
             PathNameCandidate = Prefixes(PrefixIndex) & FileNames(FileNameIndex)
             If fso.FileExists(PathNameCandidate) Then
-                VerifyOrGetDefaultPath = Replace$(PathNameCandidate, _
-                                                  PATHuSEP & PATHuSEP, PATHuSEP)
+                VerifyOrGetDefaultPath = fso.GetAbsolutePathName(PathNameCandidate)
                 Exit Function
             End If
         Next PrefixIndex

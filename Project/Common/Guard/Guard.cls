@@ -11,7 +11,7 @@ Attribute VB_Description = "Class for common guards."
 '@Folder "Common.Guard"
 '@ModuleDescription "Class for common guards."
 '@PredeclaredId
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule ProcedureNotUsed, ParameterNotUsed
 Option Explicit
 Option Compare Text
 
@@ -21,6 +21,7 @@ Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
 Private Type TGuard
     ModuleName As String
 End Type
+'@Ignore MoveFieldCloserToUsage
 Private this As TGuard
 
 
@@ -83,7 +84,9 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified object reference is Nothing.")
-Public Sub NullReference(ByVal instanceVar As Variant)
+Public Sub NullReference(ByVal instanceVar As Variant, _
+                Optional ByVal Source As String, _
+                Optional ByVal Message As String)
 Attribute NullReference.VB_Description = "Raises a run-time error if the specified object reference is Nothing."
     Dim errorDetails As TError
     With errorDetails
@@ -111,7 +114,9 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified object reference is not Nothing.")
-Public Sub NonNullReference(ByVal instanceVar As Variant)
+Public Sub NonNullReference(ByVal instanceVar As Variant, _
+                   Optional ByVal Source As String, _
+                   Optional ByVal Message As String)
 Attribute NonNullReference.VB_Description = "Raises a run-time error if the specified object reference is not Nothing."
     Dim errorDetails As TError
     With errorDetails
@@ -204,14 +209,35 @@ End Sub
 
 
 '@Description("Raises a run-time error if the specified expression is false.")
-Public Sub ExpressionErr(ByVal AssertIsTrue As Boolean, _
+Public Sub ExpressionErr(ByVal TrapIfFalse As Boolean, _
                          ByVal ErrorCode As ErrNo, _
                          ByVal Source As String, _
                          ByVal Message As String)
 Attribute ExpressionErr.VB_Description = "Raises a run-time error if the specified expression is false."
     Dim errorDetails As TError
     With errorDetails
-        .Trapped = Not AssertIsTrue
+        .Trapped = Not TrapIfFalse
+        If .Trapped Then
+            .Name = "CustomErr"
+            .Number = ErrorCode
+            .Source = Source
+            .Message = Message
+            .Description = vbNullString
+            RaiseError errorDetails
+        End If
+    End With
+End Sub
+
+
+'@Description("Raises a run-time error if the specified expression is true.")
+Public Sub ExpressionTrueErr(ByVal TrapIfTrue As Boolean, _
+                             ByVal ErrorCode As ErrNo, _
+                             ByVal Source As String, _
+                             ByVal Message As String)
+Attribute ExpressionTrueErr.VB_Description = "Raises a run-time error if the specified expression is true."
+    Dim errorDetails As TError
+    With errorDetails
+        .Trapped = TrapIfTrue
         If .Trapped Then
             .Name = "CustomErr"
             .Number = ErrorCode
@@ -483,6 +509,7 @@ End Sub
 '@Ignore ProcedureNotUsed
 '@Description("Re-raises the current error, if there is one.")
 Friend Sub RethrowOnError()
+Attribute RethrowOnError.VB_Description = "Re-raises the current error, if there is one."
     With VBA.Err
         If .Number <> 0 Then
             Debug.Print "Error " & .Number, .Description
@@ -494,6 +521,7 @@ End Sub
 
 '@Description("Formats and raises a run-time error.")
 Friend Sub RaiseError(ByRef errorDetails As TError)
+Attribute RaiseError.VB_Description = "Formats and raises a run-time error."
     With errorDetails
         Dim Message As Variant
         Message = Array("Error:", _

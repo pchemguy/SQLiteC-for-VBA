@@ -42,10 +42,9 @@ Private Sub ztcGetDBCTempFuncWithData_VerifiesTempDatabase()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTempFuncWithData
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
-    Dim ResultCode As SQLiteResultCodes
 
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error."
     
@@ -63,7 +62,7 @@ Act:
     Actual = dbs.GetScalar(SQLQuery)
 Assert:
     Assert.IsTrue IsNumeric(Actual), "Unexpected query result."
-    Assert.AreEqual Expected, Actual, ""
+    Assert.AreEqual Expected, Actual, vbNullString
 Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
@@ -80,10 +79,9 @@ Private Sub ztcGetDBCMemFuncWithData_VerifiesMemDatabase()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMemFuncWithData
+    Set dbc = FixObjC.GetDBCMemFuncWithData
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
-    Dim ResultCode As SQLiteResultCodes
 
     Assert.IsTrue dbc.DbHandle > 0, "Expected opened database."
     
@@ -104,7 +102,7 @@ Act:
     Actual = dbs.GetScalar(SQLQuery)
 Assert:
     Assert.IsTrue IsNumeric(Actual), "Unexpected query result."
-    Assert.AreEqual Expected, Actual, ""
+    Assert.AreEqual Expected, Actual, vbNullString
 Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Provides ADO related helpers"
-'@Folder "SQLite.SQLiteADO.Tools.ADOlib"
+'@Folder "SQLite.SQLiteADO.ADOlib"
 '@ModuleDescription "Provides ADO related helpers"
 '@PredeclaredId
 '@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed

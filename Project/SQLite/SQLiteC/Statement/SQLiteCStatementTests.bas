@@ -42,7 +42,7 @@ Private Sub ztcCreateStatement_VerifiesNewStatement()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Assert:
@@ -65,12 +65,12 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.SQLiteVersionScalar
+    SQLQuery = FixSQLMisc.SQLiteVersionScalar
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
@@ -85,7 +85,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareSQLiteVersion()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -95,7 +95,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.SQLiteVersionScalar
+    SQLQuery = FixSQLMisc.SQLiteVersionScalar
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -124,7 +124,7 @@ Private Sub ztcPrepare16V2_VerifiesPrepareOfCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -134,7 +134,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.Create
+    SQLQuery = FixSQLITRB.Create
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -162,7 +162,7 @@ Private Sub ztcPrepare16V2_VerifiesErrorOnInvalidSQL()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes
@@ -213,7 +213,7 @@ Private Sub ztcGetBusy_VerifiesBusyStatus()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -224,7 +224,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.Collations
+    SQLQuery = FixSQLMisc.Collations
     
         ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -253,9 +253,9 @@ Private Sub ztcPrepare16V2_VerifiesGetScalar()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -266,7 +266,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.SQLiteVersionScalar
+    SQLQuery = FixSQLMisc.SQLiteVersionScalar
     
     Result = dbs.GetScalar(SQLQuery)
     Assert.AreEqual dbm.Version(False), Result, "GetScalar mismatch."
@@ -283,12 +283,12 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQueryDummy As String
-    SQLQueryDummy = FixSQLMain.Misc.SQLiteVersionScalar
+    SQLQueryDummy = FixSQLMisc.SQLiteVersionScalar
     Dim SQLQuery As String
     SQLQuery = vbNullString
     Dim AffectedRows As Long
@@ -314,12 +314,12 @@ Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQueryDummy As String
-    SQLQueryDummy = FixSQLMain.Misc.SQLiteVersionScalar
+    SQLQueryDummy = FixSQLMisc.SQLiteVersionScalar
     Dim SQLQuery As String
     SQLQuery = vbNullString
     Dim AffectedRows As Long
@@ -345,7 +345,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
@@ -373,7 +373,7 @@ Private Sub ztcExecuteNonQuery_VerifiesCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -383,7 +383,7 @@ Arrange:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowid
+    SQLQuery = FixSQLITRB.CreateRowid
     Dim AffectedRows As Long
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
     Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
@@ -409,7 +409,7 @@ Private Sub ztcGetPagedRowSet_VerifyPagedRowSetGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -427,9 +427,9 @@ Arrange:
     AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectMinMaxSubstrTrimParamName
+    SQLQuery = FixSQLFunc.SelectMinMaxSubstrTrimParamName
     Dim QueryParams As Scripting.Dictionary
-    Set QueryParams = FixSQLMain.Func.SelectMinMaxSubstrTrimParamNameValues
+    Set QueryParams = FixSQLFunc.SelectMinMaxSubstrTrimParamNameValues
     Dim PagedRowSet As Variant
     PagedRowSet = dbs.GetPagedRowSet(SQLQuery, QueryParams, True)
 Assert:
@@ -461,7 +461,7 @@ Private Sub ztcGetPagedRowSet_SelectSubsetOfFunctions()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -477,15 +477,15 @@ Arrange:
     AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectMinMaxSubstrTrimPlain
+    SQLQuery = FixSQLFunc.SelectMinMaxSubstrTrimPlain
     Dim SQLQueryCount As String
-    SQLQueryCount = FixSQLMain.Misc.CountSelect(SQLQuery)
+    SQLQueryCount = FixSQLMisc.CountSelect(SQLQuery)
     Dim RecordCount As Variant
     RecordCount = dbs.GetScalar(SQLQueryCount)
 Act:
-    SQLQuery = FixSQLMain.Func.SelectMinMaxSubstrTrimParamName
+    SQLQuery = FixSQLFunc.SelectMinMaxSubstrTrimParamName
     Dim QueryParams As Scripting.Dictionary
-    Set QueryParams = FixSQLMain.Func.SelectMinMaxSubstrTrimParamNameValues
+    Set QueryParams = FixSQLFunc.SelectMinMaxSubstrTrimParamNameValues
     Dim PagedRowSet As Variant
     PagedRowSet = dbs.GetPagedRowSet(SQLQuery, QueryParams, True)
 Assert:
@@ -510,7 +510,7 @@ Private Sub ztcGetRowSet2D_VerifyRowSet2DGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -522,7 +522,7 @@ Arrange:
     AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectNoRowid
+    SQLQuery = FixSQLFunc.SelectNoRowid
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Assert:
@@ -553,7 +553,7 @@ Private Sub ztcGetRowSet2D_NamedParamsSelectWithDictVsArrayValues()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -566,14 +566,14 @@ Arrange:
     Assert.IsTrue AffectedRows > 0, "Failed to INSERT test data."
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectMinMaxSubstrTrimParamName
+    SQLQuery = FixSQLFunc.SelectMinMaxSubstrTrimParamName
     Dim QueryParamsDict As Scripting.Dictionary
-    Set QueryParamsDict = FixSQLMain.Func.SelectMinMaxSubstrTrimParamNameValues
+    Set QueryParamsDict = FixSQLFunc.SelectMinMaxSubstrTrimParamNameValues
     Dim RowSet2DNamedParams As Variant
     RowSet2DNamedParams = dbs.GetRowSet2D(SQLQuery, QueryParamsDict, True)
     Assert.IsFalse IsError(RowSet2DNamedParams), "Unexpected GetRowSet2D error."
     Dim QueryParamsArray As Variant
-    QueryParamsArray = FixSQLMain.Func.SelectMinMaxSubstrTrimParamAnonValues
+    QueryParamsArray = FixSQLFunc.SelectMinMaxSubstrTrimParamAnonValues
     Dim RowSet2DAnonValues As Variant
     RowSet2DAnonValues = dbs.GetRowSet2D(SQLQuery, QueryParamsArray, True)
 Assert:
@@ -599,7 +599,7 @@ Private Sub ztcGetRowSet2D_SelectPragmaTableWithUseTableMetadataAPI()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -611,7 +611,7 @@ Arrange:
     AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectPragmaNoRowid
+    SQLQuery = FixSQLFunc.SelectPragmaNoRowid
     Dim RowSet2D As Variant
 Assert:
     dbs.DbExecutor.UseTableMetaAPI = True
@@ -641,7 +641,7 @@ Private Sub ztcGetRowSet2D_InsertPlainSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -651,11 +651,11 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithData
+    SQLQuery = FixSQLITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Assert:
@@ -688,7 +688,7 @@ Private Sub ztcGetRecordset_VerifyGetRecordsetGeometry()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -700,7 +700,7 @@ Arrange:
     AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectNoRowid
+    SQLQuery = FixSQLFunc.SelectNoRowid
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
@@ -731,7 +731,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -742,11 +742,11 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithData
+    SQLQuery = FixSQLITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
-    SQLQuery = FixSQLMain.ITRB.SelectNoRowid
+    SQLQuery = FixSQLITRB.SelectNoRowid
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
@@ -775,7 +775,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -786,11 +786,11 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
+    SQLQuery = FixSQLITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
@@ -819,7 +819,7 @@ Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowidVerifyData()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -830,11 +830,11 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
+    SQLQuery = FixSQLITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch"
     
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
     Dim RowSet2DRst As Variant
@@ -868,7 +868,7 @@ Private Sub ztcGetRowSet2D_InsertWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTemp
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -878,18 +878,18 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.Create
+    SQLQuery = FixSQLITRB.Create
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
     
-    SQLQuery = FixSQLMain.ITRB.InsertParamName
+    SQLQuery = FixSQLITRB.InsertParamName
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     
     Dim ParamNames As Variant
-    ParamNames = FixSQLMain.ITRB.InsertParamNameNames
+    ParamNames = FixSQLITRB.InsertParamNameNames
     Dim ParamValuesSets As Variant
-    ParamValuesSets = FixSQLMain.ITRB.InsertParamNameValueSets
+    ParamValuesSets = FixSQLITRB.InsertParamNameValueSets
     Dim ParamValueMap As Scripting.Dictionary
     Dim RowIndex As Long
     For RowIndex = LBound(ParamValuesSets) To UBound(ParamValuesSets)
@@ -899,7 +899,7 @@ Act:
         Assert.AreEqual 1, AffectedRows, "AffectedRows mismatch"
     Next RowIndex
     
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Assert:
@@ -934,7 +934,7 @@ Private Sub ztcGetRowSet2D_UpdateWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -944,21 +944,21 @@ Arrange:
     Dim AffectedRows As Long
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateWithData
+    SQLQuery = FixSQLITRB.CreateWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual 5, AffectedRows, "AffectedRows mismatch CREATE INSERT <" & CStr(AffectedRows) & ">"
     
-    SQLQuery = FixSQLMain.ITRB.UpdateParamName
+    SQLQuery = FixSQLITRB.UpdateParamName
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     
     Dim ParamValueMap As Scripting.Dictionary
-    Set ParamValueMap = FixSQLMain.ITRB.UpdateParamValueDict
+    Set ParamValueMap = FixSQLITRB.UpdateParamValueDict
     ResultCode = dbs.ExecuteNonQuery(vbNullString, ParamValueMap, AffectedRows)
     Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
     Assert.AreEqual 3, AffectedRows, "AffectedRows mismatch <" & CStr(AffectedRows) & ">"
     
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Assert:
@@ -992,7 +992,7 @@ Private Sub ztcGetScalar_VerifiesGetScalar()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMemITRB
+    Set dbc = FixObjC.GetDBCMemITRB
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     Dim ResultCode As SQLiteResultCodes

@@ -41,7 +41,7 @@ Private Sub ztcAddMeta_InsertPlainSelectFromITRBTableRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -52,9 +52,9 @@ Arrange:
     Dim Attr As ADODB.FieldAttributeEnum
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowid
+    SQLQuery = FixSQLITRB.CreateRowid
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect

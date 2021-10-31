@@ -435,3 +435,40 @@ TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
 
+
+'@TestMethod("Decode byte array to native type")
+Private Sub ztcSInt16bFromBytesBE_VerifiesIntegerDecoding()
+    On Error GoTo TestFail
+
+Arrange:
+Act:
+Assert:
+    Assert.AreEqual -1, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(&HFF, &HFF)), "-1 mismatch."
+    Assert.AreEqual &HFF, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(0, &HFF)), "&HFF mismatch."
+    Assert.AreEqual &HFF00, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(&HFF, 0)), "&HFF00 mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Decode byte array to native type")
+Private Sub ztcSLong32bFromBytesBE_VerifiesIntegerDecoding()
+    On Error GoTo TestFail
+
+Arrange:
+Act:
+Assert:
+    Assert.AreEqual -1, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(&HFF, &HFF, &HFF, &HFF)), "-1 mismatch."
+    Assert.AreEqual &HFF&, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, 0, 0, &HFF)), "&HFF mismatch."
+    Assert.AreEqual &HFF00&, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, 0, &HFF, 0)), "&HFF00 mismatch."
+    Assert.AreEqual &HFF0000, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, &HFF, 0, 0)), "&HFF0000 mismatch."
+    Assert.AreEqual &HFF000000, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(&HFF, 0, 0, 0)), "&HFF000000 mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

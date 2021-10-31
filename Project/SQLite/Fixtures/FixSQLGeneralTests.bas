@@ -51,27 +51,27 @@ Arrange:
 Act:
 Assert:
     ExpQuery = "SELECT @Literal;"
-    ActQuery = FixSQLGeneral.SelectLiteralAtParam
+    ActQuery = FixSQLMisc.SelectLiteralAtParam
     Assert.AreEqual ActQuery, ExpQuery, "Template query mismatch"
     
     Literal = 1024&
     ExpQuery = "SELECT 1024;"
-    ActQuery = FixSQLGeneral.SelectLiteralAtParam(Literal)
+    ActQuery = FixSQLMisc.SelectLiteralAtParam(Literal)
     Assert.AreEqual ActQuery, ExpQuery, "Long literal query mismatch"
 
     Literal = "ABC"
     ExpQuery = "SELECT 'ABC';"
-    ActQuery = FixSQLGeneral.SelectLiteralAtParam(Literal)
+    ActQuery = FixSQLMisc.SelectLiteralAtParam(Literal)
     Assert.AreEqual ActQuery, ExpQuery, "String literal query mismatch"
 
     Literal = 3.14
     ExpQuery = "SELECT 3.14;"
-    ActQuery = FixSQLGeneral.SelectLiteralAtParam(Literal)
+    ActQuery = FixSQLMisc.SelectLiteralAtParam(Literal)
     Assert.AreEqual ActQuery, ExpQuery, "Double literal query mismatch"
 
     Literal = 102410241024102@
     ExpQuery = "SELECT 102410241024102;"
-    ActQuery = FixSQLGeneral.SelectLiteralAtParam(Literal)
+    ActQuery = FixSQLMisc.SelectLiteralAtParam(Literal)
     Assert.AreEqual ActQuery, ExpQuery, "Currency literal query mismatch"
 
 CleanExit:

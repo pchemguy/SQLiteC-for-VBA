@@ -41,9 +41,9 @@ Private Sub ztcSQLiteTypeName_VerifiesSQLiteTypeName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -67,9 +67,9 @@ Private Sub ztcSQLiteTypeAffinityName_VerifiesSQLiteTypeAffinityName()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -93,9 +93,9 @@ Private Sub ztcTypeAffinityFromDeclaredType_VerifiesDeclaredTypeHandling()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -120,9 +120,9 @@ Private Sub ztcTypeAffinityMap_VerifiesMappingToSQLiteTypes()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -146,14 +146,14 @@ Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectPragmaRowid
+    SQLQuery = FixSQLFunc.SelectPragmaRowid
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
@@ -197,14 +197,14 @@ Private Sub ztcColumnMetaAPI_ThrowsOnUninitializedSQLiteColumnMeta()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectPragmaNoRowid
+    SQLQuery = FixSQLFunc.SelectPragmaNoRowid
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     ResultCode = dbs.Prepare16V2(SQLQuery)
@@ -225,7 +225,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMeta()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -234,10 +234,10 @@ Arrange:
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     Dim AffectedRows As Long
-    AffectedRows = FixMain.ObjC.CreateFunctionsTableWithData(dbc)
+    AffectedRows = FixObjC.CreateFunctionsTableWithData(dbc)
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectNoRowid
+    SQLQuery = FixSQLFunc.SelectNoRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect
@@ -268,14 +268,14 @@ Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.ITRB.CreateRowid
+    SQLQuery = FixSQLITRB.CreateRowid
     Dim AffectedRows As Long
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error."
@@ -292,7 +292,7 @@ Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -302,11 +302,11 @@ Arrange:
 
     ResultCode = dbc.OpenDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
-    SQLQuery = FixSQLMain.ITRB.CreateRowidWithData
+    SQLQuery = FixSQLITRB.CreateRowidWithData
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Assert.IsTrue AffectedRows = 5, "Failed to INSERT test data."
 Act:
-    SQLQuery = FixSQLMain.ITRB.SelectRowid
+    SQLQuery = FixSQLITRB.SelectRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbExecutor.TableMetaCollect

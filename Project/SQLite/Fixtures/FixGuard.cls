@@ -13,9 +13,6 @@ Attribute VB_Description = "SQLiteCADO guards"
 '@PredeclaredId
 Option Explicit
 
-Private Const MsgExpectedErrNotRaised As String = "Expected error was not raised."
-Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
-
 Private Type TFixGuard
     ModuleName As String
 End Type
@@ -41,6 +38,7 @@ End Sub
 '@Description("Raises a run-time error if the specified connection object is not opened.")
 Public Sub DbNotOpened(ByVal dbc As SQLiteCConnection, _
               Optional ByVal ErrorSource As String = vbNullString)
+Attribute DbNotOpened.VB_Description = "Raises a run-time error if the specified connection object is not opened."
     Dim Source As String
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
         " / ", vbNullString) & ErrorSource
@@ -73,6 +71,7 @@ End Sub
 '@Description("Raises a run-time error if the specified statement object is not prepared.")
 Public Sub StmtNotPrepared(ByVal dbs As SQLiteCStatement, _
               Optional ByVal ErrorSource As String = vbNullString)
+Attribute StmtNotPrepared.VB_Description = "Raises a run-time error if the specified statement object is not prepared."
     Dim Source As String
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
         " / ", vbNullString) & ErrorSource

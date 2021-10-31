@@ -62,6 +62,7 @@ End Function
 Public Function GetDBCReadOnlyAttr() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = this.LibDir & "ReadOnlyAttr.db"
+    '@Ignore SelfAssignedDeclaration
     Dim fso As New Scripting.FileSystemObject
     With fso.GetFile(DbPathName)
         .Attributes = .Attributes Or ReadOnly
@@ -141,7 +142,7 @@ Public Function CreateFunctionsTableWithData(ByVal dbc As SQLiteCConnection) As 
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
     Dim SQLQuery As String
-    SQLQuery = FixSQLFunctions.CreateWithData
+    SQLQuery = FixSQLFunc.CreateWithData
     Dim AffectedRows As Long
     AffectedRows = -2
     Dim ResultCode As SQLiteResultCodes
@@ -191,7 +192,7 @@ Public Function CreateITRBTableWithData(ByVal dbc As SQLiteCConnection) As Long
     CreateITRBTableWithData = AffectedRows
 End Function
 
-Public Function RandomTempFileName(Optional ByVal FileExt As String = ".db")
+Public Function RandomTempFileName(Optional ByVal FileExt As String = ".db") As String
     RandomTempFileName = Environ$("TEMP") & PATH_SEP & _
         Format$(Now, "yyyy_mm_dd-hh_mm_ss") & "-" & Left$(GenerateGUID, 8) & FileExt
 End Function
@@ -202,6 +203,15 @@ Public Function GetDBCTemp() As SQLiteCConnection
     Dim DbPathName As String
     DbPathName = RandomTempFileName()
     Set GetDBCTemp = GetDBC(DbPathName, AllowNonExistent)
+End Function
+
+Public Function GetDBCTempInit() As SQLiteCConnection
+    Set GetDBCTempInit = GetDBCTemp()
+    With GetDBCTemp
+        .OpenDb
+        .Vacuum
+        .CloseDb
+    End With
 End Function
 
 Public Function GetDBCTempFuncWithData() As SQLiteCConnection

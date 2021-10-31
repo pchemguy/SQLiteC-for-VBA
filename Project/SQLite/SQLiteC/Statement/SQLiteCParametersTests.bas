@@ -41,7 +41,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithBlobLiteralAtParam()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -60,7 +60,7 @@ Act:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.SelectLiteralAtParam
+    SQLQuery = FixSQLMisc.SelectLiteralAtParam
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbParameters.BindDictOrArray(Array(FixUtils.ByteArray(TestStr)))
@@ -86,7 +86,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithLiteralAtParam()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -96,7 +96,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Misc.SelectLiteralAtParam
+    SQLQuery = FixSQLMisc.SelectLiteralAtParam
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -163,7 +163,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAnonParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -173,15 +173,15 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamAnon
+    SQLQuery = FixSQLFunc.SelectFilteredParamAnon
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Anon parameter count mismatch."
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamAnonValues)
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamAnonValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
     
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -201,7 +201,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithNumberedParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -211,15 +211,15 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamNo
+    SQLQuery = FixSQLFunc.SelectFilteredParamNo
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Numbered parameter count mismatch."
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamNoValues)
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNoValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
     
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -239,7 +239,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithColonParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -249,15 +249,15 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamName(":")
+    SQLQuery = FixSQLFunc.SelectFilteredParamName(":")
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named : parameter count mismatch."
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamNameValues(":"))
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues(":"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
     
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -277,7 +277,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithSParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -287,15 +287,15 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamName("$")
+    SQLQuery = FixSQLFunc.SelectFilteredParamName("$")
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named $ parameter count mismatch."
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamNameValues("$"))
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues("$"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
     
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -315,7 +315,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParams()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Act:
@@ -325,15 +325,15 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamName("@")
+    SQLQuery = FixSQLFunc.SelectFilteredParamName("@")
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named @ parameter count mismatch."
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamNameValues("@"))
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues("@"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
     
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -353,7 +353,7 @@ Private Sub ztcBindDictOrArray_VerifiesQueryWithAtParamsSeqValues()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -362,9 +362,9 @@ Arrange:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamName("@")
+    SQLQuery = FixSQLFunc.SelectFilteredParamName("@")
     Dim SQLQueryExpandedUnbound As String
-    SQLQueryExpandedUnbound = Replace(FixSQLMain.Func.SelectFilteredParamAnon, "?", "NULL")
+    SQLQueryExpandedUnbound = Replace(FixSQLFunc.SelectFilteredParamAnon, "?", "NULL")
 Assert:
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -372,9 +372,9 @@ Assert:
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named @ parameter count mismatch."
     Assert.AreEqual SQLQueryExpandedUnbound, dbs.SQLQueryExpanded, "Expanded unbound query mismatch."
     
-    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLMain.Func.SelectFilteredParamAnonValues)
+    ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamAnonValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
-    Assert.AreEqual FixSQLMain.Func.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
+    Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
 Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -394,7 +394,7 @@ Private Sub ztcBindDictOrArray_ThrowsOnSequntialParamCountMismatch()
     
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -403,11 +403,11 @@ Arrange:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMain.Func.SelectFilteredParamName("@")
+    SQLQuery = FixSQLFunc.SelectFilteredParamName("@")
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Dim ParamValues As Variant
-    ParamValues = FixSQLMain.Func.SelectFilteredParamAnonValues
+    ParamValues = FixSQLFunc.SelectFilteredParamAnonValues
     ResultCode = dbs.DbParameters.BindDictOrArray(Array(ParamValues(0), ParamValues(1)))
 
 Assert:

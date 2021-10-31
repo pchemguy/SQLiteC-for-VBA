@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Provides SQL queries and templates"
-'@Folder "SQLite.SQLiteADO.Tools.SQLlib"
+'@Folder "SQLite.SQLlib"
 '@ModuleDescription "Provides SQL queries and templates"
 '@PredeclaredId
 '@Exposed
@@ -280,6 +280,7 @@ End Function
 Public Function Attach(ByVal Database As String, _
               Optional ByVal DatabaseAlias As String = vbNullString) As String
 Attribute Attach.VB_Description = "Generates SQLite ATTACH statement"
+    '@Ignore SelfAssignedDeclaration
     Dim fso As New Scripting.FileSystemObject
     Dim Alias As String
     If Len(DatabaseAlias) > 0 Then
@@ -325,6 +326,42 @@ Public Property Get DeferForeignKeys() As String
 Attribute DeferForeignKeys.VB_Description = "Generates a query deferring foreign keys before TX."
     DeferForeignKeys = "PRAGMA defer_foreign_keys=True"
 End Property
+
+
+'''' @ClassMethod
+'''' This method can also be used on the default instance
+''''
+'''' Examples:
+''''   >>> ?SQLlib.Vacuum
+''''   "VACUUM"
+''''
+''''   >>> ?SQLlib.Vacuum("main")
+''''   "VACUUM [main]"
+''''
+''''   >>> ?SQLlib.Vacuum(vbNullString, vbNullString)
+''''   "VACUUM"
+''''
+''''   >>> ?SQLlib.Vacuum(vbNullString, "C:\TEMP\qqq.db")
+''''   "VACUUM INTO 'C:\TEMP\qqq.db'"
+''''
+''''   >>> ?SQLlib.Vacuum("main", "C:\TEMP\qq'q.db")
+''''   "VACUUM [main] INTO 'C:\TEMP\qq''q.db'"
+''''
+'@Description "Generates SQLite VACUUM statement"
+Public Function Vacuum(Optional ByVal SrcSchemaAlias As String = vbNullString, _
+                       Optional ByVal DstDbPathName As String = vbNullString _
+                      ) As String
+Attribute Vacuum.VB_Description = "Generates SQLite VACUUM statement"
+    Dim Alias As String
+    If Len(SrcSchemaAlias) > 0 Then
+        Alias = " [" & SrcSchemaAlias & "]"
+    End If
+    Dim IntoClause As String
+    If Len(DstDbPathName) > 0 Then
+        IntoClause = " INTO '" & Replace(DstDbPathName, "'", "''") & "'"
+    End If
+    Vacuum = "VACUUM" & Alias & IntoClause
+End Function
 
 
 '''' @ClassMethod

@@ -181,3 +181,25 @@ Attribute ArrayXB.VB_Description = "Populates a dynamic typed array."
     Next ElementIndex
     ArrayXB = DynamicTypedArray
 End Function
+
+
+'@Ignore IntegerDataType
+'@Description "Converts 2-byte big-endian array to signed 16-bit integer (Integer)"
+Friend Function SInt16bFromBytesBE(ByRef BytesBE() As Byte) As Integer
+    Dim SignBit As Integer
+    SignBit = -CInt((BytesBE(0) And &H80) / &H80) And &H8000
+    SInt16bFromBytesBE = CInt(BytesBE(0) And &H7F) * &H100 + CInt(BytesBE(1))
+    SInt16bFromBytesBE = SInt16bFromBytesBE Or SignBit
+End Function
+
+
+'@Description "Converts 4-byte big-endian array to signed 32-bit integer (Long)"
+Friend Function SLong32bFromBytesBE(ByRef BytesBE() As Byte) As Long
+    Dim SignBit As Long
+    SignBit = -CLng((BytesBE(0) And &H80) / &H80) And &H80000000
+    SLong32bFromBytesBE = ((CLng(BytesBE(0) And &H7F) _
+                            * &H100& + CLng(BytesBE(1))) _
+                            * &H100& + CLng(BytesBE(2))) _
+                            * &H100& + CLng(BytesBE(3))
+    SLong32bFromBytesBE = SLong32bFromBytesBE Or SignBit
+End Function

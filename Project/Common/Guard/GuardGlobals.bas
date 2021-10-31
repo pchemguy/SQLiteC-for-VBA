@@ -10,6 +10,7 @@ Public Enum ErrNo
     TypeMismatchErr = 13&
     BadFileNameOrNumberErr = 52&
     FileNotFoundErr = 53&
+    FileAlreadyExistsErr = 58&
     PermissionDeniedErr = 70&
     PathFileAccessErr = 75&
     PathNotFoundErr = 76&

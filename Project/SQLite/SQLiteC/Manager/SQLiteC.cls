@@ -185,6 +185,7 @@ Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
     Exit Function
     
 RESULT_CODE:
+    '@Ignore AssignmentNotUsed
     ResultCode = DbConnDst.ErrInfoRetrieve
     DupDbOnlineFull = 0
 End Function

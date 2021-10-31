@@ -1,5 +1,5 @@
 Attribute VB_Name = "SQLlibTests"
-'@Folder "SQLite.SQLiteADO.Tools.SQLlib"
+'@Folder "SQLite.SQLlib"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, IndexedDefaultMemberAccess
 Option Explicit
@@ -219,7 +219,6 @@ Private Sub ztcAttach_ValidatesQueryWithMissingAlias()
 Arrange:
     Dim SQL As SQLlib
     Set SQL = zfxGetSQL
-    Dim fso As New Scripting.FileSystemObject
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & Application.PathSeparator & _
                  ThisWorkbook.VBProject.Name & ".db"
@@ -230,6 +229,38 @@ Act:
     Actual = SQL.Attach(DbPathName)
 Assert:
     Assert.AreEqual Expected, Actual, "ATTACH query mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("SQL")
+Private Sub ztcVacuum_ValidatesQueries()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim Expected As String
+    Dim Actual As String
+Act:
+Assert:
+    Expected = "VACUUM"
+    Actual = SQLlib.Vacuum()
+    Assert.AreEqual Expected, Actual, "VACUUM bare query mismatch"
+    Expected = "VACUUM"
+    Actual = SQLlib.Vacuum(vbNullString, vbNullString)
+    Assert.AreEqual Expected, Actual, "VACUUM bare query mismatch"
+    Expected = "VACUUM [memory]"
+    Actual = SQLlib.Vacuum("memory")
+    Assert.AreEqual Expected, Actual, "VACUUM query with alias mismatch"
+    Expected = "VACUUM INTO 'C:\TEMP\qqq.db'"
+    Actual = SQLlib.Vacuum(vbNullString, "C:\TEMP\qqq.db")
+    Assert.AreEqual Expected, Actual, "VACUUM query with INTO mismatch"
+    Expected = "VACUUM [main] INTO 'C:\TEMP\qq''q.db'"
+    Actual = SQLlib.Vacuum("main", "C:\TEMP\qq'q.db")
+    Assert.AreEqual Expected, Actual, "VACUUM query with alias and INTO mismatch"
 
 CleanExit:
     Exit Sub

@@ -106,7 +106,7 @@ Private Sub ztcCreate_VerifiesDefaultManager()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
 Assert:
     Assert.IsNotNothing dbm, "Default manager is not set."
 
@@ -123,7 +123,7 @@ Private Sub ztcGetMainDbId_VerifiesIsNull()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
 Assert:
     Assert.IsTrue IsNull(dbm.MainDbId), "Main db is not null."
 
@@ -140,7 +140,7 @@ Private Sub ztcGetDllMan_VerifiesIsSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
 Assert:
     Assert.IsNotNothing dbm.DllMan, "Dll manager is not set"
 
@@ -157,7 +157,7 @@ Private Sub ztcConnDb_VerifiesIsNotSet()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM
+    Set dbm = FixObjC.GetDBM
 Assert:
     Assert.IsNothing dbm.ConnDb(vbNullString), "Connection should be nothing"
 
@@ -203,7 +203,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCReg
+    Set dbc = FixObjC.GetDBCReg
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
 
@@ -220,7 +220,7 @@ Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM()
+    Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
     DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
     Dim DbConn As SQLiteCConnection
@@ -243,7 +243,7 @@ Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM()
+    Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim DbConn As SQLiteCConnection
@@ -265,7 +265,7 @@ Private Sub ztcGetDbConn_VerifiesTempMainDb()
 
 Arrange:
     Dim dbm As SQLiteC
-    Set dbm = FixMain.ObjC.GetDBM()
+    Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
     DbPathName = ":blank:"
     Dim DbConn As SQLiteCConnection

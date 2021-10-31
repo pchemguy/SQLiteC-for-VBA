@@ -42,7 +42,7 @@ Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCReg
+    Set dbc = FixObjC.GetDBCReg
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
@@ -64,7 +64,7 @@ Act:
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -84,7 +84,7 @@ Act:
     Dim DbPathName As String
     DbPathName = vbNullString
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCAnon
+    Set dbc = FixObjC.GetDBCAnon
 Assert:
     Assert.AreEqual DbPathName, dbc.DbPathName
     
@@ -100,7 +100,7 @@ Private Sub ztcAttachedDbPathName_ThrowsOnClosedConnection()
     On Error Resume Next
     
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Debug.Print dbc.DbPathName = dbc.AttachedDbPathName
     
     Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
@@ -113,7 +113,7 @@ Private Sub ztcAttachedDbPathName_VerifiesTempDbPathName()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTemp
     Dim ResultCode As SQLiteResultCodes
 Act:
     ResultCode = dbc.OpenDb
@@ -131,67 +131,6 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Connection")
-Private Sub ztcAtDetachDatabase_VerifiesAttachExistingNewMem()
-    On Error GoTo TestFail
-
-Arrange:
-    Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
-    Dim dbcTemp As SQLiteCConnection
-    Set dbcTemp = FixObjC.GetDBCTemp
-    
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = dbcTemp.OpenDb
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
-    ResultCode = dbcTemp.ExecuteNonQueryPlain(FixSQLGeneral.CreateBasicTable)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
-    Assert.AreEqual SQLITE_OK, dbcTemp.CloseDb, "Unexpected CloseDb error"
-    Dim NewDbPathName As String
-    NewDbPathName = FixObjC.RandomTempFileName
-    
-    Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
-
-    Dim DbStmtName As String
-    DbStmtName = vbNullString
-    Dim dbs As SQLiteCStatement
-    Set dbs = dbc.CreateStatement(DbStmtName)
-    Assert.IsNotNothing dbs, "Failed to create an SQLiteCStatement instance."
-    
-    Dim fso As New Scripting.FileSystemObject
-    Dim SQLDbCount As String
-    SQLDbCount = "SELECT count(*) As counter FROM pragma_database_list"
-Act:
-Assert:
-    ResultCode = dbc.AttachDatabase(dbcTemp.DbPathName)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to attach existing db"
-    Assert.AreEqual 2, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (exist)."
-    ResultCode = dbc.AttachDatabase(":memory:")
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to attach memory db"
-    Assert.AreEqual 3, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (memory)."
-    ResultCode = dbc.AttachDatabase(NewDbPathName)
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to attach new db"
-    Assert.AreEqual 4, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (new)."
-    
-    ResultCode = dbc.DetachDatabase(fso.GetBaseName(NewDbPathName))
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to detach new db"
-    Assert.AreEqual 3, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (new)."
-    ResultCode = dbc.DetachDatabase("memory")
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to detach memory db"
-    Assert.AreEqual 2, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (memory)."
-    ResultCode = dbc.DetachDatabase(fso.GetBaseName(dbcTemp.DbPathName))
-    Assert.AreEqual SQLITE_OK, ResultCode, "Failed to detach existing db"
-    Assert.AreEqual 1, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (exist)."
-Cleanup:
-    Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
 '@TestMethod("DbConnection")
 Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
     On Error GoTo TestFail
@@ -199,7 +138,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCReg
+    Set dbc = FixObjC.GetDBCReg
     Dim ResultCode As SQLiteResultCodes
 Assert:
     ResultCode = dbc.OpenDb
@@ -223,7 +162,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCAnon
+    Set dbc = FixObjC.GetDBCAnon
     Dim ResultCode As SQLiteResultCodes
 Assert:
     ResultCode = dbc.OpenDb
@@ -247,7 +186,7 @@ Private Sub ztcOpenDbCloseDb_VerifiesWithMemoryDb()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim ResultCode As SQLiteResultCodes
 Assert:
     ResultCode = dbc.OpenDb

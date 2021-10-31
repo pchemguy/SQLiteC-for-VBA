@@ -42,7 +42,7 @@ Private Sub ztcAccessMode_VerifiesDefaultAccess()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
@@ -68,7 +68,7 @@ Private Sub ztcAccessMode_VerifiesReadAccess()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL
@@ -94,7 +94,7 @@ Private Sub ztcAccessMode_VerifiesDefaultAccessReadOnlyFile()
 Arrange:
 Act:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCReadOnlyAttr
+    Set dbc = FixObjC.GetDBCReadOnlyAttr
     Dim ResultCode As SQLiteResultCodes
     Dim DbAccessMode As SQLiteDbAccess
     DbAccessMode = SQLITE_DB_NULL

@@ -43,7 +43,7 @@ Private Sub ztcBeginCommit_VerifiesTxnDEFERRED()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
@@ -67,7 +67,7 @@ Private Sub ztcBeginCommit_VerifiesTxnIMMEDIATE()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
@@ -92,7 +92,7 @@ Private Sub ztcBeginCommit_VerifiesTxnEXCLUSIVE()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
@@ -117,7 +117,7 @@ Private Sub ztcBeginCommit_VerifiesTxnRead()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTempFuncWithData
     Dim ResultCode As SQLiteResultCodes
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
@@ -144,7 +144,7 @@ Private Sub ztcBeginRollback_VerifiesTxnState()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -168,7 +168,7 @@ Private Sub ztcBeginRollbackCommit_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -191,7 +191,7 @@ Private Sub ztcBeginCommitRollback_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -214,7 +214,7 @@ Private Sub ztcReleasePoint_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -235,7 +235,7 @@ Private Sub ztcSaveRelease_VerifiesTxnState()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -258,7 +258,7 @@ Private Sub ztcSavepointBeginCommit_VerifiesError()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCMem
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
@@ -281,7 +281,7 @@ Private Sub ztcBeginCommit_VerifiesBusyStatusWithLockingTransaction()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTempFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
     
@@ -312,7 +312,7 @@ Private Sub ztcBeginCommit_VerifiesNoTransactionLockingWithMemoryDb()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCMemFuncWithData
+    Set dbc = FixObjC.GetDBCMemFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
     
@@ -344,7 +344,7 @@ Private Sub ztcSavePointRelease_VerifiesTransactionStates()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixMain.ObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTemp
     
     Dim ResultCode As SQLiteResultCodes
     Dim SavePointName As String

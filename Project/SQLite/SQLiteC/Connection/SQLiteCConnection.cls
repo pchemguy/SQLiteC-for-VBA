@@ -28,6 +28,7 @@ Option Explicit
 Private Const VERBOUS As Boolean = True
 
 #If VBA7 Then
+Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
@@ -44,6 +45,7 @@ Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPt
 Private Declare PtrSafe Function sqlite3_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
+Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
 Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
@@ -134,8 +136,8 @@ Friend Sub Init(ByVal DbPathName As String, _
     Dim FilePathName As String
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
-    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
-                        "SQLiteCConnection", "Failed to resolve db path."
+    Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, PathCheck.ErrNumber, _
+        "SQLiteCConnection/Init", PathCheck.ErrDescription
     FilePathName = PathCheck.DatabasePathName
     this.DbPathName = FilePathName
     Set this.ErrorInfo = SQLiteCErr(Me)
@@ -178,28 +180,56 @@ End Function
 
 
 '@Description "Attaches database to the current connection."
-Public Function AttachDatabase(ByVal DbPathName As String, _
+Public Function Attach(ByVal DbPathName As String, _
                       Optional ByVal SchemaAlias As String = vbNullString _
                       ) As SQLiteResultCodes
-Attribute AttachDatabase.VB_Description = "Attaches database to the current connection."
+Attribute Attach.VB_Description = "Attaches database to the current connection."
     Dim FilePathName As String
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(DbPathName, True)
-    Guard.ExpressionErr PathCheck.ErrNumber = 0, UnknownClassErr, _
-                        "SQLiteCConnection", "Failed to resolve db path."
+    Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, ErrNo.UnknownClassErr, _
+        "SQLiteCConnection/Attach", "Failed to resolve db path."
     FilePathName = PathCheck.DatabasePathName
     Dim SQLQuery As String
     SQLQuery = SQLlib.Attach(FilePathName, SchemaAlias)
-    AttachDatabase = ExecuteNonQueryPlain(SQLQuery)
+    Attach = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
 
 '@Description "Detaches a database from the current connection."
-Public Function DetachDatabase(ByVal SchemaAlias As String) As SQLiteResultCodes
+Public Function Detach(ByVal SchemaAlias As String) As SQLiteResultCodes
+Attribute Detach.VB_Description = "Detaches a database from the current connection."
     Guard.EmptyString SchemaAlias
     Dim SQLQuery As String
     SQLQuery = SQLlib.Detach(SchemaAlias)
-    DetachDatabase = ExecuteNonQueryPlain(SQLQuery)
+    Detach = ExecuteNonQueryPlain(SQLQuery)
+End Function
+
+
+'@Description "Vacuums a database in-place or into a new file."
+Public Function Vacuum( _
+            Optional ByVal SrcSchemaAlias As String = vbNullString, _
+            Optional ByVal DstDbPathName As String = vbNullString _
+            ) As SQLiteResultCodes
+Attribute Vacuum.VB_Description = "Vacuums a database in-place or into a new file."
+    Dim FilePathName As String
+    If Len(DstDbPathName) > 0 Then
+        Dim PathCheck As LiteFSCheck
+        Set PathCheck = LiteFSCheck(DstDbPathName, True)
+        Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, ErrNo.UnknownClassErr, _
+            "SQLiteCConnection/Vacuum", "Failed to resolve db path."
+        FilePathName = PathCheck.DatabasePathName
+        '@Ignore SelfAssignedDeclaration
+        Dim fso As New Scripting.FileSystemObject
+        If fso.FileExists(FilePathName) Then
+            Guard.ExpressionTrueErr fso.GetFile(FilePathName).Size > 0, _
+                ErrNo.FileAlreadyExistsErr, "SQLiteCConnection/Vacuum", _
+                "Non-empty file already exists."
+        End If
+    End If
+    Dim SQLQuery As String
+    SQLQuery = SQLlib.Vacuum(SrcSchemaAlias, FilePathName)
+    Vacuum = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
 
@@ -213,14 +243,13 @@ End Property
 '@Description "Creates a new SQLiteCStatement instance."
 Public Function CreateStatement(ByVal StmtName As String) As SQLiteCStatement
 Attribute CreateStatement.VB_Description = "Creates a new SQLiteCStatement instance."
-    If this.Statements.Exists(StmtName) Then
-        Err.Raise ErrNo.KeyAlreadyExistsErr, "SQLiteCConnection", _
-                  "Statement name already exists!"
-    End If
+    Guard.ExpressionTrueErr this.Statements.Exists(StmtName), _
+        ErrNo.KeyAlreadyExistsErr, "SQLiteCConnection/CreateStatement", _
+        "Statement name already exists!"
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = SQLiteCStatement(Me)
-    If DbStmt Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "SQLiteCConnection", "Failed to create an SQLiteCStatement instance."
+    Guard.NullReference DbStmt, "SQLiteCConnection/CreateStatement", _
+        "Failed to create an SQLiteCStatement instance."
     Set this.Statements(StmtName) = DbStmt
     Set CreateStatement = DbStmt
 End Function
@@ -242,7 +271,10 @@ End Function
 '@Description "Finalizes all statement objects associated with connection."
 Friend Function Finalize() As SQLiteResultCodes
 Attribute Finalize.VB_Description = "Finalizes all statement objects associated with connection."
-    Guard.NullReference this.Statements
+    If this.Statements Is Nothing Then
+        Finalize = SQLITE_OK
+        Exit Function
+    End If
     Dim ResultCode As SQLiteResultCodes
     Dim StmtName As Variant
     Dim DbStmt As SQLiteCStatement
@@ -504,4 +536,12 @@ Public Function DbIsLocked() As Variant
     Else
         DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
     End If
+End Function
+
+
+'''' Reference: https://www.sqlite.org/c3ref/libversion.html
+''''
+'@Description "Returns SQLite version. No database is necessary."
+Public Function VersionNumber() As Long
+    VersionNumber = sqlite3_libversion_number()
 End Function
