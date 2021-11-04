@@ -40,6 +40,12 @@ Public Function GenerateGUID() As String
 End Function
 
 
+'@EntryPoint
+Public Function RandomLong() As Long
+    RandomLong = Val("&H" & Left(GenerateGUID, 8))
+End Function
+
+
 '''' When sub/function captures a list of arguments in a ParamArray and passes it
 '''' to the next routine expecting a list of arguments, the second routine receives
 '''' a 2D array instead of 1D with the outer dimension having a single element.

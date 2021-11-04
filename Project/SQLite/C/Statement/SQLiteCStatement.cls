@@ -122,6 +122,52 @@ Public Property Get Busy() As Boolean
 End Property
 
 
+'''' https://sqlite.org/pragma.html#pragma_application_id
+Public Property Get ApplicationId() As Long
+    If this.StmtHandle <> 0 Or this.DbConn.DbHandle = 0 Then
+        ApplicationId = 0
+        Exit Property
+    Else
+        ApplicationId = GetScalar("PRAGMA application_id")
+    End If
+End Property
+
+
+'''' https://sqlite.org/pragma.html#pragma_application_id
+Public Property Let ApplicationId(ByVal Value As Long)
+    With this.DbConn
+        If .DbHandle = 0 Then
+            Exit Property
+        Else
+            .ExecuteNonQueryPlain "PRAGMA application_id=" & CStr(Value)
+        End If
+    End With
+End Property
+
+
+'''' https://sqlite.org/pragma.html#pragma_user_version
+Public Property Get UserVersion() As Long
+    If this.StmtHandle <> 0 Or this.DbConn.DbHandle = 0 Then
+        UserVersion = 0
+        Exit Property
+    Else
+        UserVersion = GetScalar("PRAGMA user_version")
+    End If
+End Property
+
+
+'''' https://sqlite.org/pragma.html#pragma_user_version
+Public Property Let UserVersion(ByVal Value As Long)
+    With this.DbConn
+        If .DbHandle = 0 Then
+            Exit Property
+        Else
+            .ExecuteNonQueryPlain "PRAGMA user_version=" & CStr(Value)
+        End If
+    End With
+End Property
+
+
 '''' Reference: https://www.sqlite.org/c3ref/prepare.html
 ''''
 '@Ignore UseMeaningfulName

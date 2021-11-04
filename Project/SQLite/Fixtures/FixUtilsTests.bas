@@ -436,16 +436,56 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Decode byte array to native type")
-Private Sub ztcSInt16bFromBytesBE_VerifiesIntegerDecoding()
+'@TestMethod("ExpectedError")
+Private Sub ztcBytesFromHexString_ThrowsOnEmptyString()
+    On Error Resume Next
+    Dim ByteData() As Byte
+    ByteData = FixUtils.BytesFromHexString(vbNullString)
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
+End Sub
+
+
+'@TestMethod("ExpectedError")
+Private Sub ztcBytesFromHexString_ThrowsOnOddLength()
+    On Error Resume Next
+    Dim ByteData() As Byte
+    ByteData = FixUtils.BytesFromHexString("0")
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
+End Sub
+
+
+'@TestMethod("ExpectedError")
+Private Sub ztcBytesFromHexString_ThrowsOnBadPrefix()
+    On Error Resume Next
+    Dim ByteData() As Byte
+    ByteData = FixUtils.BytesFromHexString("0z")
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
+End Sub
+
+
+'@TestMethod("ExpectedError")
+Private Sub ztcBytesFromHexString_ThrowsOnBadLetters()
+    On Error Resume Next
+    Dim ByteData() As Byte
+    ByteData = FixUtils.BytesFromHexString("0xHH")
+    Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
+End Sub
+
+
+'@TestMethod("ValidInput")
+Private Sub ztcBytesFromHexString_VerifiesValidInput()
     On Error GoTo TestFail
 
 Arrange:
+    Dim ByteData() As Byte
 Act:
+    ByteData = FixUtils.BytesFromHexString("0xFF0F20")
 Assert:
-    Assert.AreEqual -1, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(&HFF, &HFF)), "-1 mismatch."
-    Assert.AreEqual &HFF, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(0, &HFF)), "&HFF mismatch."
-    Assert.AreEqual &HFF00, FixUtils.SInt16bFromBytesBE(FixUtils.ByteArray(&HFF, 0)), "&HFF00 mismatch."
+    Assert.AreEqual 0, LBound(ByteData), "ByteData base mismatch."
+    Assert.AreEqual 2, UBound(ByteData), "ByteData size mismatch."
+    Assert.AreEqual 255, ByteData(0), "ByteData(0) element mismatch."
+    Assert.AreEqual 15, ByteData(1), "ByteData(1) element mismatch."
+    Assert.AreEqual 32, ByteData(2), "ByteData(2) element mismatch."
 
 CleanExit:
     Exit Sub
@@ -454,18 +494,20 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Decode byte array to native type")
-Private Sub ztcSLong32bFromBytesBE_VerifiesIntegerDecoding()
+'@TestMethod("ValidInput")
+Private Sub ztcBytesFromHexString_VerifiesValidInputWithSpacers()
     On Error GoTo TestFail
 
 Arrange:
+    Dim ByteData() As Byte
 Act:
+    ByteData = FixUtils.BytesFromHexString("0xFF 0F:20|")
 Assert:
-    Assert.AreEqual -1, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(&HFF, &HFF, &HFF, &HFF)), "-1 mismatch."
-    Assert.AreEqual &HFF&, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, 0, 0, &HFF)), "&HFF mismatch."
-    Assert.AreEqual &HFF00&, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, 0, &HFF, 0)), "&HFF00 mismatch."
-    Assert.AreEqual &HFF0000, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(0, &HFF, 0, 0)), "&HFF0000 mismatch."
-    Assert.AreEqual &HFF000000, FixUtils.SLong32bFromBytesBE(FixUtils.ByteArray(&HFF, 0, 0, 0)), "&HFF000000 mismatch."
+    Assert.AreEqual 0, LBound(ByteData), "ByteData base mismatch."
+    Assert.AreEqual 2, UBound(ByteData), "ByteData size mismatch."
+    Assert.AreEqual 255, ByteData(0), "ByteData(0) element mismatch."
+    Assert.AreEqual 15, ByteData(1), "ByteData(1) element mismatch."
+    Assert.AreEqual 32, ByteData(2), "ByteData(2) element mismatch."
 
 CleanExit:
     Exit Sub

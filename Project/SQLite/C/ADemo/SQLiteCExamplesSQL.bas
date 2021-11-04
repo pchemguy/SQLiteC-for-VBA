@@ -151,5 +151,3 @@ Public Function SelectFromTestTable() As String
         "SELECT rowid, * FROM t1;" _
     ), vbNewLine)
 End Function
-
-

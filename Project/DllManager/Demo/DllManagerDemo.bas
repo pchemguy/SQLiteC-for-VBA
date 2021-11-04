@@ -13,6 +13,7 @@ Private Const ARCH As String = "x32"
 #If VBA7 Then
 Private Const VBAV As Long = 7
 #Else
+'@Ignore ConstantNotUsed
 Private Const VBAV As Long = 6
 #End If
 
@@ -163,3 +164,4 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub
+

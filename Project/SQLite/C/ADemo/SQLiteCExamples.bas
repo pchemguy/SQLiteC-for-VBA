@@ -1070,3 +1070,27 @@ Private Sub ReadDbHeader()
     Set dbh = SQLiteCHeader(dbc.DbPathName)
     dbh.LoadHeader
 End Sub
+
+
+Private Sub GenDbHeader()
+    Dim dbh As SQLiteCHeader
+    Set dbh = SQLiteCHeader.Create(vbNullString)
+    Dim HeaderBuffer() As Byte
+    HeaderBuffer = dbh.GenBlankDbHeader(UserVersion:=&H11223344, ApplicationId:=&HAABBCCDD)
+    Dim PackedHeader As SQLiteCHeaderPacked
+    PackedHeader = dbh.PackedHeaderFromBytes(HeaderBuffer)
+    dbh.UnpackHeader PackedHeader
+End Sub
+
+
+Private Function GetBlankDb()
+    Dim DbPathName As String
+    DbPathName = FixObjC.RandomTempFileName("-----" & ".db")
+    Dim dbc As SQLiteCConnection
+    Set dbc = SQLiteCConnection(DbPathName, True)
+    With dbc
+        .OpenDb
+        .Vacuum
+        .CloseDb
+    End With
+End Function

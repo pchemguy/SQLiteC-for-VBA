@@ -19,6 +19,7 @@ End Type
 Private this As TFixGuard
 
 
+'@Ignore ProcedureNotUsed
 '@DefaultMember
 Public Function Create(ByVal ModuleName As String) As FixGuard
 Attribute Create.VB_UserMemId = 0

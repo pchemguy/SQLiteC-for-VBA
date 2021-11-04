@@ -12,8 +12,7 @@ Attribute VB_Description = "SQLite table class. The suffix is used to avoid poss
 '@ModuleDescription "SQLite table class. The suffix is used to avoid possible collision with ADOX"
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule IndexedDefaultMemberAccess
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
 
@@ -269,13 +268,14 @@ Public Property Get SQL() As String
         CreateTable(LineIndex) = this.PK.SQL
     End If
     
-    SQL = IIf(this.CreateActionIfExists = "DROP", _
-              "DROP TABLE IF EXISTS """ & this.TableName & """;" & vbLf, _
-              vbNullString) & _
-          "CREATE TABLE " & _
-          IIf(this.CreateActionIfExists = "SKIP", _
-              "IF NOT EXISTS ", _
-              vbNullString) & _
+    Dim DropCmd As String
+    If this.CreateActionIfExists = "DROP" Then
+        DropCmd = "DROP TABLE IF EXISTS """ & this.TableName & """;" & vbLf
+    Else
+        DropCmd = vbNullString
+    End If
+    SQL = DropCmd & "CREATE TABLE " & _
+          IIf(this.CreateActionIfExists = "SKIP", "IF NOT EXISTS ", vbNullString) & _
           """" & this.TableName & """ (" & vbLf & _
           Join(CreateTable, "," & vbLf) & vbLf & ")"
 End Property

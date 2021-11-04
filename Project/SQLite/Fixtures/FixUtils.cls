@@ -103,6 +103,57 @@ Attribute ByteToHex.VB_Description = "Given a byte, generates its hex string rep
 End Function
 
 
+'''' Examples:
+''''   FixUtils.BytesFromHexString("0xFF") -> (255)
+''''
+'@Description "converts hex-encoded string to byte array."
+Public Function BytesFromHexString(ByVal HexString0x As String) As Byte()
+Attribute BytesFromHexString.VB_Description = "converts hex-encoded string to byte array."
+    '''' Remove readability aids: [ .|:]
+    Dim Buffer As String
+    Buffer = Replace(HexString0x, " ", vbNullString)
+    Buffer = Replace(Buffer, ".", vbNullString)
+    Buffer = Replace(Buffer, "|", vbNullString)
+    Buffer = Replace(Buffer, ":", vbNullString)
+    
+    '''' Verify that the argument is not empty, has even length, and starts with '0x'.
+    If Len(Buffer) = 0 Then
+        Err.Raise 13, "FixUtils", "Empty string received."
+    ElseIf Len(Buffer) Mod 2 <> 0 Then
+        Err.Raise 13, "FixUtils", "HexString must have even length."
+    ElseIf UCase$(Left(Buffer, 2)) <> "0X" Then
+        Err.Raise 13, "FixUtils", "HexString must have '0x' prefix."
+    End If
+    
+    Dim HexByteCodes As String
+    HexByteCodes = UCase$(Right(Buffer, Len(Buffer) - 2))
+    Dim ByteCount As Long
+    ByteCount = Len(HexByteCodes) \ 2
+    Dim Bytes() As Byte
+    ReDim Bytes(0 To ByteCount - 1)
+    Dim ByteIndex As Long
+    Dim HiBits As Byte
+    Dim LoBits As Byte
+    For ByteIndex = 0 To ByteCount - 1
+        HiBits = Asc(Mid$(HexByteCodes, ByteIndex * 2 + 1, 1))
+        LoBits = Asc(Mid$(HexByteCodes, ByteIndex * 2 + 2, 1))
+        If HiBits < Asc("0") Or HiBits > Asc("F") Or _
+           HiBits > Asc("9") And HiBits < Asc("A") Or _
+           LoBits < Asc("0") Or LoBits > Asc("F") Or _
+           LoBits > Asc("9") And LoBits < Asc("A") _
+           Then
+          Err.Raise 13, "FixUtils", "Invalid hex digits found."
+        End If
+        HiBits = HiBits - &H30
+        LoBits = LoBits - &H30
+        HiBits = IIf(HiBits > 9, HiBits - 7, HiBits)
+        LoBits = IIf(LoBits > 9, LoBits - 7, LoBits)
+        Bytes(ByteIndex) = HiBits * 16 + LoBits
+    Next ByteIndex
+    BytesFromHexString = Bytes
+End Function
+
+
 '@Description "Generates Dictionary from separate arrays of keys and values"
 Public Function KeysValuesToDict(ByVal Keys As Variant, ByVal Values As Variant) As Scripting.Dictionary
 Attribute KeysValuesToDict.VB_Description = "Generates Dictionary from separate arrays of keys and values"
@@ -180,27 +231,4 @@ Attribute ArrayXB.VB_Description = "Populates a dynamic typed array."
         DynamicTypedArray(ElementIndex + BaseIndex) = Elements(ElementIndex)
     Next ElementIndex
     ArrayXB = DynamicTypedArray
-End Function
-
-
-'@Description "Converts 2-byte big-endian array to signed 16-bit integer (Integer)"
-Friend Function SInt16bFromBytesBE(ByRef BytesBE() As Byte) As Integer
-Attribute SInt16bFromBytesBE.VB_Description = "Converts 2-byte big-endian array to signed 16-bit integer (Integer)"
-    Dim SignBit As Integer
-    SignBit = -CInt((BytesBE(0) And &H80) / &H80) And &H8000
-    SInt16bFromBytesBE = CInt(BytesBE(0) And &H7F) * &H100 + CInt(BytesBE(1))
-    SInt16bFromBytesBE = SInt16bFromBytesBE Or SignBit
-End Function
-
-
-'@Description "Converts 4-byte big-endian array to signed 32-bit integer (Long)"
-Friend Function SLong32bFromBytesBE(ByRef BytesBE() As Byte) As Long
-Attribute SLong32bFromBytesBE.VB_Description = "Converts 4-byte big-endian array to signed 32-bit integer (Long)"
-    Dim SignBit As Long
-    SignBit = -CLng((BytesBE(0) And &H80) / &H80) And &H80000000
-    SLong32bFromBytesBE = ((CLng(BytesBE(0) And &H7F) _
-                            * &H100& + CLng(BytesBE(1))) _
-                            * &H100& + CLng(BytesBE(2))) _
-                            * &H100& + CLng(BytesBE(3))
-    SLong32bFromBytesBE = SLong32bFromBytesBE Or SignBit
 End Function

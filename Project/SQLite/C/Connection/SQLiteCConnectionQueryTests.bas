@@ -319,7 +319,7 @@ Arrange:
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCTempFuncWithData
     Dim dbcDst As SQLiteCConnection
-    Set dbcDst = FixObjC.GetDBCTemp
+    Set dbcDst = FixObjC.GetDBCTemp(True)
 
     Dim DbStmtNameSrc As String
     DbStmtNameSrc = Left(GenerateGUID, 8)
