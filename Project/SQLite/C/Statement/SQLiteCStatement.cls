@@ -23,6 +23,8 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 
 Option Explicit
 
+Implements ILiteADO
+
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As LongPtr, ByVal pwsSql As LongPtr, _
     ByVal nSqlLength As Long, ByRef hStmt As LongPtr, ByVal ppwsTailOut As LongPtr) As SQLiteResultCodes
@@ -456,7 +458,7 @@ Public Function GetRecordset(ByVal SQLQuery As String, _
     End If
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = this.DbExec.GetFabRecordset(UseDeclaredTypes)
-    dbr.SQLQuerySet , , QueryParameters
+    dbr.SQLQueryParamsSet QueryParameters
     If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
     Set GetRecordset = dbr
 End Function
@@ -512,4 +514,70 @@ Attribute SQLQueryOriginal.VB_Description = "Returns original (optionally normal
                   "SQLite DLL returned NULL pointer"
     End If
     SQLQueryOriginal = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)
+End Function
+
+
+'============================================================================='
+'============================= ILiteADO INTERFACE ============================'
+'============================================================================='
+
+
+Private Property Get ILiteADO_MainDB() As String
+    ILiteADO_MainDB = this.DbConn.DbPathName
+End Property
+
+'''' For SQLiteC, this is the same as MainDB
+Private Property Get ILiteADO_ConnectionString() As String
+    ILiteADO_ConnectionString = this.DbConn.DbPathName
+End Property
+
+Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
+                           Optional ByVal QueryParameters As Variant = Empty _
+                           ) As Variant
+    Dim HandleConnection As Boolean
+    HandleConnection = (this.DbConn.DbHandle = 0)
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetScalar", _
+        "Failed to open db."
+    ILiteADO_GetScalar = GetScalar(SQLQuery, QueryParameters)
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetScalar", _
+        "Failed to close db."
+End Function
+
+Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
+                                 Optional ByVal QueryParameters As Variant = Empty _
+                                 ) As ADODB.Recordset
+    Dim HandleConnection As Boolean
+    HandleConnection = (this.DbConn.DbHandle = 0)
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetAdoRecordset", _
+        "Failed to open db."
+    Dim dbr As SQLiteCRecordsetADO
+    Set dbr = GetRecordset(SQLQuery, QueryParameters)
+    Set ILiteADO_GetAdoRecordset = dbr.AdoRecordset
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetAdoRecordset", _
+        "Failed to close db."
+End Function
+
+Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
+                                 Optional ByVal QueryParameters As Variant = Empty _
+                                 ) As Long
+    Dim HandleConnection As Boolean
+    HandleConnection = (this.DbConn.DbHandle = 0)
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_ExecuteNonQuery", _
+        "Failed to open db."
+    Dim AffectedRows As Long: AffectedRows = 0 '''' RD Workaround
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteNonQuery(SQLQuery, QueryParameters, AffectedRows)
+    If ResultCode = SQLITE_OK Then
+        ILiteADO_ExecuteNonQuery = AffectedRows
+    Else
+        ILiteADO_ExecuteNonQuery = -1
+    End If
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_ExecuteNonQuery", _
+        "Failed to close db."
 End Function

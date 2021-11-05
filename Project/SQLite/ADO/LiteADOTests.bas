@@ -13,9 +13,7 @@ Option Private Module
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
 
-Private Const LIB_NAME As String = "SQLiteCDBVBA"
 Private Const PATH_SEP As String = "\"
-Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
 
 
 'This method runs once per module.
@@ -44,31 +42,6 @@ End Sub
 
 
 '===================================================='
-'===================== FIXTURES ====================='
-'===================================================='
-
-
-Private Function zfxDefaultDbPath() As String
-    zfxDefaultDbPath = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
-End Function
-
-
-Private Function zfxDefaultDbManager() As ILiteADO
-    Dim FilePathName As String
-    FilePathName = zfxDefaultDbPath
-    
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO.Create(FilePathName)
-    Set zfxDefaultDbManager = dbm
-End Function
-
-
-Private Function zfxMemoryDbManager() As ILiteADO
-    Set zfxMemoryDbManager = LiteADO.Create(":memory:")
-End Function
-
-
-'===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
 
@@ -79,10 +52,10 @@ Private Sub ztcCreate_ValidatesExistingDatabasePath()
 
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
+    Expected = FixObjAdo.DefaultDbPathName
 Act:
     Dim dbm As ILiteADO
-    Set dbm = zfxDefaultDbManager()
+    Set dbm = FixObjAdo.GetDBMReg()
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
@@ -100,10 +73,8 @@ Private Sub ztcFromConnection_ValidatesNewDbManager()
     On Error GoTo TestFail
 
 Arrange:
-    Dim FilePathName As String
-    FilePathName = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
     Dim dbm As ILiteADO
-    Set dbm = LiteADO(FilePathName)
+    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName)
     Dim dbmCI As LiteADO
     Set dbmCI = dbm
 Act:
@@ -131,7 +102,7 @@ Arrange:
     Expected = ":memory:"
 Act:
     Dim dbm As ILiteADO
-    Set dbm = zfxMemoryDbManager()
+    Set dbm = FixObjAdo.GetDBMMem()
     Dim Actual As String
     Actual = dbm.MainDB
 Assert:
@@ -156,7 +127,7 @@ Arrange:
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
     '''' This test creates a new db file that remains locked for a certain
-    '''' period of time. If this test is rerun to soon, deletion will fail.
+    '''' period of time. If this test is rerun too soon, deletion will fail.
     On Error Resume Next
     MkDir ThisWorkbook.Path & PATH_SEP & "Temp"
     Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
@@ -188,7 +159,7 @@ Private Sub ztcCreate_ValidatesNewAbsoluteDatabasePath()
     
 Arrange:
     Dim Expected As String
-    Expected = Environ$("temp") & PATH_SEP & "NewDB" & Left$(GenerateGUID, 8) & ".tmp"
+    Expected = FixObjAdo.RandomTempFileName
 Act:
     Dim dbm As ILiteADO
     Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)
@@ -215,11 +186,11 @@ Private Sub ztcCreate_ValidatesDefaultConnectionString()
 
 Arrange:
     Dim Expected As String
-    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
 Act:
     Dim dbm As ILiteADO
-    Set dbm = zfxDefaultDbManager()
+    Set dbm = FixObjAdo.GetDBMReg()
     Dim Actual As String
     Actual = dbm.ConnectionString
 Assert:
@@ -238,11 +209,11 @@ Private Sub ztcCreate_ValidatesNoCreatConnectionString()
 
 Arrange:
     Dim Expected As String
-    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
 Act:
     Dim dbm As ILiteADO
-    Set dbm = LiteADO(zfxDefaultDbPath, False)
+    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName, False)
     Dim Actual As String
     Actual = dbm.ConnectionString
 Assert:
@@ -261,11 +232,11 @@ Private Sub ztcCreate_ValidatesCreatConnectionString()
 
 Arrange:
     Dim Expected As String
-    Expected = "Driver=SQLite3 ODBC Driver;Database=" & zfxDefaultDbPath & _
+    Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;"
 Act:
     Dim dbm As ILiteADO
-    Set dbm = LiteADO(zfxDefaultDbPath, True)
+    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName, True)
     Dim Actual As String
     Actual = dbm.ConnectionString
 Assert:
@@ -284,14 +255,14 @@ Private Sub ztcCreate_ValidatesDefaultRecordset()
 
 Arrange:
     Dim dbm As ILiteADO
-    Set dbm = zfxDefaultDbManager()
+    Set dbm = FixObjAdo.GetDBMReg()
     Dim dbmCI As LiteADO
     Set dbmCI = dbm
     Dim DefaultSQL As String
     DefaultSQL = "SELECT sqlite_version() AS version"
 Act:
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = dbm.GetAdoRecordset
+    Set AdoRecordset = dbm.GetAdoRecordset(vbNullString)
 Assert:
     Assert.IsNotNothing dbmCI.AdoCommand, "AdoCommand is not set"
     Assert.IsNotNothing dbmCI.AdoConnection, "AdoConnection is not set"

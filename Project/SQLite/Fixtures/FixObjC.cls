@@ -17,6 +17,7 @@ Option Explicit
 Private Const LITE_LIB As String = "SQLiteCDBVBA"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
+
 Private Type TFixObjC
     DllMan As DllManager
     LibDir As String
@@ -27,6 +28,10 @@ Private this As TFixObjC
 Private Sub Class_Initialize()
     this.LibDir = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX
 End Sub
+
+Public Property Get DefaultDbPathName() As String
+    DefaultDbPathName = this.LibDir & LITE_LIB & ".db"
+End Property
 
 '@Description "Loads SQLite dll and returns DbManager (SQLiteC) object."
 Public Function GetDBM() As SQLiteC

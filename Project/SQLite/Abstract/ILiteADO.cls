@@ -13,18 +13,25 @@ Attribute VB_Exposed = True
 Option Explicit
 
 
+'''' Absolute file pathname to the main database.
 Public Property Get MainDB() As String
 End Property
 
+'''' Connection string used by the implementing package.
 Public Property Get ConnectionString() As String
 End Property
 
-Public Function GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
+'''' A variant error value may be returned in case of an issue
+Public Function GetScalar(ByVal SQLQuery As String, _
+                 Optional ByVal QueryParameters As Variant = Empty) As Variant
 End Function
 
-Public Function GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset
+Public Function GetAdoRecordset(ByVal SQLQuery As String, _
+                       Optional ByVal QueryParameters As Variant = Empty) As ADODB.Recordset
 End Function
 
-Public Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
+'''' Returns RecordsAffected count
+Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
+                       Optional ByVal QueryParameters As Variant = Empty) As Long
 End Function
 

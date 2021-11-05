@@ -108,10 +108,13 @@ End Sub
 
 
 Public Sub SQLQuerySet(Optional ByVal SQLQuery As String = vbNullString, _
-                       Optional ByVal SQLQueryExpanded As String = vbNullString, _
-                       Optional ByVal SQLQueryParameters As Variant = Empty)
+                       Optional ByVal SQLQueryExpanded As String = vbNullString)
     If Len(SQLQuery) > 0 Then this.SQLQuery = SQLQuery
     If Len(SQLQueryExpanded) > 0 Then this.SQLQueryExpanded = SQLQueryExpanded
+End Sub
+
+
+Public Sub SQLQueryParamsSet(ByVal SQLQueryParameters As Variant)
     Select Case VarType(SQLQueryParameters)
         Case vbObject
             If Not SQLQueryParameters Is Nothing Then _

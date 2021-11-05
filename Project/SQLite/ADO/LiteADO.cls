@@ -109,9 +109,9 @@ End Property
 ''''     If false, creation of new database will not be allowed.
 ''''
 '@Description "Constructs default SQLiteODBC connection string"
-Private Function ConnectionString( _
-                     ByVal Database As String, _
-            Optional ByVal AllowNonExistent As Variant = False) As String
+Private Function ConnectionString(ByVal Database As String, _
+                         Optional ByVal AllowNonExistent As Variant = False _
+                         ) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
@@ -210,14 +210,20 @@ Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.ConnectionString
 End Property
 
-Private Function ILiteADO_GetScalar(Optional ByVal SQLQuery As String = vbNullString) As Variant
+Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
+                           Optional ByVal QueryParameters As Variant = Empty _
+                           ) As Variant
     ILiteADO_GetScalar = GetScalar(SQLQuery)
 End Function
 
-Private Function ILiteADO_GetAdoRecordset(Optional ByVal SQLQuery As String = vbNullString) As ADODB.Recordset
+Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
+                                 Optional ByVal QueryParameters As Variant = Empty _
+                                 ) As ADODB.Recordset
     Set ILiteADO_GetAdoRecordset = GetAdoRecordset(SQLQuery)
 End Function
 
-Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String) As Long
+Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
+                                 Optional ByVal QueryParameters As Variant = Empty _
+                                 ) As Long
     ILiteADO_ExecuteNonQuery = ExecuteNonQuery(SQLQuery)
 End Function
