@@ -35,6 +35,7 @@ Private Declare PtrSafe Function sqlite3_expanded_sql Lib "SQLite3" (ByVal hStmt
 Private Declare PtrSafe Function sqlite3_normalized_sql Lib "SQLite3" (ByVal hStmt As LongPtr) As LongPtr ' PtrString
 Private Declare PtrSafe Function sqlite3_next_stmt Lib "SQLite3" (ByVal hDb As LongPtr, ByVal hStmt As LongPtr) As LongPtr ' PtrStmt
 Private Declare PtrSafe Function sqlite3_stmt_busy Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_stmt_readonly Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 Private Declare PtrSafe Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As LongPtr)
 #Else
 Private Declare Function sqlite3_prepare16_v2 Lib "SQLite3" (ByVal hDb As Long, ByVal pwsSql As Long, _
@@ -46,6 +47,7 @@ Private Declare Function sqlite3_expanded_sql Lib "SQLite3" (ByVal hStmt As Long
 Private Declare Function sqlite3_normalized_sql Lib "SQLite3" (ByVal hStmt As Long) As Long ' PtrString
 Private Declare Function sqlite3_next_stmt Lib "SQLite3" (ByVal hDb As Long, ByVal hStmt As Long) As Long ' PtrStmt
 Private Declare Function sqlite3_stmt_busy Lib "SQLite3" (ByVal hStmt As Long) As Long
+Private Declare Function sqlite3_stmt_readonly Lib "SQLite3" (ByVal hStmt As Long) As Long
 Private Declare Sub sqlite3_free Lib "SQLite3" (ByVal MemoryPtr As Long)
 #End If
 
@@ -120,6 +122,15 @@ Public Property Get Busy() As Boolean
         Busy = False
     Else
         Busy = sqlite3_stmt_busy(this.StmtHandle)
+    End If
+End Property
+
+
+Public Property Get ReadOnly() As Boolean
+    If this.StmtHandle = 0 Then
+        ReadOnly = False
+    Else
+        ReadOnly = sqlite3_stmt_readonly(this.StmtHandle)
     End If
 End Property
 
@@ -235,6 +246,11 @@ Attribute Finalize.VB_Description = "Destructs SQLite PSO."
 End Function
 
 
+'''' This method should be called on the predeclared SQLiteCStatement instance.
+'''' It enumerates not finalized statements and either attempts to finalize
+'''' them, if requested. Otherwise, it queries the busy status and returns a
+'''' Dictionary mapping <statement handle> -> <busy status>.
+''''
 '''' Args:
 ''''   DbConn (SQLiteCConnection):
 ''''     Connection object
@@ -246,7 +262,7 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/next_stmt.html
 ''''
 '''' @ClassMethod "Call on the predeclared instance"
-'@Description "Enumerates prepared statements with buys status."
+'@Description "Enumerates prepared statements with busy status."
 Friend Function PreparedStatementsGet(ByVal DbConn As SQLiteCConnection, _
                              Optional ByVal FinStmt As Boolean = True) As Variant
 Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with buys status."
@@ -299,6 +315,7 @@ End Function
 ''''
 '''' If query parameters are provided (as either an array or Name->Value
 '''' dictionary map), bind is called.
+'''' Reference: https://www.sqlite.org/lang_expr.html#varparam
 ''''
 '''' Args:
 ''''   SQLQuery (string):
@@ -380,10 +397,26 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
 End Function
 
 
+'''' If null is passed in place of QueryParameters, assume that the command
+'''' is not parameterized and can be executed via the exec API. In this case,
+'''' the command is relayed to DbConn.ExecuteNonQueryPlain, which can execute
+'''' commands containing multiple semicolon-separated SQL non-query statements.
+''''
+'''' TODO: parameterized semicolon-separated multi-statement commands can be
+''''       processed explicitly by the VBA code. This functionality might be
+''''       implemented in the future.
+''''
+'@Description "Executes SQL statement not returning data."
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty, _
                        Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
+Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning data."
     Dim ResultCode As SQLiteResultCodes
+    If IsNull(QueryParameters) Then
+        ResultCode = this.DbConn.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+        Exit Function
+    End If
+    
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode <> SQLITE_OK Then
         ExecuteNonQuery = ResultCode
@@ -406,6 +439,7 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
 End Function
 
 
+'@Description "Executes SQL statement returning a scalar value (possibly Empty or an error)."
 Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
     Dim ResultCode As SQLiteResultCodes
@@ -419,6 +453,7 @@ Public Function GetScalar(ByVal SQLQuery As String, _
 End Function
 
 
+'@Description "Executes SQL statement returning a set of rows."
 Public Function GetPagedRowSet(ByVal SQLQuery As String, _
                       Optional ByVal QueryParameters As Variant = Empty, _
                       Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
@@ -534,8 +569,10 @@ End Property
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _
                            ) As Variant
+    Dim dbc As SQLiteCConnection
+    Set dbc = this.DbConn
     Dim HandleConnection As Boolean
-    HandleConnection = (this.DbConn.DbHandle = 0)
+    HandleConnection = (dbc.DbHandle = 0)
     If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
         ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetScalar", _
         "Failed to open db."
@@ -548,8 +585,10 @@ End Function
 Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As ADODB.Recordset
+    Dim dbc As SQLiteCConnection
+    Set dbc = this.DbConn
     Dim HandleConnection As Boolean
-    HandleConnection = (this.DbConn.DbHandle = 0)
+    HandleConnection = (dbc.DbHandle = 0)
     If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
         ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_GetAdoRecordset", _
         "Failed to open db."
@@ -564,8 +603,10 @@ End Function
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As Long
+    Dim dbc As SQLiteCConnection
+    Set dbc = this.DbConn
     Dim HandleConnection As Boolean
-    HandleConnection = (this.DbConn.DbHandle = 0)
+    HandleConnection = (dbc.DbHandle = 0)
     If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
         ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_ExecuteNonQuery", _
         "Failed to open db."

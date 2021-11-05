@@ -14,8 +14,6 @@ Attribute VB_Description = "Handles query parameters"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
-'''' Notes: Test BindClear with hStmt=0
-
 ''''======================================================================''''
 '''' Parameters
 '''' https://www.sqlite.org/c3ref/bind_blob.html
@@ -109,7 +107,6 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_name.html
 ''''
-'@Ignore ProcedureNotUsed
 '@Description "Retrieves named parameter name."
 Public Function NameFromIndex(ByVal ParamIndex As Long) As String
 Attribute NameFromIndex.VB_Description = "Retrieves named parameter name."
@@ -186,7 +183,7 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
 End Function
 
 
-'@Description "Binds a set of parameter values provided as an array. Must match the number of available parameters."
+'@Description "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
 Public Function BindArray(ByVal ValueArr As Variant) As SQLiteResultCodes
 Attribute BindArray.VB_Description = "Binds a set of parameter values provided as an array. Must match the number of available parameters."
     Guard.ExpressionErr VarType(ValueArr) >= vbArray, ErrNo.InvalidParameterErr, _

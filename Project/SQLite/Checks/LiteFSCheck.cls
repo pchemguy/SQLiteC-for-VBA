@@ -37,6 +37,10 @@ Option Explicit
 
 Private Type TLiteFSCheck
     DbPathName As String '''' Absolute file pathname to the main database.
+    '''' Set IsSpecial to True if in-memory, anonymous, or temp database is
+    '''' requested (i.e. ":xxx:"). Do not set NoCreate option for a special
+    '''' database even if AllowNonExistent is False (explicit or default).
+    IsSpecial As Boolean
     ErrNumber As Long
     ErrSource As String
     ErrDescription As String
@@ -63,8 +67,16 @@ Friend Sub Init(ByVal DbPathName As String, _
     this.DbPathName = ExistsAccesibleValid(DbPathName, AllowNonExistent)
 End Sub
 
+'@Description "Returns absolute file pathname to the main database or :memory: or vbNullString."
 Public Property Get DatabasePathName() As String
+Attribute DatabasePathName.VB_Description = "Returns absolute file pathname to the main database or :memory: or vbNullString."
     DatabasePathName = this.DbPathName
+End Property
+
+'@Description "Returns True if special [:xxx:] database is requested. If True, ignore AllowNonExistent and do not set the NoCreate option."
+Public Property Get IsSpecial() As Boolean
+Attribute IsSpecial.VB_Description = "Returns True if special [:xxx:] database is requested. If True, ignore AllowNonExistent and do not set the NoCreate option."
+    IsSpecial = this.IsSpecial
 End Property
 
 Public Property Get ErrNumber() As Long
@@ -233,16 +245,20 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
     '''' Check for special names
     Select Case FilePathName
         Case ":memory:"
+            this.IsSpecial = True
             ExistsAccesibleValid = FilePathName
             Exit Function
         Case ":temp:", ":tmp:"
+            this.IsSpecial = True
             ExistsAccesibleValid = Environ$("TEMP") & Application.PathSeparator & _
                 Format$(Now, "yyyy_mm_dd-hh_mm_ss-") & Left$(GenerateGUID, 8) & ".db"
             Exit Function
         Case ":blank:"
+            this.IsSpecial = True
             ExistsAccesibleValid = vbNullString
             Exit Function
     End Select
+    this.IsSpecial = False
     
     Dim EnableResolve As Boolean
     EnableResolve = (VarType(AllowNonExistent) = vbBoolean)

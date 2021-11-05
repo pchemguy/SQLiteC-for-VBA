@@ -32,16 +32,34 @@ Public Property Get DefaultDbPathName() As String
     DefaultDbPathName = this.LibDir & LITE_LIB & ".db"
 End Property
 
-Public Function GetDBMReg() As ILiteADO
-    Dim FilePathName As String
-    FilePathName = this.LibDir & LITE_LIB & ".db"
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO.Create(FilePathName)
-    Set GetDBMReg = dbm
+'@Description "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
+Public Function GetDBM(ByVal DbPathName As String) As ILiteADO
+    Set GetDBM = LiteADO.Create(DbPathName)
 End Function
 
+'@Description "Returns a LiteADO/ILiteADO object suitable for working the default database."
+Public Function GetDBMReg() As ILiteADO
+    Set GetDBMReg = GetDBM(this.LibDir & LITE_LIB & ".db")
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for an anonymous database."
+Public Function GetDBMAnon() As ILiteADO
+    Set GetDBMAnon = GetDBM(":blank:")
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for an in-memory database."
 Public Function GetDBMMem() As ILiteADO
-    Set GetDBMMem = LiteADO.Create(":memory:")
+    Set GetDBMMem = GetDBM(":memory:")
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
+Public Function GetDBMMemITRB() As ILiteADO
+    Dim dbm As ILiteADO
+    Set dbm = GetDBM(":memory:")
+    Dim AffectedRecords As Long
+    AffectedRecords = dbm.ExecuteNonQuery(FixSQLITRB.Create)
+    Debug.Assert AffectedRecords = 0
+    Set GetDBMMemITRB = dbm
 End Function
 
 '@Description "Generates a path pointing to a randomly named non-existing file in the temp folder."

@@ -14,16 +14,6 @@ Attribute VB_Description = "Executes statement and retrieves data"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 
-''''======================================================================''''
-'''' Execute and retrieve
-'''' https://www.sqlite.org/c3ref/exec.html
-'''' https://www.sqlite.org/c3ref/step.html
-'''' https://www.sqlite.org/c3ref/column_blob.html
-'''' https://www.sqlite.org/c3ref/column_count.html
-'''' https://www.sqlite.org/c3ref/column_name.html
-'''' https://www.sqlite.org/c3ref/c_blob.html
-''''======================================================================''''
-
 Option Explicit
 
 #If VBA7 Then
@@ -220,12 +210,12 @@ Attribute TypeAffinityFromDeclaredType.VB_Description = "Determines column type 
 End Function
 
 
-'''' Reference: https://www.sqlite.org/c3ref/table_column_metadata.html
-'''' Reference: https://www.sqlite.org/c3ref/column_count.html
 '''' Reference: https://www.sqlite.org/c3ref/column_name.html
 '''' Reference: https://www.sqlite.org/c3ref/column_database_name.html
 '''' Reference: https://www.sqlite.org/c3ref/column_decltype.html
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
+'''' Reference: https://www.sqlite.org/c3ref/c_blob.html
+'''' Reference: https://www.sqlite.org/c3ref/table_column_metadata.html
 ''''
 '''' For calculated columns, only the column_name API should work. Other APIs
 '''' should return null pointer, without indicating an error otherwise.
@@ -378,7 +368,9 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/step.html
 ''''
+'@Description "Executes statement or moves the cursor forward to the next available row."
 Friend Function ExecuteStepAPI() As SQLiteResultCodes
+Attribute ExecuteStepAPI.VB_Description = "Executes statement or moves the cursor forward to the next available row."
     With this.DbStmt
         If .StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
                 "SQLiteCExecSQL", "Statement is not prepared."
@@ -395,7 +387,11 @@ Friend Function ExecuteStepAPI() As SQLiteResultCodes
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/column_count.html
+''''
+'@Description "Retrieves number of columns returned by the prepared statement."
 Public Function ColumnCountAPI() As Long
+Attribute ColumnCountAPI.VB_Description = "Retrieves number of columns returned by the prepared statement."
     FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/ColumnCountAPI"
     this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     ColumnCountAPI = this.ColumnCount
@@ -416,10 +412,13 @@ End Function
 
 
 '''' Reference: https://www.sqlite.org/c3ref/column_blob.html
+'''' Reference: https://www.sqlite.org/c3ref/c_blob.html
 ''''
+'@Description "Retrieves a single column value from currently available row."
 Friend Function GetColumnValueAPI( _
             Optional ByVal ColumnIndex As Long = 0, _
             Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Attribute GetColumnValueAPI.VB_Description = "Retrieves a single column value from currently available row."
     FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/GetColumnValueAPI"
     #If VBA7 Then
         Dim hStmt As LongPtr
@@ -430,12 +429,12 @@ Friend Function GetColumnValueAPI( _
     #End If
     hStmt = this.DbStmt.StmtHandle
     
-    Dim ColumnType As SQLiteType
     '''' Must query value type API to check for NULL.
     '''' This call is not required for non-nullable columns if declared type is
     '''' used. Additional "if" is required, however, which should impose a slight
     '''' penalty in case when most columns are nullable and require this null-check.
     '''' The caller is responsible for querying/populating the metadata.
+    Dim ColumnType As SQLiteType
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
     If this.MetaLoaded Then
         Dim Affinity As SQLiteTypeAffinity
@@ -479,8 +478,10 @@ Friend Function GetColumnValueAPI( _
 End Function
 
 
+'@Description "Retrieves currently available row."
 Public Function GetRow(ByVal ColumnCount As Long, _
               Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Attribute GetRow.VB_Description = "Retrieves next available row."
     Dim ColumnIndex As Long
     Dim RowValues As Variant
     ReDim RowValues(0 To ColumnCount - 1)
@@ -495,6 +496,19 @@ Public Function GetRow(ByVal ColumnCount As Long, _
 End Function
 
 
+'''' Since SQLite provides a forward-only cursor and does not provide information
+'''' about the total number of rows returned by the query, this is the primary
+'''' row set query interface. At the start, a variant 1D 0-based Pages array is
+'''' ReDim'ed, and its size is set to PageCount. As rows are retrieved from the
+'''' database, they are saved as variant 1D 0-based array elements with in a
+'''' variant 0-based 1D Page array. Once the Page array is filled to PageSize,
+'''' it is saved into the next available slot in the Pages array. At the end,
+'''' the Pages array is retuned to the caller, .FilledPagesCount is set to the
+'''' number of fully filled pages, and .RowCount is set to the total number of
+'''' rows retrieved (neither is stricty necessary, as IsEmpty(Pages(PageIndex))
+'''' and IsEmpty(Page(RowIndex)) can be used to as While Loop conditions,
+'''' replacing the currently used For Loops).
+''''
 Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
     Dim ResultCode As SQLiteResultCodes
         
@@ -556,7 +570,12 @@ Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = Fals
 End Function
 
 
+'''' This method is a wrapper around GetPagedRowSet (used to retrieve the data)
+'''' reshaping the paged data set as a plain 0-based 2D array.
+''''
+'@Description "Shapes/flattens the data returning a 2D variant array."
 Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Attribute GetRowSet2D.VB_Description = "Shapes/flattens the data returning a 2D variant array."
     Dim PagedRowSet As Variant
     PagedRowSet = GetPagedRowSet(UseDeclaredTypes)
     If IsError(PagedRowSet) Then
@@ -593,6 +612,12 @@ Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) 
 End Function
 
 
+'''' This method is a wrapper around GetPagedRowSet (used to retrieve the data)
+'''' reshaping the paged data set. It fabricates an ADODB.Recordset object and
+'''' populates it with retrieved data. This way, SQLiteC package can implement
+'''' the ADODB based ILiteADO interface.
+''''
+'@Description "Shapes/flattens the data returning a fabricated ADODB.Recordset object."
 Public Function GetFabRecordset(Optional ByVal UseDeclaredTypes As Boolean = False _
                                ) As SQLiteCRecordsetADO
     Dim PagedRowSet As Variant

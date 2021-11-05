@@ -68,6 +68,14 @@ End Function
 '@Description "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelect(ByVal SQLQuery As String) As String
 Attribute CountSelect.VB_Description = "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
-    CountSelect = "SELECT count(*) AS counter FROM " & _
-                  "(" & Replace(SQLQuery, ";", vbNullString) & ");"
+    CountSelect = "SELECT count(*) AS counter FROM (" & vbNewLine & _
+                  "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+                  vbNewLine & ");"
+End Function
+
+'@Description "Formats a SELECT query as a subquery suitable for the FROM clause."
+Public Function SubQuery(ByVal SQLQuery As String) As String
+    SubQuery = " (" & vbNewLine & _
+               "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+               vbNewLine & "    )" & vbNewLine
 End Function

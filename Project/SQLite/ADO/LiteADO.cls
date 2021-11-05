@@ -116,7 +116,8 @@ Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC conne
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
     If PathCheck.ErrNumber <> 0 Then PathCheck.Raise
-    Debug.Assert Len(PathCheck.DatabasePathName) > 0
+    Debug.Assert (Len(PathCheck.DatabasePathName) > 0 And Database <> ":blank:") Or _
+                 (Len(PathCheck.DatabasePathName) = 0 And Database = ":blank:")
     
     Dim FilePathName As String
     FilePathName = PathCheck.DatabasePathName
@@ -127,7 +128,8 @@ Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC conne
 
     Dim Options As String
     Options = "SyncPragma=NORMAL;FKSupport=True;"
-    If Not AllowNonExistent Then Options = Options & "NoCreat=True;"
+    If Not (AllowNonExistent Or PathCheck.IsSpecial) Then _
+        Options = Options & "NoCreat=True;"
         
     this.ConnectionString = "Driver=" & Driver & ";Database=" & FilePathName & ";" & Options
     ConnectionString = this.ConnectionString

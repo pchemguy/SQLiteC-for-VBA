@@ -294,7 +294,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     Dim AffectedRows As Long
     AffectedRows = 0
     Dim QueryParams As Variant
-    QueryParams = Null
+    QueryParams = Empty
     Dim ResultCode As SQLiteResultCodes
     
     ResultCode = dbc.OpenDb
