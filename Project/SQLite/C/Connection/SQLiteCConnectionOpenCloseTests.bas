@@ -113,7 +113,7 @@ Private Sub ztcAttachedDbPathName_VerifiesTempDbPathName()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     Dim ResultCode As SQLiteResultCodes
 Act:
     ResultCode = dbc.OpenDb

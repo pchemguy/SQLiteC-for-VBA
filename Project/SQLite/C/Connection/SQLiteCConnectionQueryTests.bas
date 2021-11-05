@@ -234,9 +234,9 @@ Private Sub ztcAtDetach_VerifiesAttachExistingNewMem()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     Dim dbcTmp As SQLiteCConnection
-    Set dbcTmp = FixObjC.GetDBCTemp
+    Set dbcTmp = FixObjC.GetDBCTmp
     
     Dim ResultCode As SQLiteResultCodes
     Assert.AreEqual SQLITE_OK, dbcTmp.OpenDb, "Unexpected OpenDb error"
@@ -295,7 +295,7 @@ Private Sub ztcVacuum_VerifiesVacuumMainInPlace()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
         
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Act:
@@ -317,9 +317,9 @@ Private Sub ztcVacuum_VerifiesVacuumMainToNew()
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
-    Set dbcSrc = FixObjC.GetDBCTempFuncWithData
+    Set dbcSrc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcDst As SQLiteCConnection
-    Set dbcDst = FixObjC.GetDBCTemp(True)
+    Set dbcDst = FixObjC.GetDBCTmp(True)
 
     Dim DbStmtNameSrc As String
     DbStmtNameSrc = Left(GenerateGUID, 8)

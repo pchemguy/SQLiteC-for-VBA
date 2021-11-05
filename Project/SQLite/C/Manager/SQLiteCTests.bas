@@ -289,7 +289,7 @@ Arrange:
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCMemITRBWithData
     Dim dbcDst As SQLiteCConnection
-    Set dbcDst = FixObjC.GetDBCTemp
+    Set dbcDst = FixObjC.GetDBCTmp
 
     Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
@@ -329,7 +329,7 @@ Private Sub ztcDupDbOnlineFull_VerifiesDbCopyTempToMem()
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
-    Set dbcSrc = FixObjC.GetDBCTempITRBWithData
+    Set dbcSrc = FixObjC.GetDBCTmpITRBWithData
     Dim dbcDst As SQLiteCConnection
     Set dbcDst = FixObjC.GetDBCMem
 

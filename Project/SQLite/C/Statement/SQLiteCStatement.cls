@@ -265,7 +265,7 @@ End Function
 '@Description "Enumerates prepared statements with busy status."
 Friend Function PreparedStatementsGet(ByVal DbConn As SQLiteCConnection, _
                              Optional ByVal FinStmt As Boolean = True) As Variant
-Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with buys status."
+Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with busy status."
     FixGuard.DbNotOpened DbConn, "SQLiteCStatement/PreparedStatementsGet"
     #If VBA7 Then
         Dim hStmt As LongPtr
@@ -442,6 +442,7 @@ End Function
 '@Description "Executes SQL statement returning a scalar value (possibly Empty or an error)."
 Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
+Attribute GetScalar.VB_Description = "Executes SQL statement returning a scalar value (possibly Empty or an error)."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
@@ -457,6 +458,7 @@ End Function
 Public Function GetPagedRowSet(ByVal SQLQuery As String, _
                       Optional ByVal QueryParameters As Variant = Empty, _
                       Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
+Attribute GetPagedRowSet.VB_Description = "Executes SQL statement returning a set of rows."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then

@@ -666,7 +666,7 @@ End Sub
 
 Private Sub Txn()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.OpenDb
@@ -704,7 +704,7 @@ End Sub
 
 Private Sub TxnSave()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     
     Dim ResultCode As SQLiteResultCodes
     Dim SavePointName As String
@@ -777,7 +777,7 @@ End Sub
 
 Private Sub TxnBusy()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
 
@@ -833,7 +833,7 @@ End Sub
 
 Private Sub DbIsLocked()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
     Dim dbcB As SQLiteCConnection
@@ -916,7 +916,7 @@ Private Sub DupInMemoryToTempOnline()
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCMemITRBWithData
     Dim dbcDst As SQLiteCConnection
-    Set dbcDst = FixObjC.GetDBCTemp
+    Set dbcDst = FixObjC.GetDBCTmp
     
     
     Dim DbStmtName As String
@@ -985,9 +985,9 @@ End Sub
 
 Private Sub AttachDetach()
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     Dim dbcTemp As SQLiteCConnection
-    Set dbcTemp = FixObjC.GetDBCTemp
+    Set dbcTemp = FixObjC.GetDBCTmp
     
     If dbcTemp.OpenDb <> SQLITE_OK Then
         Debug.Print "Unexpected OpenDb error"
@@ -1066,7 +1066,7 @@ Private Sub ReadDbHeader()
     Dim dbh As SQLiteCHeader
     Set dbh = SQLiteCHeader(dbc.DbPathName)
     dbh.LoadHeader
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Set dbh = SQLiteCHeader(dbc.DbPathName)
     dbh.LoadHeader
 End Sub

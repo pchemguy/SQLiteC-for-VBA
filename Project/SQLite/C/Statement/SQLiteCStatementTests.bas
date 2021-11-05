@@ -1,4 +1,4 @@
-Attribute VB_Name = "SQLiteCStatementDefaultTests"
+Attribute VB_Name = "SQLiteCStatementTests"
 '@Folder "SQLite.C.Statement"
 '@TestModule
 '@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
@@ -868,7 +868,7 @@ Private Sub ztcGetRowSet2D_InsertWithParamsSelectFromITRBTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 

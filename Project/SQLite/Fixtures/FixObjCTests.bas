@@ -37,12 +37,12 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBCTempFuncWithData_VerifiesTempDatabase()
+Private Sub ztcGetDBCTmpFuncWithData_VerifiesTmpDatabase()
     On Error GoTo TestFail
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -105,6 +105,90 @@ Assert:
     Assert.AreEqual Expected, Actual, vbNullString
 Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Fixture")
+Private Sub ztcGetDBSMemITRBWithData_VerifiesDBSMemITRBWithData()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbs As ILiteADO
+    Set dbs = FixObjC.GetDBSMemITRBWithData
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+Assert:
+    Assert.AreEqual 5, dbs.GetScalar(SQLQuery), "Row count mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Fixture")
+Private Sub ztcGetDBSMemFuncWithData_VerifiesDBSMemFuncWithData()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbs As ILiteADO
+    Set dbs = FixObjC.GetDBSMemFuncWithData
+    Dim Expected As Long
+    Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+Assert:
+    Assert.AreEqual Expected, dbs.GetScalar(SQLQuery), "Row count mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Fixture")
+Private Sub ztcGetDBSTmpITRBWithData_VerifiesDBSTmpITRBWithData()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbs As ILiteADO
+    Set dbs = FixObjC.GetDBSTmpITRBWithData
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+Assert:
+    Assert.AreEqual 5, dbs.GetScalar(SQLQuery), "Row count mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Fixture")
+Private Sub ztcGetDBSTmpFuncWithData_VerifiesDBSTmpFuncWithData()
+    On Error GoTo TestFail
+
+Arrange:
+    Dim dbs As ILiteADO
+    Set dbs = FixObjC.GetDBSTmpFuncWithData
+    Dim Expected As Long
+    Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
+Act:
+    Dim SQLQuery As String
+    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+Assert:
+    Assert.AreEqual Expected, dbs.GetScalar(SQLQuery), "Row count mismatch."
 
 CleanExit:
     Exit Sub

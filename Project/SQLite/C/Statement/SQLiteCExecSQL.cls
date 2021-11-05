@@ -481,7 +481,7 @@ End Function
 '@Description "Retrieves currently available row."
 Public Function GetRow(ByVal ColumnCount As Long, _
               Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
-Attribute GetRow.VB_Description = "Retrieves next available row."
+Attribute GetRow.VB_Description = "Retrieves currently available row."
     Dim ColumnIndex As Long
     Dim RowValues As Variant
     ReDim RowValues(0 To ColumnCount - 1)
@@ -620,6 +620,7 @@ End Function
 '@Description "Shapes/flattens the data returning a fabricated ADODB.Recordset object."
 Public Function GetFabRecordset(Optional ByVal UseDeclaredTypes As Boolean = False _
                                ) As SQLiteCRecordsetADO
+Attribute GetFabRecordset.VB_Description = "Shapes/flattens the data returning a fabricated ADODB.Recordset object."
     Dim PagedRowSet As Variant
     PagedRowSet = GetPagedRowSet(UseDeclaredTypes)
     If IsError(PagedRowSet) Then

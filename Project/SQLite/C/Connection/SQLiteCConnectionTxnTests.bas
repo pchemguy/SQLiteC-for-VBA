@@ -117,7 +117,7 @@ Private Sub ztcBeginCommit_VerifiesTxnRead()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim ResultCode As SQLiteResultCodes
 Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
@@ -281,7 +281,7 @@ Private Sub ztcBeginCommit_VerifiesBusyStatusWithLockingTransaction()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
     
@@ -344,7 +344,7 @@ Private Sub ztcSavePointRelease_VerifiesTransactionStates()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTemp
+    Set dbc = FixObjC.GetDBCTmp
     
     Dim ResultCode As SQLiteResultCodes
     Dim SavePointName As String
@@ -397,7 +397,7 @@ Private Sub ztcDbIsLocked_VerifiesLockState()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
     Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
     

@@ -34,32 +34,47 @@ End Property
 
 '@Description "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
 Public Function GetDBM(ByVal DbPathName As String) As ILiteADO
+Attribute GetDBM.VB_Description = "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
     Set GetDBM = LiteADO.Create(DbPathName)
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object suitable for working the default database."
 Public Function GetDBMReg() As ILiteADO
+Attribute GetDBMReg.VB_Description = "Returns a LiteADO/ILiteADO object suitable for working the default database."
     Set GetDBMReg = GetDBM(this.LibDir & LITE_LIB & ".db")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an anonymous database."
 Public Function GetDBMAnon() As ILiteADO
+Attribute GetDBMAnon.VB_Description = "Returns a LiteADO/ILiteADO object for an anonymous database."
     Set GetDBMAnon = GetDBM(":blank:")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database."
 Public Function GetDBMMem() As ILiteADO
+Attribute GetDBMMem.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database."
     Set GetDBMMem = GetDBM(":memory:")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
 Public Function GetDBMMemITRB() As ILiteADO
-    Dim dbm As ILiteADO
-    Set dbm = GetDBM(":memory:")
-    Dim AffectedRecords As Long
-    AffectedRecords = dbm.ExecuteNonQuery(FixSQLITRB.Create)
-    Debug.Assert AffectedRecords = 0
-    Set GetDBMMemITRB = dbm
+Attribute GetDBMMemITRB.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
+    Set GetDBMMemITRB = GetDBMMem()
+    GetDBMMemITRB.ExecuteNonQuery FixSQLITRB.Create
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table and data."
+Public Function GetDBMMemITRBWithData() As ILiteADO
+Attribute GetDBMMemITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table and data."
+    Set GetDBMMemITRBWithData = GetDBMMem()
+    GetDBMMemITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for an in-memory database with Functions table and data."
+Public Function GetDBMMemFuncWithData() As ILiteADO
+Attribute GetDBMMemFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with Functions table and data."
+    Set GetDBMMemFuncWithData = GetDBMMem()
+    GetDBMMemFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
 End Function
 
 '@Description "Generates a path pointing to a randomly named non-existing file in the temp folder."
@@ -67,4 +82,22 @@ Public Function RandomTempFileName(Optional ByVal FileExt As String = ".db") As 
 Attribute RandomTempFileName.VB_Description = "Generates a path pointing to a randomly named non-existing file in the temp folder."
     RandomTempFileName = Environ$("TEMP") & PATH_SEP & _
         Format$(Now, "yyyy_mm_dd-hh_mm_ss") & "-" & Left$(GenerateGUID, 8) & FileExt
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for a temp database."
+Public Function GetDBMTmp() As ILiteADO
+Attribute GetDBMTmp.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
+    Set GetDBMTmp = GetDBM(":temp:")
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for a temp database."
+Public Function GetDBMTmpITRBWithData() As ILiteADO
+    Set GetDBMTmpITRBWithData = GetDBM(":temp:")
+    GetDBMTmpITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
+End Function
+
+'@Description "Returns a LiteADO/ILiteADO object for a temp database."
+Public Function GetDBMTmpFuncWithData() As ILiteADO
+    Set GetDBMTmpFuncWithData = GetDBM(":temp:")
+    GetDBMTmpFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
 End Function

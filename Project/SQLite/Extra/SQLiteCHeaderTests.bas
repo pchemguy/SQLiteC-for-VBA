@@ -42,7 +42,7 @@ Private Sub ztcLoadHeader_VerifiesLoadedHeaderData()
 Arrange:
     Dim dbc As SQLiteCConnection
     Dim dbh As SQLiteCHeader
-    Set dbc = FixObjC.GetDBCTempFuncWithData
+    Set dbc = FixObjC.GetDBCTmpFuncWithData
 Act:
     Set dbh = SQLiteCHeader.Create(dbc.DbPathName)
     dbh.LoadHeader

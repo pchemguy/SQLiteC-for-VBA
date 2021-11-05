@@ -99,43 +99,34 @@ Attribute GetDBCInvalidPath.VB_Description = "Returns a connection (SQLiteCConne
 End Function
 
 '@Description "Returns a connection (SQLiteCConnection) object using an in-memory database."
-Public Function GetDBCMem() As SQLiteCConnection
+Public Function GetDBCMem(Optional ByVal OpenDb As Boolean = False) As SQLiteCConnection
 Attribute GetDBCMem.VB_Description = "Returns a connection (SQLiteCConnection) object using an in-memory database."
-    Dim DbPathName As String
-    DbPathName = ":memory:"
-    Set GetDBCMem = GetDBC(DbPathName)
-End Function
-
-'@Description "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with an empty 'ITRB' table."
-Public Function GetDBCMemITRB() As SQLiteCConnection
-Attribute GetDBCMemITRB.VB_Description = "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with an empty 'ITRB' table."
-    Dim DbPathName As String
-    DbPathName = ":memory:"
-    Set GetDBCMemITRB = GetDBC(DbPathName)
-    With GetDBCMemITRB
-        Guard.ExpressionTrueErr .OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            "FixObjC", "Failed to open db."
-        .ExecuteNonQueryPlain FixSQLITRB.Create
-        '''' DO NOT CLOSE In-Memory Database!
-    End With
-End Function
-
-'@Description "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with 'ITRB' table and data."
-Public Function GetDBCMemITRBWithData() As SQLiteCConnection
-Attribute GetDBCMemITRBWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with 'ITRB' table and data."
     Dim AllowNonExistent As Boolean
     AllowNonExistent = True
     Dim DbPathName As String
     DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBC(DbPathName, AllowNonExistent)
-    Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-        "FixObjC", "Failed to open db."
-    Dim AffectedRows As Long
-    AffectedRows = CreateITRBTableWithData(dbc)
-    If AffectedRows <= 0 Then Set dbc = Nothing
-    '''' DO NOT CLOSE In-Memory Database!
-    Set GetDBCMemITRBWithData = dbc
+    If OpenDb Then
+        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+            ErrNo.UnknownClassErr, "FixObjC", "Failed to open db."
+    End If
+    Set GetDBCMem = dbc
+End Function
+
+'@Description "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with an empty 'ITRB' table."
+Public Function GetDBCMemITRB() As SQLiteCConnection
+Attribute GetDBCMemITRB.VB_Description = "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with an empty 'ITRB' table."
+    Set GetDBCMemITRB = GetDBCMem(OpenDb:=True) '''' DO NOT CLOSE In-Memory Database!
+    GetDBCMemITRB.ExecuteNonQueryPlain FixSQLITRB.Create
+End Function
+
+'@Description "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with 'ITRB' table and data."
+Public Function GetDBCMemITRBWithData() As SQLiteCConnection
+Attribute GetDBCMemITRBWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with 'ITRB' table and data."
+    Set GetDBCMemITRBWithData = GetDBCMem(OpenDb:=True)
+    If CreateITRBTableWithData(GetDBCMemITRBWithData) <= 0 Then _
+        Set GetDBCMemITRBWithData = Nothing
 End Function
 
 '''' Args:
@@ -151,18 +142,12 @@ Public Function GetDBCMemFuncWithData(Optional ByVal Blank As Boolean = False, _
                                       Optional ByVal ApplicationId As Long = 0 _
                                       ) As SQLiteCConnection
 Attribute GetDBCMemFuncWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using created/opened in-memory database with 'functions' table and data."
-    Dim DbPathName As String
-    DbPathName = ":memory:"
     Dim dbc As SQLiteCConnection
-    Set dbc = GetDBC(DbPathName)
-    Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-        "FixObjC", "Failed to open db."
+    Set dbc = GetDBCMem(OpenDb:=True)
     If Not Blank Then
-        Dim AffectedRows As Long
-        AffectedRows = CreateFunctionsTableWithData(dbc)
-        If AffectedRows <= 0 Then Set dbc = Nothing
+        If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
     End If
-    If UserVersion Or ApplicationId Then
+    If (UserVersion Or ApplicationId) And Not dbc Is Nothing Then
         Dim dbs As SQLiteCStatement
         Set dbs = dbc.CreateStatement(vbNullString)
         If UserVersion <> 0 Then dbs.UserVersion = UserVersion
@@ -224,12 +209,11 @@ Attribute RandomTempFileName.VB_Description = "Generates a path pointing to a ra
 End Function
 
 '@Description "Returns a connection (SQLiteCConnection) object using a path pointing to a newly created randomly named database in the temp folder."
-Public Function GetDBCTemp(Optional ByVal NoInit As Boolean = False) As SQLiteCConnection
-Attribute GetDBCTemp.VB_Description = "Returns a connection (SQLiteCConnection) object using a path pointing to a newly created randomly named database in the temp folder."
-    Set GetDBCTemp = GetDBC(RandomTempFileName(), AllowNonExistent:=True)
+Public Function GetDBCTmp(Optional ByVal NoInit As Boolean = False) As SQLiteCConnection
+    Set GetDBCTmp = GetDBC(RandomTempFileName(), AllowNonExistent:=True)
     If Not NoInit Then
         '''' Make sure a blank db file is initialized
-        With GetDBCTemp
+        With GetDBCTmp
             .OpenDb
             .Vacuum
             .CloseDb
@@ -245,17 +229,14 @@ End Function
 ''''     If non-zero, set respective database attributes.
 ''''
 '@Description "Returns a connection (SQLiteCConnection) object using a new random databse in the temp folder with 'functions' table and data."
-Public Function GetDBCTempFuncWithData(Optional ByVal Blank As Boolean = False, _
-                                       Optional ByVal UserVersion As Long = 0, _
-                                       Optional ByVal ApplicationId As Long = 0 _
-                                       ) As SQLiteCConnection
-Attribute GetDBCTempFuncWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using a new random databse in the temp folder with 'functions' table and data."
+Public Function GetDBCTmpFuncWithData(Optional ByVal Blank As Boolean = False, _
+                                      Optional ByVal UserVersion As Long = 0, _
+                                      Optional ByVal ApplicationId As Long = 0 _
+                                      ) As SQLiteCConnection
     Dim dbc As SQLiteCConnection
-    Set dbc = GetDBCTemp()
+    Set dbc = GetDBCTmp()
     If Not Blank Then
-        Dim AffectedRows As Long
-        AffectedRows = CreateFunctionsTableWithData(dbc)
-        If AffectedRows <= 0 Then Set dbc = Nothing
+        If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
     End If
     If UserVersion Or ApplicationId Then
         Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
@@ -267,16 +248,45 @@ Attribute GetDBCTempFuncWithData.VB_Description = "Returns a connection (SQLiteC
         Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
             "FixObjC", "Failed to close db."
     End If
-    Set GetDBCTempFuncWithData = dbc
+    Set GetDBCTmpFuncWithData = dbc
 End Function
 
 '@Description "Returns a connection (SQLiteCConnection) object using a new random databse in the temp folder with 'ITRB' table and data."
-Public Function GetDBCTempITRBWithData() As SQLiteCConnection
-Attribute GetDBCTempITRBWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using a new random databse in the temp folder with 'ITRB' table and data."
+Public Function GetDBCTmpITRBWithData() As SQLiteCConnection
     Dim dbc As SQLiteCConnection
-    Set dbc = GetDBCTemp()
-    Dim AffectedRows As Long
-    AffectedRows = CreateITRBTableWithData(dbc)
-    If AffectedRows <= 0 Then Set dbc = Nothing
-    Set GetDBCTempITRBWithData = dbc
+    Set dbc = GetDBCTmp()
+    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
+    Set GetDBCTmpITRBWithData = dbc
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'ITRB' table and data."
+Public Function GetDBSMemITRBWithData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCMem(OpenDb:=True)
+    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
+    Set GetDBSMemITRBWithData = dbc.CreateStatement(vbNullString)
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'functions' table and data."
+Public Function GetDBSMemFuncWithData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCMem(OpenDb:=True) '''' DO NOT CLOSE In-Memory Database!
+    If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
+    Set GetDBSMemFuncWithData = dbc.CreateStatement(vbNullString)
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'ITRB' table and data."
+Public Function GetDBSTmpITRBWithData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCTmp()
+    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
+    Set GetDBSTmpITRBWithData = dbc.CreateStatement(vbNullString)
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'functions' table and data."
+Public Function GetDBSTmpFuncWithData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCTmp()
+    If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
+    Set GetDBSTmpFuncWithData = dbc.CreateStatement(vbNullString)
 End Function

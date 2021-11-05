@@ -185,7 +185,7 @@ End Function
 
 '@Description "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
 Public Function BindArray(ByVal ValueArr As Variant) As SQLiteResultCodes
-Attribute BindArray.VB_Description = "Binds a set of parameter values provided as an array. Must match the number of available parameters."
+Attribute BindArray.VB_Description = "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
     Guard.ExpressionErr VarType(ValueArr) >= vbArray, ErrNo.InvalidParameterErr, _
             "SQLiteCParameters", "Expected an array parameter, received VarType: " _
             & CStr(VarType(ValueArr))

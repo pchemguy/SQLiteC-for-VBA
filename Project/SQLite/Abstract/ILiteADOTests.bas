@@ -44,7 +44,6 @@ Arrange:
     Dim dbm As ILiteADO
     Set dbm = FixObjAdo.GetDBMMemITRB
     Assert.IsNotNothing dbm, "FixObjAdo.GetDBMMemITRB returned Nothing."
-    
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQLITRB.InsertPlain()
@@ -60,5 +59,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-
