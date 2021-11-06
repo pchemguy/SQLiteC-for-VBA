@@ -1,8 +1,9 @@
 ---
 layout: default
-title: DllManager
-nav_order: 2
-permalink: /dllman
+title: API
+nav_order: 1
+parent: DLL Manager
+permalink: /dllman/api
 ---
 
 ### VBA class managing loading DLL libraries

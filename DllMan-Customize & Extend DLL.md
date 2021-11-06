@@ -1,8 +1,9 @@
 ---
 layout: default
 title: Customize & Extend DLL
-nav_order: 3
-permalink: /dll-custom-ext
+nav_order: 2
+parent: DLL Manager
+permalink: /dllman/dll-custom-ext
 ---
 
 This section discusses a couple of templates demonstrating the development of custom(ized) DLLs for use with VBA. The first example builds a minimalistic demo DLL from scratch and the other demos extension of the SQLite code.
