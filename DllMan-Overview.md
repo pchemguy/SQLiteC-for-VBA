@@ -1,9 +1,9 @@
 ---
 layout: default
-title: API
+title: Overview
 nav_order: 1
 parent: DLL Manager
-permalink: /dllman/api
+permalink: /dllman/overview
 ---
 
 ### VBA class managing non-system DLL libraries
