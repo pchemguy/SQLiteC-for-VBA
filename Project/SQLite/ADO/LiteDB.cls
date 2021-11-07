@@ -15,7 +15,6 @@ Attribute VB_Description = "SQLite ADO manager class"
 Option Explicit
 
 Private Type TLiteDB
-    ExecCI As LiteADO
     Exec As ILiteADO
     Meta As LiteMetaADO
     Util As LiteUtils
@@ -39,13 +38,8 @@ Friend Sub Init(ByVal Database As String, _
         Set .Exec = LiteADO(Database, AllowNonExistent)
         Set .Meta = LiteMetaADO(.Exec)
         Set .Util = LiteUtils(.Exec)
-        Set .ExecCI = .Exec
     End With
 End Sub
-
-Public Property Get ExecCI() As LiteADO
-    Set ExecCI = this.ExecCI
-End Property
 
 Public Property Get Exec() As ILiteADO
     Set Exec = this.Exec
@@ -57,4 +51,8 @@ End Property
 
 Public Property Get Util() As LiteUtils
     Set Util = this.Util
+End Property
+
+Public Property Get ExecCI() As LiteADO
+    Set ExecCI = this.Exec
 End Property

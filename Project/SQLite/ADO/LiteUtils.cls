@@ -17,8 +17,8 @@ Attribute VB_Description = "Provides shortcuts for common operations."
 Option Explicit
 
 Private Type TLiteUtils
-    ExecADO As ILiteADO
-    MetaSQL As LiteMetaSQL
+    Exec As ILiteADO
+    Meta As LiteMetaSQLSchema
 End Type
 Private this As TLiteUtils
 
@@ -36,29 +36,30 @@ End Function
 Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.NullReference ExecADO
     Guard.EmptyString ExecADO.MainDB
-    Set this.ExecADO = ExecADO
-    Set this.MetaSQL = LiteMetaSQL.Create()
+    Set this.Exec = ExecADO
+    Set this.Meta = LiteMetaSQLSchema.Create()
 End Sub
 
 
 '@Description "Attaches SQLite database to existing connection"
-Public Sub AttachDatabase(ByVal DatabaseName As String, Optional ByVal DatabaseAlias As String = vbNullString)
+Public Sub AttachDatabase(ByVal DatabaseName As String, _
+                 Optional ByVal DatabaseAlias As String = vbNullString)
 Attribute AttachDatabase.VB_Description = "Attaches SQLite database to existing connection"
-    this.ExecADO.ExecuteNonQuery SQLlib.Attach(DatabaseName, DatabaseAlias)
+    this.Exec.ExecuteNonQuery SQLlib.Attach(DatabaseName, DatabaseAlias)
 End Sub
 
 
 '@Description "Detaches SQLite database from existing connection"
 Public Sub DetachDatabase(ByVal DatabaseAlias As String)
 Attribute DetachDatabase.VB_Description = "Detaches SQLite database from existing connection"
-    this.ExecADO.ExecuteNonQuery SQLlib.Detach(DatabaseAlias)
+    this.Exec.ExecuteNonQuery SQLlib.Detach(DatabaseAlias)
 End Sub
 
 
 '@Description "Defer foreing keys"
 Public Sub DeferForeignKeys()
 Attribute DeferForeignKeys.VB_Description = "Defer foreing keys"
-    this.ExecADO.ExecuteNonQuery SQLlib.DeferForeignKeys
+    this.Exec.ExecuteNonQuery SQLlib.DeferForeignKeys
 End Sub
 
 
@@ -73,7 +74,7 @@ Attribute DebugPrintRecordset.VB_Description = "'Debug.Print' for an SQL query"
     Guard.EmptyString SQLQuery
     
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = this.ExecADO.GetAdoRecordset(SQLQuery)
+    Set AdoRecordset = this.Exec.GetAdoRecordset(SQLQuery)
     
     If Not OutputRange Is Nothing Then
         ADOlib.RecordsetToQT AdoRecordset, OutputRange
@@ -105,7 +106,7 @@ End Sub
 Public Sub ToggleJournalMode(Optional ByVal JournalMode As String = "WAL")
 Attribute ToggleJournalMode.VB_Description = "Sets NORMAL sync and journal mode to WAL or DELETE for all attached dbs"
     Dim Databases As Variant
-    Databases = this.ExecADO.GetAdoRecordset(this.MetaSQL.Databases).GetRows
+    Databases = this.Exec.GetAdoRecordset(this.Meta.Databases).GetRows
     Databases = ArrayLib.GetRow(Databases, 0)
     
     Dim DbIndex As Long
@@ -117,7 +118,7 @@ Attribute ToggleJournalMode.VB_Description = "Sets NORMAL sync and journal mode 
     
     Dim SQLQuery As String
     SQLQuery = Join(Databases, ";" & vbNewLine) & ";"
-    this.ExecADO.ExecuteNonQuery SQLQuery
+    this.Exec.ExecuteNonQuery SQLQuery
 End Sub
 
 
@@ -126,7 +127,7 @@ Public Function JournalModeGet(Optional ByVal SchemaAlias As String = "main") As
 Attribute JournalModeGet.VB_Description = "Queries journal mode for the given database"
     Dim SQLQuery As String
     SQLQuery = "PRAGMA " & SchemaAlias & ".journal_mode"
-    JournalModeGet = this.ExecADO.GetScalar(SQLQuery)
+    JournalModeGet = this.Exec.GetScalar(SQLQuery)
 End Function
 
 
@@ -162,7 +163,7 @@ Attribute JournalModeSet.VB_Description = "Sets journal mode for the given datab
         Databases = Array(SchemaAlias)
     Else
         SQLQuery = "SELECT name FROM pragma_database_list"
-        Databases = ArrayLib.GetRow(this.ExecADO.GetAdoRecordset(SQLQuery).GetRows, 0)
+        Databases = ArrayLib.GetRow(this.Exec.GetAdoRecordset(SQLQuery).GetRows, 0)
     End If
     
     Dim DbIndex As Long
@@ -172,10 +173,10 @@ Attribute JournalModeSet.VB_Description = "Sets journal mode for the given datab
     For DbIndex = LBound(Databases) To UBound(Databases)
         If JournalModeUC = "WAL" Then
             SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].synchronous = 'NORMAL'"
-            this.ExecADO.ExecuteNonQuery SQLQuery
+            this.Exec.ExecuteNonQuery SQLQuery
         End If
         SQLQuery = "PRAGMA [" & Databases(DbIndex) & "].journal_mode = '" & JournalMode & "'"
-        this.ExecADO.ExecuteNonQuery SQLQuery
+        this.Exec.ExecuteNonQuery SQLQuery
     Next DbIndex
 End Sub
 
@@ -237,7 +238,7 @@ Attribute CloneDb.VB_Description = "Clones SQLite database."
         
     '''' 3) Attach source db
     dbm.Util.AttachDatabase SrcDbName, "source"
-    SQLQuery = this.MetaSQL.Databases
+    SQLQuery = this.Meta.Databases
     Set AdoRecordset = dbm.Exec.GetAdoRecordset(SQLQuery)
     CheckResult = (AdoRecordset.RecordCount = 2)
     Set AdoRecordset = Nothing

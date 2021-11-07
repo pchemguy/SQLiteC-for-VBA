@@ -218,6 +218,51 @@ Attribute SelectAllAsText.VB_Description = "Generates a SELECT FROM clause, havi
 End Function
 
 
+'''' Examples:
+''''   >>> ?SQLlib.QuoteSQLString("Abc")
+''''   "'Abc'"
+''''
+''''   >>> ?SQLlib.QuoteSQLString("A'b'c")
+''''   "'A''b''c'"
+''''
+'@Description "Quotes SQL string, doubling single quotes."
+Public Function QuoteSQLString(ByVal SQLString As String) As String
+    QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
+End Function
+
+
+'@Description "SQL for retrieving a single column with SQLite collation names."
+Public Function Collations() As String
+    Collations = "SELECT name FROM pragma_collation_list AS collations ORDER BY name;"
+End Function
+
+
+'@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
+Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
+    CountSelectNoCTE = _
+        "WITH" & vbNewLine & "  subset AS (" & vbNewLine & _
+        "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+        vbNewLine & ")" & vbNewLine & _
+        "SELECT count(*) AS counter FROM subset;"
+End Function
+
+
+'@Description "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
+Public Function CountSelect(ByVal SQLQuery As String) As String
+    CountSelect = "SELECT count(*) AS counter FROM (" & vbNewLine & _
+                  "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+                  vbNewLine & ");"
+End Function
+
+
+'@Description "Formats a SELECT query as a subquery suitable for the FROM clause."
+Public Function SubQuery(ByVal SQLQuery As String) As String
+    SubQuery = " (" & vbNewLine & _
+               "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
+               vbNewLine & "    )" & vbNewLine
+End Function
+
+
 '''' Generates parametrized UPDATE statement for a single record
 ''''
 '''' Generates a fully parametrized UPDATE query for a single record using
@@ -255,6 +300,19 @@ Attribute UpdateSingleRecord.VB_Description = "Generates parametrized UPDATE sta
     UpdateSingleRecord = "UPDATE [" & this.TableName & "] " & _
                          "SET (" & SetFieldList & ") = (" & ValuePlaceholderList & ") " & _
                          "WHERE [" & PKName & "] = ?"
+End Function
+
+
+Public Function SQLiteVersionScalar() As String
+    SQLiteVersionScalar = "SELECT sqlite_version()"
+End Function
+
+
+'@Description "SQL for retrieving a single column containing attached databases paths."
+Public Function AttachedDbPaths() As String
+    AttachedDbPaths = Join(Array( _
+        "SELECT file FROM pragma_database_list;" _
+    ), vbNewLine)
 End Function
 
 

@@ -42,8 +42,8 @@ Private Const SQLITE_NOTADB_MSG As String = "file is not a database (26)"
 Private Const SQLITE_NOTADB_CODE As Long = 26
 
 Private Type TLiteACID
-    ExecADO As ILiteADO
-    MetaSQL As LiteMetaSQL
+    Exec As ILiteADO
+    Meta As LiteMetaSQLSchema
     ErrNumber As Long
     ErrSource As String
     ErrDescription As String
@@ -67,8 +67,8 @@ Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.NullReference ExecADO
     Guard.EmptyString ExecADO.MainDB
     
-    Set this.ExecADO = ExecADO
-    Set this.MetaSQL = LiteMetaSQL.Create()
+    Set this.Exec = ExecADO
+    Set this.Meta = LiteMetaSQLSchema.Create()
 End Sub
 
 
@@ -125,9 +125,9 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     Const ThisProcName As String = "IntegrityADODB"
     
     Dim ExecADO As ILiteADO
-    Set ExecADO = this.ExecADO
-    Dim MetaSQL As LiteMetaSQL
-    Set MetaSQL = this.MetaSQL
+    Set ExecADO = this.Exec
+    Dim MetaSQL As LiteMetaSQLSchema
+    Set MetaSQL = this.Meta
 
     '''' 1) Verify that existing file is a database and only one db is atttached
     '''' Expected error: OLE_DB_ODBC_Err due to damaged database file.
@@ -183,7 +183,7 @@ End Function
 
 
 Public Property Get JournalMode() As String
-    JournalMode = UCase$(CStr(this.ExecADO.GetScalar("PRAGMA journal_mode")))
+    JournalMode = UCase$(CStr(this.Exec.GetScalar("PRAGMA journal_mode")))
 End Property
 
 
@@ -194,7 +194,7 @@ Public Property Let JournalMode(ByVal Mode As String)
     Const ThisProcName As String = "JournalModeLet"
     
     Dim dbe As ILiteADO
-    Set dbe = this.ExecADO
+    Set dbe = this.Exec
     
     Dim SQLQuery As String
     SQLQuery = "PRAGMA journal_mode(" & Mode & ")"
@@ -282,7 +282,7 @@ Public Function LockedInTransaction() As Boolean
     Dim FilePathName As String
     Select Case JMode
         Case "WAL"
-            FilePathName = this.ExecADO.MainDB & "-shm"
+            FilePathName = this.Exec.MainDB & "-shm"
             If fso.FileExists(FilePathName) And fso.GetFile(FilePathName).Size > 0 Then
                 Dim TextFile As Scripting.TextStream
                 On Error Resume Next
@@ -293,7 +293,7 @@ Public Function LockedInTransaction() As Boolean
                 On Error GoTo 0
             End If
         Case "DELETE", "TRUNCATE"
-            FilePathName = this.ExecADO.MainDB & "-journal"
+            FilePathName = this.Exec.MainDB & "-journal"
             If fso.FileExists(FilePathName) Then
                 If fso.GetFile(FilePathName).Size > 0 Then LockedInTransaction = True
             End If

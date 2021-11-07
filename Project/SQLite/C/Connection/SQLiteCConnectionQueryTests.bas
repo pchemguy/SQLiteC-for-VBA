@@ -240,7 +240,7 @@ Arrange:
     
     Dim ResultCode As SQLiteResultCodes
     Assert.AreEqual SQLITE_OK, dbcTmp.OpenDb, "Unexpected OpenDb error"
-    ResultCode = dbcTmp.ExecuteNonQueryPlain(FixSQLMisc.CreateBasicTable)
+    ResultCode = dbcTmp.ExecuteNonQueryPlain(FixSQLBase.CreateBasicTable)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
     Assert.AreEqual SQLITE_OK, dbcTmp.CloseDb, "Unexpected CloseDb error"
     Dim NewDbPathName As String

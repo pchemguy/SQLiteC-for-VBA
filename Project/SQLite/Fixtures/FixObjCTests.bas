@@ -53,7 +53,7 @@ Arrange:
     Dim Expected As Variant
     Expected = dbs.GetScalar(SQLQuery)
     Assert.IsTrue IsNumeric(Expected), "Unexpected query result."
-    SQLQuery = LiteMetaSQL("main").Tables
+    SQLQuery = LiteMetaSQLSchema("main").Tables
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Act:
@@ -91,7 +91,7 @@ Arrange:
     Expected = dbs.GetScalar(SQLQuery)
     Assert.IsTrue IsNumeric(Expected), "Unexpected query result."
     
-    SQLQuery = LiteMetaSQL("main").Tables
+    SQLQuery = LiteMetaSQLSchema("main").Tables
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
     Assert.IsTrue IsArray(RowSet2D), "Unexpected query result."
@@ -122,7 +122,7 @@ Arrange:
     Set dbs = FixObjC.GetDBSMemITRBWithData
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
     Assert.AreEqual 5, dbs.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -144,7 +144,7 @@ Arrange:
     Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
     Assert.AreEqual Expected, dbs.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -164,7 +164,7 @@ Arrange:
     Set dbs = FixObjC.GetDBSTmpITRBWithData
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
     Assert.AreEqual 5, dbs.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -186,7 +186,7 @@ Arrange:
     Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
     Assert.AreEqual Expected, dbs.GetScalar(SQLQuery), "Row count mismatch."
 

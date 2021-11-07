@@ -127,11 +127,11 @@ Act:
     TableDDLExpected = FixSQLITRB.Create
     Dim SQLQuery As String
     SQLQuery = "SELECT [sql] || ';' FROM" & _
-               FixSQLMisc.SubQuery(LiteMetaSQL("main").Tables) & _
+               SQLlib.SubQuery(LiteMetaSQLSchema("main").Tables) & _
                "WHERE tbl_name = 'itrb'"
     Dim TableDDLActual As String
     TableDDLActual = dbm.GetScalar(SQLQuery)
-    SQLQuery = FixSQLMisc.CountSelect(LiteMetaSQL("main").Tables)
+    SQLQuery = SQLlib.CountSelect(LiteMetaSQLSchema("main").Tables)
 Assert:
     Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Table count mismatch."
     Assert.AreEqual TableDDLExpected, TableDDLActual, "Table CREATE mismatch."
@@ -152,7 +152,7 @@ Arrange:
     Set dbm = FixObjAdo.GetDBMMemITRBWithData
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
     Assert.AreEqual 5, dbm.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -174,7 +174,7 @@ Arrange:
     Expected = dbm.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
     Assert.AreEqual Expected, dbm.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -214,7 +214,7 @@ Arrange:
     Set dbm = FixObjAdo.GetDBMTmpITRBWithData
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLITRB.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
     Assert.AreEqual 5, dbm.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -236,7 +236,7 @@ Arrange:
     Expected = dbm.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.CountSelect(FixSQLFunc.SelectNoRowid)
+    SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
     Assert.AreEqual Expected, dbm.GetScalar(SQLQuery), "Row count mismatch."
 
@@ -245,3 +245,4 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+

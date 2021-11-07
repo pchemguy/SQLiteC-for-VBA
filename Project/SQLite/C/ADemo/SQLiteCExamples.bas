@@ -993,7 +993,7 @@ Private Sub AttachDetach()
         Debug.Print "Unexpected OpenDb error"
         Exit Sub
     End If
-    If dbcTemp.ExecuteNonQueryPlain(FixSQLMisc.CreateBasicTable) <> SQLITE_OK Then
+    If dbcTemp.ExecuteNonQueryPlain(FixSQLBase.CreateBasicTable) <> SQLITE_OK Then
         Debug.Print "Unexpected ExecuteNonQueryPlain error"
         Exit Sub
     End If

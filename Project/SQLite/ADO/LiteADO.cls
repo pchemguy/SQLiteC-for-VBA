@@ -17,6 +17,10 @@ Option Explicit
 
 Implements ILiteADO
 
+Private Const SELECT_SQLITE_VERSION As String = "SELECT sqlite_version() AS version"
+Private Const SELECT_MAINDB_PATH As String = _
+    "SELECT file FROM pragma_database_list WHERE name='main'"
+
 Private Type TLiteADO
     MainDB As String '''' Absolute file pathname to the main database.
     ConnectionString As String
@@ -56,7 +60,7 @@ Friend Sub Init(ByVal Database As String, _
     Set this.AdoCommand = New ADODB.Command
     With this.AdoCommand
         .CommandType = adCmdText
-        .CommandText = LiteMetaSQL.Create.Engine.Version
+        .CommandText = SELECT_SQLITE_VERSION
         .Prepared = True
         .ActiveConnection = ConnectionString(Database, AllowNonExistent)
         .ActiveConnection.CursorLocation = adUseClient
@@ -87,8 +91,8 @@ Attribute InitFromConnection.VB_Description = "Generate ILiteADO instance from a
         .Prepared = True
         Set .ActiveConnection = db
     End With
-    this.MainDB = GetScalar("SELECT file FROM pragma_database_list WHERE name='main'")
-    this.AdoCommand.CommandText = LiteMetaSQL.Create.Engine.Version
+    this.MainDB = GetScalar(SELECT_MAINDB_PATH)
+    this.AdoCommand.CommandText = SELECT_SQLITE_VERSION
 End Sub
 
 

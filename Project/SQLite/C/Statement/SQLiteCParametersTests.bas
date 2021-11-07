@@ -60,7 +60,7 @@ Act:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.SelectLiteralAtParam
+    SQLQuery = FixSQLBase.SelectLiteralAtParam
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbs.DbParameters.BindDictOrArray(Array(FixUtils.ByteArray(TestStr)))
@@ -96,7 +96,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.SelectLiteralAtParam
+    SQLQuery = FixSQLBase.SelectLiteralAtParam
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."

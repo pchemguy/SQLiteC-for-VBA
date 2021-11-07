@@ -92,12 +92,14 @@ End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for a temp database."
 Public Function GetDBMTmpITRBWithData() As ILiteADO
+Attribute GetDBMTmpITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
     Set GetDBMTmpITRBWithData = GetDBM(":temp:")
     GetDBMTmpITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for a temp database."
 Public Function GetDBMTmpFuncWithData() As ILiteADO
+Attribute GetDBMTmpFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
     Set GetDBMTmpFuncWithData = GetDBM(":temp:")
     GetDBMTmpFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
 End Function

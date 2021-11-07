@@ -18,28 +18,28 @@ Attribute VB_Description = "Retrieves metadata from an SQLite database"
 Option Explicit
 
 Private Type TLiteMetaADO
-    ADOTool As ILiteADO
-    MetaSQL As LiteMetaSQL
+    Exec As ILiteADO
+    Meta As LiteMetaSQLSchema
 End Type
 Private this As TLiteMetaADO
 
 
 '@DefaultMember
-Public Function Create(ByVal ADOTool As ILiteADO) As LiteMetaADO
+Public Function Create(ByVal ExecADO As ILiteADO) As LiteMetaADO
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteMetaADO
     Set Instance = New LiteMetaADO
-    Instance.Init ADOTool
+    Instance.Init ExecADO
     Set Create = Instance
 End Function
 
 
-Friend Sub Init(ByVal ADOTool As ILiteADO)
-    Guard.NullReference ADOTool
-    Guard.EmptyString ADOTool.MainDB
+Friend Sub Init(ByVal ExecADO As ILiteADO)
+    Guard.NullReference ExecADO
+    Guard.EmptyString ExecADO.MainDB
     
-    Set this.ADOTool = ADOTool
-    Set this.MetaSQL = LiteMetaSQL.Create()
+    Set this.Exec = ExecADO
+    Set this.Meta = LiteMetaSQLSchema.Create()
 End Sub
 
 
@@ -53,7 +53,7 @@ End Sub
 Public Function GetDbSchemaSQL(Optional ByVal SchemaAlias As String = "main") As String
 Attribute GetDbSchemaSQL.VB_Description = "Retrieves full SQLite database schema"
     Dim DbSchema As Variant
-    DbSchema = this.ADOTool.GetAdoRecordset(this.MetaSQL.GetDbSchema(SchemaAlias)).GetRows
+    DbSchema = this.Exec.GetAdoRecordset(this.Meta.GetDbSchema(SchemaAlias)).GetRows
     DbSchema = ArrayLib.GetRow(DbSchema, 0)
     GetDbSchemaSQL = Join(DbSchema, ";" & vbNewLine) & ";"
 End Function
@@ -69,7 +69,7 @@ End Function
 Public Function GetDbSchemaNoTriggersSQL(Optional ByVal SchemaAlias As String = "main") As String
 Attribute GetDbSchemaNoTriggersSQL.VB_Description = "Retrieves SQLite database schema, skipping triggers"
     Dim DbSchema As Variant
-    DbSchema = this.ADOTool.GetAdoRecordset(this.MetaSQL.DbSchemaNoTriggers(SchemaAlias)).GetRows
+    DbSchema = this.Exec.GetAdoRecordset(this.Meta.DbSchemaNoTriggers(SchemaAlias)).GetRows
     DbSchema = ArrayLib.GetRow(DbSchema, 0)
     GetDbSchemaNoTriggersSQL = Join(DbSchema, ";" & vbNewLine) & ";"
 End Function
@@ -85,7 +85,7 @@ End Function
 Public Function GetTriggersSQL(Optional ByVal SchemaAlias As String = "main") As String
 Attribute GetTriggersSQL.VB_Description = "Retrieves SQLite database trigger schema"
     Dim DbSchema As Variant
-    DbSchema = this.ADOTool.GetAdoRecordset(this.MetaSQL.Triggers(SchemaAlias)).GetRows
+    DbSchema = this.Exec.GetAdoRecordset(this.Meta.Triggers(SchemaAlias)).GetRows
     DbSchema = ArrayLib.GetRow(DbSchema, 1)
     GetTriggersSQL = Join(DbSchema, ";" & vbNewLine) & ";"
 End Function
@@ -105,7 +105,7 @@ End Function
 Public Property Get TableSchema() As Scripting.Dictionary
 Attribute TableSchema.VB_Description = "Retrieves table schema"
     Dim TablesInfo As Variant
-    TablesInfo = this.ADOTool.GetAdoRecordset(this.MetaSQL.Tables).GetRows
+    TablesInfo = this.Exec.GetAdoRecordset(this.Meta.Tables).GetRows
 
     Dim SchemaDic As Scripting.Dictionary
     Set SchemaDic = New Scripting.Dictionary
@@ -127,8 +127,8 @@ End Property
 Public Function GetTableList(Optional ByVal SchemaAlias As String = "main") As Variant
 Attribute GetTableList.VB_Description = "Retrieves table names"
     Dim SQLQuery As String
-    SQLQuery = this.MetaSQL.Tables(SchemaAlias)
-    GetTableList = ArrayLib.GetRow(this.ADOTool.GetAdoRecordset(SQLQuery).GetRows, 0)
+    SQLQuery = this.Meta.Tables(SchemaAlias)
+    GetTableList = ArrayLib.GetRow(this.Exec.GetAdoRecordset(SQLQuery).GetRows, 0)
 End Function
 
 
@@ -147,9 +147,9 @@ End Function
 Public Function GetTableColumnsEx(ByVal TableName As String) As ADODB.Recordset
 Attribute GetTableColumnsEx.VB_Description = "Retrieves full fields metadata from an SQLite database table."
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = this.ADOTool.GetAdoRecordset(this.MetaSQL.TableColumnsEx(TableName))
+    Set AdoRecordset = this.Exec.GetAdoRecordset(this.Meta.TableColumnsEx(TableName))
     Dim TableSQL As String
-    TableSQL = this.ADOTool.GetAdoRecordset(this.MetaSQL.TableSQL(TableName)).Fields("sql")
+    TableSQL = this.Exec.GetAdoRecordset(this.Meta.TableSQL(TableName)).Fields("sql")
     Debug.Print TableSQL
     Dim CreateTableLines As Variant
     CreateTableLines = Split(TableSQL, vbLf)
@@ -206,7 +206,7 @@ End Function
 Public Property Get IndexSchema() As Scripting.Dictionary
 Attribute IndexSchema.VB_Description = "Retrieves index schema"
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = this.ADOTool.GetAdoRecordset(this.MetaSQL.Indices)
+    Set AdoRecordset = this.Exec.GetAdoRecordset(this.Meta.Indices)
     Dim IndicesInfo As Variant
     IndicesInfo = AdoRecordset.GetRows
 

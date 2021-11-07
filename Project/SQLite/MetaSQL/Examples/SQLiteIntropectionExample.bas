@@ -37,7 +37,7 @@ Attribute Database.VB_Description = "Collects SQLite database metadata"
     Set dbmADO = LiteDB(SourceDb)
     Dim dbu As LiteUtils
     Set dbu = dbmADO.Util
-    With LiteMetaSQL.Create()
+    With LiteMetaSQLSchema.Create()
         dbu.DebugPrintRecordset .Tables, Tables.Range("A1")
         dbu.DebugPrintRecordset .ForeingKeys, ForeignKeys.Range("A1")
         dbu.DebugPrintRecordset .Indices(True), Indices.Range("A1")

@@ -70,7 +70,7 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersionScalar
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
@@ -95,7 +95,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersionScalar
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -224,7 +224,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.Collations
+    SQLQuery = SQLlib.Collations
     
         ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -266,7 +266,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = FixSQLMisc.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersionScalar
     
     Result = dbs.GetScalar(SQLQuery)
     Assert.AreEqual dbm.Version(False), Result, "GetScalar mismatch."
@@ -288,7 +288,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQueryDummy As String
-    SQLQueryDummy = FixSQLMisc.SQLiteVersionScalar
+    SQLQueryDummy = FixSQLBase.SelectLiteralAtParam
     Dim SQLQuery As String
     SQLQuery = vbNullString
     Dim AffectedRows As Long
@@ -319,7 +319,7 @@ Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQueryDummy As String
-    SQLQueryDummy = FixSQLMisc.SQLiteVersionScalar
+    SQLQueryDummy = FixSQLBase.SelectLiteralAtParam
     Dim SQLQuery As String
     SQLQuery = vbNullString
     Dim AffectedRows As Long
@@ -479,7 +479,7 @@ Arrange:
     Dim SQLQuery As String
     SQLQuery = FixSQLFunc.SelectMinMaxSubstrTrimPlain
     Dim SQLQueryCount As String
-    SQLQueryCount = FixSQLMisc.CountSelect(SQLQuery)
+    SQLQueryCount = SQLlib.CountSelect(SQLQuery)
     Dim RecordCount As Variant
     RecordCount = dbs.GetScalar(SQLQueryCount)
 Act:
