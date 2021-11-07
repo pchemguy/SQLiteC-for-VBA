@@ -7,7 +7,7 @@ permalink: /project-overview
 
 ### Major library components
 
-I started this project as the [SQLiteDB VBA][] class, wrapping the ADODB library to facilitate introspection of the SQLite engine and databases. Later, I refactored the SQLiteDB class and several supporting class modules into the SQLiteADO subpackage shown on the left in [Fig. 1](#LibraryStructure). SQLiteADO incorporates a set of class modules with a shared prefix *Lite-*. The other core subpackage shown on the right is SQLiteC (with a shared *SQLiteC-* prefix), and it calls SQLite C-API directly.
+I started this project as the [SQLiteDB VBA][] class, wrapping the ADODB library to facilitate introspection of the SQLite engine and databases. Later, I refactored the SQLiteDB class and several supporting class modules into the SQLiteADO subpackage shown on the left in [Fig. 1](#LibraryStructure). SQLiteADO incorporates a set of class modules with a shared prefix *Lite-*. Shown on the right, the other core subpackage SQLiteC uses SQLite C-API directly (and the *SQLiteC-* prefix).
 
 <a name="LibraryStructure"></a>  
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/Major%20Componenets.svg" alt="Library structure" width="80%" /></div>
