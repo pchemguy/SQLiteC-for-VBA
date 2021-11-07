@@ -5,3 +5,5 @@ desktop.ini
 *.sqlite-wal
 *.journal
 *.tmp
+Tmp
+Temp

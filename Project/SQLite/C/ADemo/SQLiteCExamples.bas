@@ -3,7 +3,7 @@ Attribute VB_Name = "SQLiteCExamples"
 '@IgnoreModule
 Option Explicit
 
-Private Const LITE_LIB As String = "SQLiteCDBVBA"
+Private Const LITE_LIB As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
 
