@@ -38,6 +38,10 @@ The main project file hosting this VBA project is the *SQLiteCAdoReflectVBAdev.x
 
 Each package should host its files in a subdirectory under *Library*. This way, packages with all their supporting files can be added to other projects easily. For example, the *DllManager* subdirectory contains custom-build SQLite binaries (both x32 and x64). Several DLL Manager tests use these binaries as test fixtures. Similarly, *SQLiteCAdo* holds a demo database and various files used by tests, demos, and examples.
 
+### Diagrams
+
+I prepare diagrams starting from the [yWorks yEd][] graph editor. I save originals in the native GraphML format and export them in the EPS format. Then I open EPS files in Adobe Illustrator CS6 and save them as SVGs (I also make jpg or png files at this point if necessary).
+
 
 <!-- References -->
 
@@ -45,3 +49,4 @@ Each package should host its files in a subdirectory under *Library*. This way, 
 [RDVBA Project Utils]: https://pchemguy.github.io/RDVBA-Project-Utils/
 [SQLiteDB VBA]: https://pchemguy.github.io/SQLiteDB-VBA-Library/
 [CPearson Array]: http://www.cpearson.com/Excel/VBAArrays.htm
+[yWorks yEd]: https://www.yworks.com/products/yed
