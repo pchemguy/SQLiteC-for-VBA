@@ -312,7 +312,7 @@ Act:
 Assert:
     Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
     Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 
@@ -354,7 +354,7 @@ Act:
 Assert:
     Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
     Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 

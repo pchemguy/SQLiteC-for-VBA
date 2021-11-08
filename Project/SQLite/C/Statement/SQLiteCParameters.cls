@@ -61,22 +61,23 @@ Attribute Create.VB_UserMemId = 0
     Set Create = Instance
 End Function
 
-
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     Set this.DbStmt = DbStmt
 End Sub
 
-
 Private Sub Class_Terminate()
-    BindClear
+    CleanUp
 End Sub
 
+Friend Sub CleanUp()
+    BindClear
+    Set this.DbStmt = Nothing
+End Sub
 
 Friend Property Get DbStatement() As SQLiteCStatement
     Set DbStatement = this.DbStmt
 End Property
-
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_count.html
 ''''
@@ -85,7 +86,6 @@ Public Property Get ParameterCount() As Long
 Attribute ParameterCount.VB_Description = "Retrieves parameter count."
     ParameterCount = sqlite3_bind_parameter_count(this.DbStmt.StmtHandle)
 End Property
-
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_index.html
 ''''
@@ -100,7 +100,6 @@ Attribute IndexFromName.VB_Description = "Retrieves named parameter index."
                                                  VarPtr(ParamNameUTF8(0)))
 End Function
 
-
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_name.html
 ''''
 '@Description "Retrieves named parameter name."
@@ -111,7 +110,6 @@ Attribute NameFromIndex.VB_Description = "Retrieves named parameter name."
     NameFromIndex = UTFlib.StrFromUTF8Ptr(sqlite3_bind_parameter_name( _
         this.DbStmt.StmtHandle, ParamIndex))
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_blob.html
 ''''
@@ -178,7 +176,6 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
     BindOne = ResultCode
 End Function
 
-
 '@Description "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
 Public Function BindArray(ByVal ValueArr As Variant) As SQLiteResultCodes
 Attribute BindArray.VB_Description = "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
@@ -207,7 +204,6 @@ Attribute BindArray.VB_Description = "Binds a set of parameter values provided a
     BindArray = ResultCode
 End Function
 
-
 '@Description "Binds a set of parameter values provided as Name->Value map. Only parameters with matching names are bound."
 Public Function BindDict(ByVal ValueDict As Scripting.Dictionary) As SQLiteResultCodes
 Attribute BindDict.VB_Description = "Binds a set of parameter values provided as Name->Value map. Only parameters with matching names are bound."
@@ -228,7 +224,6 @@ Attribute BindDict.VB_Description = "Binds a set of parameter values provided as
     BindDict = ResultCode
 End Function
 
-
 '''' TODO: parameter type checking.
 '''' Possible options:
 ''''   - type hint in named params, e.g., $I__Age, $T__first_name
@@ -242,7 +237,6 @@ Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCod
         BindDictOrArray = BindArray(ParamValues)
     End If
 End Function
-
 
 Public Sub BindClear()
     If this.DbStmt.StmtHandle = 0 Then Exit Sub

@@ -61,7 +61,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_WRITE, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-Cleanup:
+CleanUp:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -91,7 +91,7 @@ Act:
 Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
     Assert.AreEqual 5, AffectedRecords, "AffectedRecords mismatch"
-Cleanup:
+CleanUp:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -133,7 +133,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_NONE, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-Cleanup:
+CleanUp:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -175,7 +175,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_READ, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-Cleanup:
+CleanUp:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -279,7 +279,7 @@ Assert:
     ResultCode = dbc.Detach(fso.GetBaseName(dbcTmp.DbPathName))
     Assert.AreEqual SQLITE_OK, ResultCode, "Failed to detach existing db"
     Assert.AreEqual 1, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (exist)."
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -301,7 +301,7 @@ Arrange:
 Act:
 Assert:
     Assert.AreEqual SQLITE_OK, dbc.Vacuum(), "Vacuum in-place error"
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -344,7 +344,7 @@ Assert:
     Dim Actual As Long
     Actual = dbsDst.GetScalar(SQLQuery)
     Assert.AreEqual Expected, Actual, "Row count mismatch."
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 

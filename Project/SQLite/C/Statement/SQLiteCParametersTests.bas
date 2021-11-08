@@ -375,7 +375,7 @@ Assert:
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamAnonValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
     Assert.AreEqual FixSQLFunc.SelectFilteredPlain, dbs.SQLQueryExpanded, "Expanded query mismatch."
-Cleanup:
+CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbc.CloseDb

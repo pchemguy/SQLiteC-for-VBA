@@ -107,6 +107,16 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 
+Private Sub Class_Terminate()
+    CleanUp
+End Sub
+
+
+Public Sub CleanUp()
+    Set this.DbStmt = Nothing
+End Sub
+
+
 Public Function SQLiteTypeName(ByVal DataTypeCode As SQLiteDataType) As String
     SQLiteTypeName = Array("NONE", "INTEGER", "FLOAT", _
                            "TEXT", "BLOB", "NULL")(DataTypeCode)

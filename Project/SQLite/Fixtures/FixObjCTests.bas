@@ -63,7 +63,7 @@ Act:
 Assert:
     Assert.IsTrue IsNumeric(Actual), "Unexpected query result."
     Assert.AreEqual Expected, Actual, vbNullString
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -103,7 +103,7 @@ Act:
 Assert:
     Assert.IsTrue IsNumeric(Actual), "Unexpected query result."
     Assert.AreEqual Expected, Actual, vbNullString
-Cleanup:
+CleanUp:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:

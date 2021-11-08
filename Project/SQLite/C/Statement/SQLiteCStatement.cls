@@ -66,34 +66,40 @@ Attribute Create.VB_UserMemId = 0
     Set Create = Instance
 End Function
 
-
 Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Guard.NullReference DbConn
     Set this.DbConn = DbConn
     Set this.DbExec = SQLiteCExecSQL(Me)
 End Sub
 
-
 Private Sub Class_Terminate()
-    '@Ignore FunctionReturnValueDiscarded
-    If this.StmtHandle <> 0 Then Finalize
+    CleanUp
 End Sub
 
+Friend Sub CleanUp()
+    With this
+        '@Ignore FunctionReturnValueDiscarded
+        If .StmtHandle <> 0 Then Finalize
+        .DbPara.CleanUp
+        Set .DbPara = Nothing
+        .DbExec.CleanUp
+        Set .DbExec = Nothing
+        .DbConn.ErrorInfo.CleanUp
+        Set .DbConn = Nothing
+    End With
+End Sub
 
 Friend Property Get DbConnection() As SQLiteCConnection
     Set DbConnection = this.DbConn
 End Property
 
-
 Friend Property Get DbExecutor() As SQLiteCExecSQL
     Set DbExecutor = this.DbExec
 End Property
 
-
 Friend Property Get DbParameters() As SQLiteCParameters
     Set DbParameters = this.DbPara
 End Property
-
 
 #If VBA7 Then
 Public Property Get StmtHandle() As LongPtr
@@ -103,11 +109,9 @@ Public Property Get StmtHandle() As Long
     StmtHandle = this.StmtHandle
 End Property
 
-
 Public Property Get AffectedRowsCount() As Long
     AffectedRowsCount = this.AffectedRowsCount
 End Property
-
 
 Public Property Get Busy() As Boolean
     If this.StmtHandle = 0 Then
@@ -117,7 +121,6 @@ Public Property Get Busy() As Boolean
     End If
 End Property
 
-
 Public Property Get ReadOnly() As Boolean
     If this.StmtHandle = 0 Then
         ReadOnly = False
@@ -125,7 +128,6 @@ Public Property Get ReadOnly() As Boolean
         ReadOnly = sqlite3_stmt_readonly(this.StmtHandle)
     End If
 End Property
-
 
 '''' https://sqlite.org/pragma.html#pragma_application_id
 Public Property Get ApplicationId() As Long
@@ -136,7 +138,6 @@ Public Property Get ApplicationId() As Long
         ApplicationId = GetScalar("PRAGMA application_id")
     End If
 End Property
-
 
 '''' https://sqlite.org/pragma.html#pragma_application_id
 Public Property Let ApplicationId(ByVal Value As Long)
@@ -149,7 +150,6 @@ Public Property Let ApplicationId(ByVal Value As Long)
     End With
 End Property
 
-
 '''' https://sqlite.org/pragma.html#pragma_user_version
 Public Property Get UserVersion() As Long
     If this.StmtHandle <> 0 Or this.DbConn.DbHandle = 0 Then
@@ -159,7 +159,6 @@ Public Property Get UserVersion() As Long
         UserVersion = GetScalar("PRAGMA user_version")
     End If
 End Property
-
 
 '''' https://sqlite.org/pragma.html#pragma_user_version
 Public Property Let UserVersion(ByVal Value As Long)

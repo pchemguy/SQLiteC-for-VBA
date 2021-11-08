@@ -56,6 +56,14 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Set this.DbConn = DbConn
 End Sub
 
+Private Sub Class_Terminate()
+    CleanUp
+End Sub
+
+Friend Sub CleanUp()
+    Set this.DbConn = Nothing
+End Sub
+
 Public Property Get ErrorCode() As SQLiteResultCodes
     ErrorCode = this.ErrorCode
 End Property

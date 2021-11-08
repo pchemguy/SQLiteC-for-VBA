@@ -130,7 +130,6 @@ Attribute Create.VB_UserMemId = 0
     Set Create = Instance
 End Function
 
-
 Friend Sub Init(ByVal DbPathName As String, _
        Optional ByVal AllowNonExistent As Variant = Empty)
     Dim FilePathName As String
@@ -145,13 +144,24 @@ Friend Sub Init(ByVal DbPathName As String, _
     this.Statements.CompareMode = TextCompare
 End Sub
 
-
 Private Sub Class_Terminate()
+    CleanUp
+End Sub
+
+Friend Sub CleanUp()
+    Dim DbStmt As SQLiteCStatement
+    Dim StmtName As Variant
+    For Each StmtName In this.Statements.Keys
+        Set DbStmt = this.Statements(StmtName)
+        DbStmt.CleanUp
+        this.Statements.Remove StmtName
+    Next StmtName
     Dim ResultCode As SQLiteResultCodes
     ResultCode = CloseDb
     Debug.Assert ResultCode = SQLITE_OK
+    this.ErrorInfo.CleanUp
+    Set this.ErrorInfo = Nothing
 End Sub
-
 
 #If VBA7 Then
 Public Property Get DbHandle() As LongPtr
@@ -161,11 +171,28 @@ Public Property Get DbHandle() As Long
     DbHandle = this.DbHandle
 End Property
 
-
 Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
 
+Public Property Get ErrorInfo() As SQLiteCErr
+    Set ErrorInfo = this.ErrorInfo
+End Property
+
+Public Function ErrInfoRetrieve() As SQLiteResultCodes
+    With this.ErrorInfo
+        .GetErr
+        .PrintErr
+        ErrInfoRetrieve = .ErrorCodeEx
+    End With
+End Function
+
+'''' Reference: https://www.sqlite.org/c3ref/libversion.html
+''''
+'@Description "Returns SQLite version. No database is necessary."
+Public Function VersionNumber() As Long
+    VersionNumber = sqlite3_libversion_number()
+End Function
 
 '@Description "Retrieves database path for SchemaAlias."
 Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
@@ -177,7 +204,6 @@ Attribute AttachedDbPathName.VB_Description = "Retrieves database path for Schem
     AttachedDbPathName = UTFlib.StrFromUTF8Ptr( _
         sqlite3_db_filename(this.DbHandle, VarPtr(SchemaUTF8(0))))
 End Function
-
 
 '@Description "Attaches database to the current connection."
 Public Function Attach(ByVal DbPathName As String, _
@@ -195,7 +221,6 @@ Attribute Attach.VB_Description = "Attaches database to the current connection."
     Attach = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
-
 '@Description "Detaches a database from the current connection."
 Public Function Detach(ByVal SchemaAlias As String) As SQLiteResultCodes
 Attribute Detach.VB_Description = "Detaches a database from the current connection."
@@ -204,7 +229,6 @@ Attribute Detach.VB_Description = "Detaches a database from the current connecti
     SQLQuery = SQLlib.Detach(SchemaAlias)
     Detach = ExecuteNonQueryPlain(SQLQuery)
 End Function
-
 
 '@Description "Vacuums a database in-place or into a new file."
 Public Function Vacuum( _
@@ -232,12 +256,6 @@ Attribute Vacuum.VB_Description = "Vacuums a database in-place or into a new fil
     Vacuum = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
-
-Public Property Get ErrorInfo() As SQLiteCErr
-    Set ErrorInfo = this.ErrorInfo
-End Property
-
-
 '''' vbNullString is an acceptable StmtName.
 '''' Raises an error if StmtName has already been used.
 '@Description "Creates a new SQLiteCStatement instance."
@@ -254,7 +272,6 @@ Attribute CreateStatement.VB_Description = "Creates a new SQLiteCStatement insta
     Set CreateStatement = DbStmt
 End Function
 
-
 '''' vbNullString is an acceptable StmtName (can be used as default).
 '@Description "Returns an existing SQLiteCStatement instance or Nothing."
 Public Function StmtDb(Optional ByVal StmtName As String = vbNullString _
@@ -266,7 +283,6 @@ Attribute StmtDb.VB_Description = "Returns an existing SQLiteCStatement instance
         Set StmtDb = Nothing
     End If
 End Function
-
 
 '@Description "Finalizes all statement objects associated with connection."
 Friend Function Finalize() As SQLiteResultCodes
@@ -286,16 +302,6 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
     ResultCode = SQLiteCStatement.PreparedStatementsGet(Me, True)
     Finalize = ResultCode
 End Function
-
-
-Public Function ErrInfoRetrieve() As SQLiteResultCodes
-    With this.ErrorInfo
-        .GetErr
-        .PrintErr
-        ErrInfoRetrieve = .ErrorCodeEx
-    End With
-End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/open.html
 ''''
@@ -319,11 +325,9 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
             Dim DbPathNamePtr As Long
             Dim vfsNamePtr As Long
         #End If
-        
         Dim DbPathNameUTF8B() As Byte
         DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
         DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
-        
         If Len(vfsName) = 0 Then
             vfsNamePtr = 0
         Else
@@ -331,14 +335,12 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
             vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
             vfsNamePtr = VarPtr(vfsNameUTF8B(0))
         End If
-        
         ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
     If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
     If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
     OpenDb = ResultCode
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/close.html
 ''''
@@ -348,7 +350,6 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
     Debug.Assert ResultCode = SQLITE_OK
-
     If this.DbHandle <> 0 Then
         ResultCode = sqlite3_close(this.DbHandle)
         If ResultCode = SQLITE_OK Then
@@ -361,7 +362,6 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
     CloseDb = ResultCode
 End Function
 
-
 '''' Reference: https://www.sqlite.org/c3ref/db_readonly.html
 ''''
 '@Description "Queries database access mode."
@@ -373,7 +373,6 @@ Attribute AccessMode.VB_Description = "Queries database access mode."
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/changes.html
 '''' Reference: https://www.sqlite.org/c3ref/total_changes.html
@@ -388,7 +387,6 @@ Attribute ChangesCount.VB_Description = "Queries the number of changes occured d
         ChangesCount = sqlite3_changes(this.DbHandle)
     End If
 End Function
-
 
 '@Description "Sets SQLite journal mode."
 Public Function JournalModeSet(ByVal JournalModeCode As SQLiteJournalMode, _
@@ -409,7 +407,6 @@ Attribute JournalModeSet.VB_Description = "Sets SQLite journal mode."
     JournalModeSet = ExecuteNonQueryPlain(SQLQuery)
 End Function
 
-
 '''' This interface does not support parametrized queries as opposed to the
 '''' similar interface on the Statemnt object. This is because this interface
 '''' uses a "shortcut" API not supporting parameterized quiries.
@@ -424,7 +421,6 @@ Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
             Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
-    
     FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
@@ -440,7 +436,6 @@ Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query
     ExecuteNonQueryPlain = ResultCode
 End Function
 
-
 '''' Reference: https://www.sqlite.org/c3ref/c_txn_none.html
 ''''
 '@Description "Queries transaction status for the current SQLite DBO."
@@ -451,7 +446,6 @@ Attribute TxnState.VB_Description = "Queries transaction status for the current 
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     TxnState = sqlite3_txn_state(this.DbHandle, VarPtr(SchemaUTF8(0)))
 End Function
-
 
 '''' Reference: https://www.sqlite.org/lang_transaction.html
 ''''
@@ -474,7 +468,6 @@ Attribute Begin.VB_Description = "Begins SQLite transaction."
     Begin = ExecuteNonQueryPlain("BEGIN" & TxMode)
 End Function
 
-
 '''' Reference: https://www.sqlite.org/lang_transaction.html
 ''''
 '@Description "Commits all SQLite DBO transactions."
@@ -482,7 +475,6 @@ Public Function Commit() As SQLiteResultCodes
 Attribute Commit.VB_Description = "Commits all SQLite DBO transactions."
     Commit = ExecuteNonQueryPlain("COMMIT")
 End Function
-
 
 '''' Reference: https://www.sqlite.org/lang_savepoint.html
 ''''
@@ -493,7 +485,6 @@ Attribute SavePoint.VB_Description = "Begins a named and nestable SQLite transac
     SavePoint = ExecuteNonQueryPlain("SAVEPOINT " & SavePointName)
 End Function
 
-
 '''' Reference: https://www.sqlite.org/lang_savepoint.html
 ''''
 '@Description "Removes rollback savepoints from the transaction stack up to the first point with matching name."
@@ -502,7 +493,6 @@ Attribute ReleasePoint.VB_Description = "Removes rollback savepoints from the tr
     Guard.EmptyString SavePointName
     ReleasePoint = ExecuteNonQueryPlain("RELEASE " & SavePointName)
 End Function
-
 
 '''' Reference: https://www.sqlite.org/lang_transaction.html
 '''' Reference: https://www.sqlite.org/lang_savepoint.html
@@ -516,13 +506,11 @@ Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction s
     Rollback = ExecuteNonQueryPlain("ROLLBACK" & SPClause)
 End Function
 
-
 Public Function DbIsLocked() As Variant
     If TxnState("main") <> SQLITE_TXN_NONE Then
         DbIsLocked = CVErr(ErrNo.AdoInTransactionErr)
         Exit Function
     End If
-    
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Begin(SQLITE_TXN_IMMEDIATE)
     If ResultCode = SQLITE_BUSY Then
@@ -536,13 +524,4 @@ Public Function DbIsLocked() As Variant
     Else
         DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
     End If
-End Function
-
-
-'''' Reference: https://www.sqlite.org/c3ref/libversion.html
-''''
-'@Description "Returns SQLite version. No database is necessary."
-Public Function VersionNumber() As Long
-Attribute VersionNumber.VB_Description = "Returns SQLite version. No database is necessary."
-    VersionNumber = sqlite3_libversion_number()
 End Function

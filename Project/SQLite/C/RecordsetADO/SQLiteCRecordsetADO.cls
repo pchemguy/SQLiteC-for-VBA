@@ -33,7 +33,6 @@ Attribute Create.VB_UserMemId = 0
     Set Create = Instance
 End Function
 
-
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     With this
@@ -46,11 +45,17 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     End With
 End Sub
 
+Private Sub Class_Terminate()
+    CleanUp
+End Sub
+
+Friend Sub CleanUp()
+    Set this.DbExec = Nothing
+End Sub
 
 Public Property Get AdoRecordset() As ADODB.Recordset
     Set AdoRecordset = this.FabRecordset
 End Property
-
 
 Friend Sub AddMeta()
     If Not this.DbExec.MetaLoaded Then
@@ -102,13 +107,11 @@ Friend Sub AddMeta()
     this.DbExec.TableMeta = TableMeta
 End Sub
 
-
 Public Sub SQLQuerySet(Optional ByVal SQLQuery As String = vbNullString, _
                        Optional ByVal SQLQueryExpanded As String = vbNullString)
     If Len(SQLQuery) > 0 Then this.SQLQuery = SQLQuery
     If Len(SQLQueryExpanded) > 0 Then this.SQLQueryExpanded = SQLQueryExpanded
 End Sub
-
 
 Public Sub SQLQueryParamsSet(ByVal SQLQueryParameters As Variant)
     Select Case VarType(SQLQueryParameters)

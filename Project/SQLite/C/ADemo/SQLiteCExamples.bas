@@ -68,14 +68,15 @@ Attribute Main.VB_Description = "Main entry point"
     PrepareStatementGetScalar
     FinalizeStatement
     CloseDb
-    Cleanup
+    CleanUp
 End Sub
 
 
-Private Sub Cleanup()
+Private Sub CleanUp()
     Set this.dbs = Nothing
     Set this.dbc = Nothing
     Set this.dbm = Nothing
+    Set this.dbr = Nothing
 End Sub
 
 

@@ -141,7 +141,7 @@ Act:
     Actual = dbm.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
-Cleanup:
+CleanUp:
     dbmCI.AdoConnection.Close
     Set dbm = Nothing
     Set dbmCI = Nothing
@@ -167,7 +167,7 @@ Act:
     Set dbmCI = dbm
     Dim Actual As String
     Actual = dbm.MainDB
-Cleanup:
+CleanUp:
     dbmCI.AdoConnection.Close
     Set dbm = Nothing
 Assert:
