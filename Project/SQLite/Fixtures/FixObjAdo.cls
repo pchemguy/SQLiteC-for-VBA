@@ -28,9 +28,25 @@ Private Sub Class_Initialize()
     this.LibDir = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX
 End Sub
 
+Public Property Get DefaultDbName() As String
+    DefaultDbName = LITE_LIB & ".db"
+End Property
+
 Public Property Get DefaultDbPathName() As String
     DefaultDbPathName = this.LibDir & LITE_LIB & ".db"
 End Property
+
+Public Property Get DefaultDbPathNameRel() As String
+    DefaultDbPathNameRel = LITE_RPREFIX & LITE_LIB & ".db"
+End Property
+
+Public Property Get RelPrefix() As String
+    RelPrefix = LITE_RPREFIX
+End Property
+
+Public Function FixPath(Optional ByVal RelPath As String = vbNullString) As String
+    FixPath = this.LibDir & "Fixtures" & PATH_SEP & RelPath
+End Function
 
 '@Description "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
 Public Function GetDBM(ByVal DbPathName As String) As ILiteADO

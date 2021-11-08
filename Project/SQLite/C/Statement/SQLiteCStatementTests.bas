@@ -70,7 +70,7 @@ Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     Set dbs = dbc.CreateStatement(vbNullString)
     
     Dim SQLQuery As String
-    SQLQuery = SQLlib.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersion
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
@@ -95,7 +95,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = SQLlib.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersion
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -224,7 +224,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = SQLlib.Collations
+    SQLQuery = SQLlib.SQLiteCollations
     
         ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
@@ -266,7 +266,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = SQLlib.SQLiteVersionScalar
+    SQLQuery = SQLlib.SQLiteVersion
     
     Result = dbs.GetScalar(SQLQuery)
     Assert.AreEqual dbm.Version(False), Result, "GetScalar mismatch."

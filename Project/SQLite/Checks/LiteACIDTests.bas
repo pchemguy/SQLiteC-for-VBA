@@ -12,10 +12,6 @@ Option Private Module
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
 
-Private Const LIB_NAME As String = "SQLiteCAdo"
-Private Const PATH_SEP As String = "\"
-Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
-
 
 'This method runs once per module.
 '@ModuleInitialize
@@ -52,7 +48,7 @@ Private Function zfxDefDBM( _
     If Len(FilePathName) > 0 Then
         Set zfxDefDBM = LiteACID(LiteADO(FilePathName))
     Else
-        Set zfxDefDBM = LiteACID(LiteADO(REL_PREFIX & LIB_NAME & ".db"))
+        Set zfxDefDBM = LiteACID(LiteADO(FixObjAdo.DefaultDbPathName))
     End If
 End Function
 
@@ -91,7 +87,7 @@ End Sub
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_ThrowsOnCorruptedDatabase()
     On Error Resume Next
-    zfxDefDBM(REL_PREFIX & "ICfailFKCfail.db").IntegrityADODB
+    zfxDefDBM(FixObjAdo.RelPrefix & "ICfailFKCfail.db").IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.IntegrityCheckErr
 End Sub
 
@@ -99,42 +95,41 @@ End Sub
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_ThrowsOnFailedFKCheck()
     On Error Resume Next
-    zfxDefDBM(REL_PREFIX & "ICokFKCfail.db").IntegrityADODB
+    zfxDefDBM(FixObjAdo.RelPrefix & "ICokFKCfail.db").IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.ConsistencyCheckErr
 End Sub
 
 
-'@EntryPoint
-Private Sub ztcTest()
-    Dim FilePathName As String
-    FilePathName = REL_PREFIX & LIB_NAME & ".db"
-        
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FilePathName)
-    Dim dbmCI As LiteADO
-    Set dbmCI = dbm
-    
-    '@Ignore VariableNotUsed
-    Dim PathCheck As LiteFSCheck
-    Set PathCheck = LiteFSCheck(FilePathName, False)
-        
-    Dim ACIDTool As LiteACID
-    Set ACIDTool = LiteACID(dbm)
-    
-    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
-    dbm.ExecuteNonQuery "PRAGMA busy_timeout=1000"
-    dbmCI.AdoCommand.CommandTimeout = 1
-    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
-    Do While True
-        Debug.Print ACIDTool.LockedReadOnly
-        '@Ignore StopKeyword
-        Stop
-    Loop
-        
-    Debug.Print ACIDTool.JournalModeToggle
-    Debug.Print ACIDTool.JournalModeToggle
-    Debug.Print ACIDTool.JournalModeToggle
-    dbmCI.AdoConnection.Close
-    Set dbm = Nothing
-End Sub
-
+''@EntryPoint
+'Private Sub ztcTest()
+'    Dim FilePathName As String
+'    FilePathName = REL_PREFIX & LIB_NAME & ".db"
+'
+'    Dim dbm As ILiteADO
+'    Set dbm = LiteADO(FilePathName)
+'    Dim dbmCI As LiteADO
+'    Set dbmCI = dbm
+'
+'    '@Ignore VariableNotUsed
+'    Dim PathCheck As LiteFSCheck
+'    Set PathCheck = LiteFSCheck(FilePathName, False)
+'
+'    Dim ACIDTool As LiteACID
+'    Set ACIDTool = LiteACID(dbm)
+'
+'    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
+'    dbm.ExecuteNonQuery "PRAGMA busy_timeout=1000"
+'    dbmCI.AdoCommand.CommandTimeout = 1
+'    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
+'    Do While True
+'        Debug.Print ACIDTool.LockedReadOnly
+'        '@Ignore StopKeyword
+'        Stop
+'    Loop
+'
+'    Debug.Print ACIDTool.JournalModeToggle
+'    Debug.Print ACIDTool.JournalModeToggle
+'    Debug.Print ACIDTool.JournalModeToggle
+'    dbmCI.AdoConnection.Close
+'    Set dbm = Nothing
+'End Sub

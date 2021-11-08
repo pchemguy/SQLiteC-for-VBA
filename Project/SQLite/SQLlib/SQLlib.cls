@@ -227,18 +227,14 @@ End Function
 ''''
 '@Description "Quotes SQL string, doubling single quotes."
 Public Function QuoteSQLString(ByVal SQLString As String) As String
+Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single quotes."
     QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
-End Function
-
-
-'@Description "SQL for retrieving a single column with SQLite collation names."
-Public Function Collations() As String
-    Collations = "SELECT name FROM pragma_collation_list AS collations ORDER BY name;"
 End Function
 
 
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
+Attribute CountSelectNoCTE.VB_Description = "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
     CountSelectNoCTE = _
         "WITH" & vbNewLine & "  subset AS (" & vbNewLine & _
         "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
@@ -249,6 +245,7 @@ End Function
 
 '@Description "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelect(ByVal SQLQuery As String) As String
+Attribute CountSelect.VB_Description = "Wraps a SELECT query to yield SQL returning RecordCount for the original query."
     CountSelect = "SELECT count(*) AS counter FROM (" & vbNewLine & _
                   "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
                   vbNewLine & ");"
@@ -257,10 +254,27 @@ End Function
 
 '@Description "Formats a SELECT query as a subquery suitable for the FROM clause."
 Public Function SubQuery(ByVal SQLQuery As String) As String
+Attribute SubQuery.VB_Description = "Formats a SELECT query as a subquery suitable for the FROM clause."
     SubQuery = " (" & vbNewLine & _
                "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
                vbNewLine & "    )" & vbNewLine
 End Function
+
+
+'''' TODO: Switch to LiteMetaSQLEngine
+'@Description "Generates query returning SQLite version"
+Public Property Get SQLiteVersion() As String
+Attribute SQLiteVersion.VB_Description = "Generates query returning SQLite version"
+    SQLiteVersion = "SELECT sqlite_version() AS version"
+End Property
+
+
+'''' TODO: Switch to LiteMetaSQLEngine
+'@Description "Generates query returning available SQLite collations"
+Public Property Get SQLiteCollations() As String
+Attribute SQLiteCollations.VB_Description = "Generates query returning available SQLite collations"
+    SQLiteCollations = "SELECT * FROM pragma_collation_list AS collations ORDER BY name"
+End Property
 
 
 '''' Generates parametrized UPDATE statement for a single record
@@ -303,16 +317,16 @@ Attribute UpdateSingleRecord.VB_Description = "Generates parametrized UPDATE sta
 End Function
 
 
-Public Function SQLiteVersionScalar() As String
-    SQLiteVersionScalar = "SELECT sqlite_version()"
-End Function
-
-
-'@Description "SQL for retrieving a single column containing attached databases paths."
-Public Function AttachedDbPaths() As String
-    AttachedDbPaths = Join(Array( _
-        "SELECT file FROM pragma_database_list;" _
-    ), vbNewLine)
+'@Description "SQL for retrieving a single column containing attached databases paths or the path of the alias."
+Public Function AttachedDbPaths( _
+            Optional ByVal SchemaAlias As String = vbNullString) As String
+    Dim WhereClause As String
+    If Len(SchemaAlias) > 0 Then
+        WhereClause = " WHERE name = " & SQLlib.QuoteSQLString(SchemaAlias)
+    Else
+        WhereClause = vbNullString
+    End If
+    AttachedDbPaths = "SELECT file FROM pragma_database_list" & WhereClause
 End Function
 
 

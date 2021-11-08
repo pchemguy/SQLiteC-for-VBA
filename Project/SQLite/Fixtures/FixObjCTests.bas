@@ -49,11 +49,11 @@ Arrange:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error."
     
     Dim SQLQuery As String
-    SQLQuery = "SELECT count(*) FROM pragma_function_list()"
+    SQLQuery = LiteMetaSQL.FunctionsCount
     Dim Expected As Variant
     Expected = dbs.GetScalar(SQLQuery)
     Assert.IsTrue IsNumeric(Expected), "Unexpected query result."
-    SQLQuery = LiteMetaSQLSchema("main").Tables
+    SQLQuery = LiteMetaSQL.Create().Tables
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
 Act:
@@ -86,12 +86,12 @@ Arrange:
     Assert.IsTrue dbc.DbHandle > 0, "Expected opened database."
     
     Dim SQLQuery As String
-    SQLQuery = "SELECT count(*) FROM pragma_function_list()"
+    SQLQuery = LiteMetaSQL.FunctionsCount
     Dim Expected As Variant
     Expected = dbs.GetScalar(SQLQuery)
     Assert.IsTrue IsNumeric(Expected), "Unexpected query result."
     
-    SQLQuery = LiteMetaSQLSchema("main").Tables
+    SQLQuery = LiteMetaSQL.Create().Tables
     Dim RowSet2D As Variant
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
     Assert.IsTrue IsArray(RowSet2D), "Unexpected query result."
@@ -141,7 +141,7 @@ Arrange:
     Dim dbs As ILiteADO
     Set dbs = FixObjC.GetDBSMemFuncWithData
     Dim Expected As Long
-    Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
+    Expected = dbs.GetScalar(LiteMetaSQL.FunctionsCount)
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
@@ -183,7 +183,7 @@ Arrange:
     Dim dbs As ILiteADO
     Set dbs = FixObjC.GetDBSTmpFuncWithData
     Dim Expected As Long
-    Expected = dbs.GetScalar("SELECT count(*) FROM pragma_function_list()")
+    Expected = dbs.GetScalar(LiteMetaSQL.FunctionsCount)
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)

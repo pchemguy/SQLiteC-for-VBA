@@ -127,11 +127,11 @@ Act:
     TableDDLExpected = FixSQLITRB.Create
     Dim SQLQuery As String
     SQLQuery = "SELECT [sql] || ';' FROM" & _
-               SQLlib.SubQuery(LiteMetaSQLSchema("main").Tables) & _
+               SQLlib.SubQuery(LiteMetaSQL.Create("main").Tables) & _
                "WHERE tbl_name = 'itrb'"
     Dim TableDDLActual As String
     TableDDLActual = dbm.GetScalar(SQLQuery)
-    SQLQuery = SQLlib.CountSelect(LiteMetaSQLSchema("main").Tables)
+    SQLQuery = SQLlib.CountSelect(LiteMetaSQL.Create("main").Tables)
 Assert:
     Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Table count mismatch."
     Assert.AreEqual TableDDLExpected, TableDDLActual, "Table CREATE mismatch."
@@ -245,4 +245,5 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
 

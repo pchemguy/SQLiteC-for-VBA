@@ -53,7 +53,7 @@ Assert:
     Assert.AreEqual 4, dbh.Header.SchemaFormat, "SchemaFormat mismatch"
     Assert.AreEqual 0, dbh.Header.AppId, "AppId mismatch"
     Assert.AreEqual 3, dbh.Header.ChangeCounter, "ChangeCounter mismatch"
-    Assert.AreEqual dbc.VersionNumber, dbh.Header.SqliteVersion, "SqliteVersion mismatch"
+    Assert.AreEqual dbc.VersionNumber, dbh.Header.SQLiteVersion, "SqliteVersion mismatch"
     Assert.AreEqual 72, LBound(dbh.Header.Reserved), "Reserved LBound mismatch"
     Assert.AreEqual 91, UBound(dbh.Header.Reserved), "Reserved UBound mismatch"
     

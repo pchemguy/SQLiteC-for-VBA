@@ -113,7 +113,7 @@ Public Type SQLiteCHeaderData
     AppId As Long                           '''' Bytes 68-71
     Reserved() As Byte                      '''' Bytes 72-91: Must be 0
     VersionValidFor As Long                 '''' Bytes 92-95
-    SqliteVersion As Long                   '''' Bytes 96-99
+    SQLiteVersion As Long                   '''' Bytes 96-99
 End Type
 
 
@@ -141,6 +141,6 @@ Public Type SQLiteCHeaderPacked
     AppId(0 To 3) As Byte                   '''' Bytes 68-71
     Reserved(72 To 91) As Byte              '''' Bytes 72-91: Must be 0
     VersionValidFor(0 To 3) As Byte         '''' Bytes 92-95
-    SqliteVersion(0 To 3) As Byte           '''' Bytes 96-99
+    SQLiteVersion(0 To 3) As Byte           '''' Bytes 96-99
 End Type
 

@@ -49,6 +49,7 @@ End Function
 '@Description "Produces 'SELECT <Sum>;' statement."
 Public Function SelectNumericSum(Optional ByVal NumA As Variant = Empty, _
                                  Optional ByVal NumB As Variant = Empty) As String
+Attribute SelectNumericSum.VB_Description = "Produces 'SELECT <Sum>;' statement."
     Dim TermA As String
     TermA = IIf(IsEmpty(NumA), "?", CStr(Val(NumA)))
     Dim TermB As String
@@ -72,6 +73,7 @@ End Function
 '@Description "Produces 'SELECT <Concat>;' statement."
 Public Function SelectConcat(Optional ByVal TextA As Variant = Empty, _
                              Optional ByVal TextB As Variant = Empty) As String
+Attribute SelectConcat.VB_Description = "Produces 'SELECT <Concat>;' statement."
     Dim TermA As String
     TermA = IIf(IsEmpty(TextA), "?", SQLlib.QuoteSQLString(CStr(TextA)))
     Dim TermB As String

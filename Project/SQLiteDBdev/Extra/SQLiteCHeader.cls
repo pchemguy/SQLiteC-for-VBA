@@ -110,7 +110,7 @@ Attribute UnpackHeader.VB_Description = "Unpacks SQLite database file header."
         .AppId = SLong32bFromBytesBE(PackedHeader.AppId)
         .Reserved = PackedHeader.Reserved
         .VersionValidFor = SLong32bFromBytesBE(PackedHeader.VersionValidFor)
-        .SqliteVersion = SLong32bFromBytesBE(PackedHeader.SqliteVersion)
+        .SQLiteVersion = SLong32bFromBytesBE(PackedHeader.SQLiteVersion)
     End With
 End Sub
 

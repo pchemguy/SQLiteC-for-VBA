@@ -6,15 +6,7 @@ Attribute VB_Name = "LiteFSCheckTests"
 Option Explicit
 Option Private Module
 
-#If LateBind Then
-    Private Assert As Object
-#Else
-    Private Assert As Rubberduck.PermissiveAssertClass
-#End If
-
-Private Const LIB_NAME As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
-Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
 
 Private FilePathName As String
 Private PathCheck As LiteFSCheck
@@ -22,6 +14,12 @@ Private ErrNumber As Long
 Private ErrSource As String
 Private ErrDescription As String
 Private ErrStack As String
+
+#If LateBind Then
+    Private Assert As Object
+#Else
+    Private Assert As Rubberduck.PermissiveAssertClass
+#End If
 
 
 'This method runs once per module.
@@ -64,11 +62,6 @@ End Sub
 '''' ##########################################################################
 
 
-Private Function zfxFixturePrefix() As String
-    zfxFixturePrefix = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & "Fixtures" & PATH_SEP
-End Function
-
-
 '===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
@@ -79,7 +72,7 @@ Private Sub ztcCreate_TraversesLockedFolder()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\SubFolder\TestC.db"
+    FilePathName = FixObjAdo.FixPath("ACLLocked\LockedFolder\SubFolder\TestC.db")
 Act:
     Set PathCheck = LiteFSCheck(FilePathName)
 Assert:
@@ -111,8 +104,8 @@ Private Sub ztcCreate_FailsOnLastFolderACLLock()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedFolder\LT100.db"
-    FilePathName = zfxFixturePrefix & "ACLLocked\LockedDb.db" '''' FailsOnFileACLLock
+    FilePathName = FixObjAdo.FixPath("ACLLocked\LockedFolder\LT100.db")
+    FilePathName = FixObjAdo.FixPath("ACLLocked\LockedDb.db") '''' FailsOnFileACLLock
     ErrNumber = ErrNo.PermissionDeniedErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Permission denied" & vbNewLine & _
@@ -176,7 +169,7 @@ Private Sub ztcCreate_FailsOnNonExistentPath()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "Dummy" & PATH_SEP & "Dummy.db"
+    FilePathName = FixObjAdo.FixPath("Dummy" & PATH_SEP & "Dummy.db")
     ErrNumber = ErrNo.PathNotFoundErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Database path (folder) is not found. Expected " & _
@@ -208,7 +201,7 @@ Private Sub ztcCreate_FailsOnNonExistentFile()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "Dummy.db"
+    FilePathName = FixObjAdo.FixPath("Dummy.db")
     ErrNumber = ErrNo.FileNotFoundErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Databse file is not found in the specified folder." & _
@@ -237,7 +230,7 @@ Private Sub ztcCreate_FailsOnLT100File()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "LT100.db"
+    FilePathName = FixObjAdo.FixPath("LT100.db")
     ErrNumber = ErrNo.OLE_DB_ODBC_Err
     ErrSource = "LiteFSCheck"
     ErrDescription = "File is not a database. SQLite header size is 100 bytes." & _
@@ -267,7 +260,7 @@ Private Sub ztcCreate_FailsOnBadMagic()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "BadMagic.db"
+    FilePathName = FixObjAdo.FixPath("BadMagic.db")
     ErrNumber = ErrNo.OLE_DB_ODBC_Err
     ErrSource = "LiteFSCheck"
     ErrDescription = "Database file is damaged. The magic string did not match." & _
@@ -297,7 +290,7 @@ Private Sub ztcCreate_FailsOnReadLockedFile()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix & "TestC.db"
+    FilePathName = FixObjAdo.FixPath("TestC.db")
     ErrNumber = ErrNo.TextStreamReadErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Method 'Read' of object 'ITextStream' failed" & vbNewLine & _
@@ -366,7 +359,7 @@ Private Sub ztcCreate_ResolvesRelativePath()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = REL_PREFIX & LIB_NAME & ".db"
+    FilePathName = FixObjAdo.DefaultDbPathNameRel
     Dim Expected As String
     Expected = ThisWorkbook.Path & PATH_SEP & FilePathName
 Act:
@@ -446,7 +439,7 @@ Private Sub ztcCreate_FailsCreateDbNoFileName()
     On Error GoTo TestFail
 
 Arrange:
-    FilePathName = zfxFixturePrefix()
+    FilePathName = FixObjAdo.FixPath
     ErrNumber = ErrNo.FileNotFoundErr
     ErrSource = "LiteFSCheck"
     ErrDescription = "Filename is not provided or provided name conflicts " & _
@@ -478,7 +471,7 @@ Private Sub ztcCreate_ResolvesBlankNoCreatePath()
 Arrange:
     FilePathName = vbNullString
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
+    Expected = FixObjAdo.DefaultDbPathName
 Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
@@ -497,9 +490,9 @@ Private Sub ztcCreate_ResolvesNameOnlyNoCreatePath()
     On Error GoTo TestFail
     
 Arrange:
-    FilePathName = LIB_NAME & ".db"
+    FilePathName = FixObjAdo.DefaultDbName
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & REL_PREFIX & LIB_NAME & ".db"
+    Expected = FixObjAdo.DefaultDbPathName
 Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
