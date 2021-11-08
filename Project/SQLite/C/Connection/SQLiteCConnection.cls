@@ -191,6 +191,7 @@ End Function
 ''''
 '@Description "Returns SQLite version. No database is necessary."
 Public Function VersionNumber() As Long
+Attribute VersionNumber.VB_Description = "Returns SQLite version. No database is necessary."
     VersionNumber = sqlite3_libversion_number()
 End Function
 

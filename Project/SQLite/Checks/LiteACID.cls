@@ -70,6 +70,7 @@ Friend Sub Init(ByVal ExecADO As ILiteADO)
     
     With this
         Set .ExecADO = ExecADO
+        '@Ignore IndexedDefaultMemberAccess
         Set .MetaADO = LiteMetaADO(ExecADO)
         Set .MetaSQL = .MetaADO.MetaSQL
     End With
@@ -80,21 +81,26 @@ Public Property Get ErrNumber() As Long
     ErrNumber = this.ErrNumber
 End Property
 
+
 Public Property Get ErrSource() As String
     ErrSource = this.ErrSource
 End Property
+
 
 Public Property Get ErrDescription() As String
     ErrDescription = this.ErrDescription
 End Property
 
+
 Public Property Get ErrStack() As String
     ErrStack = this.ErrStack
 End Property
 
+
 Public Property Get ErrSQLiteNumber() As Long
     ErrSQLiteNumber = this.ErrSQLiteNumber
 End Property
+
 
 '''' Integrity tests executed by the SQLite engine initiated via ADODB/SQL.
 ''''
@@ -231,7 +237,7 @@ WRITE_FAILED:
 End Property
 
 
-Public Function JournalModeToggle() As String
+Public Sub JournalModeToggle()
     Const ThisProcName As String = "JournalModeToggle"
     
     Dim JMode As String
@@ -249,9 +255,7 @@ Public Function JournalModeToggle() As String
         Err.Raise ErrNo.AdoProviderFailedErr, "LiteACID", _
                   "Failed to change journal mode"
     End If
-    
-    JournalModeToggle = JMode
-    Exit Function
+    Exit Sub
     
 TOGGLE_FAILED:
     Select Case Err.Number
@@ -270,7 +274,7 @@ TOGGLE_FAILED:
     
     this.ErrStack = ThisProcName & vbNewLine & this.ErrStack
     Err.Raise Err.Number, "LiteACID", this.ErrDescription
-End Function
+End Sub
 
 
 Public Function LockedInTransaction() As Boolean

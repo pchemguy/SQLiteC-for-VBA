@@ -129,11 +129,6 @@ Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteTypeA
 End Function
 
 
-Friend Property Get DbStatement() As SQLiteCStatement
-    Set DbStatement = this.DbStmt
-End Property
-
-
 Public Property Get MetaLoaded() As Boolean
     MetaLoaded = this.MetaLoaded
 End Property

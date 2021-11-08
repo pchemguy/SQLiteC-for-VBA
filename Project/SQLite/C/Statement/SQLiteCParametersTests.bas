@@ -233,6 +233,7 @@ TestFail:
 End Sub
 
 
+'NameFromIndex
 '@TestMethod("Parameterized Query")
 Private Sub ztcBindDictOrArray_VerifiesQueryWithColonParams()
     On Error GoTo TestFail

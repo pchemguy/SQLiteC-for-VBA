@@ -75,10 +75,6 @@ Friend Sub CleanUp()
     Set this.DbStmt = Nothing
 End Sub
 
-Friend Property Get DbStatement() As SQLiteCStatement
-    Set DbStatement = this.DbStmt
-End Property
-
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_count.html
 ''''
 '@Description "Retrieves parameter count."

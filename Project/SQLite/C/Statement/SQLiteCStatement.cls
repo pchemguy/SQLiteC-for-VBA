@@ -619,24 +619,29 @@ End Function
 Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)
     Dim ResultCode As SQLiteResultCodes
     ResultCode = this.DbConn.Begin(Mode)
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 Private Sub ILiteADO_Commit()
     Dim ResultCode As SQLiteResultCodes
     ResultCode = this.DbConn.Commit
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 Private Sub ILiteADO_SavePoint(ByVal SavePointName As String)
     Dim ResultCode As SQLiteResultCodes
     ResultCode = this.DbConn.SavePoint(SavePointName)
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 Private Sub ILiteADO_ReleasePoint(ByVal SavePointName As String)
     Dim ResultCode As SQLiteResultCodes
     ResultCode = this.DbConn.ReleasePoint(SavePointName)
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub
 
 Private Sub ILiteADO_Rollback(Optional ByVal SavePointName As String = vbNullString)
     Dim ResultCode As SQLiteResultCodes
     ResultCode = this.DbConn.Rollback(SavePointName)
+    Debug.Assert ResultCode = SQLITE_OK
 End Sub

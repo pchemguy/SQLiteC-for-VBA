@@ -42,7 +42,7 @@ Private Declare Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As L
 
 Private Type TSQLiteC
     DllMan As DllManager
-    DbConnMan As Scripting.Dictionary
+    Connections As Scripting.Dictionary
     MainDB As Variant
 End Type
 Private this As TSQLiteC
@@ -57,7 +57,6 @@ Attribute Create.VB_UserMemId = 0
     Instance.Init DllPath, DllNames
     Set Create = Instance
 End Function
-
 
 Friend Sub Init(ByVal DllPath As String, _
        Optional ByVal DllNames As Variant = Empty)
@@ -79,21 +78,32 @@ Friend Sub Init(ByVal DllPath As String, _
     End If
     '''' DllManager is responsible for DllPath validation/resolution
     Set this.DllMan = DllManager.Create(DllPath, FileNames)
-    Set this.DbConnMan = New Scripting.Dictionary
-    this.DbConnMan.CompareMode = TextCompare
+    Set this.Connections = New Scripting.Dictionary
+    this.Connections.CompareMode = TextCompare
     this.MainDB = Null
 End Sub
 
+Private Sub Class_Terminate()
+    CleanUp
+End Sub
+
+Friend Sub CleanUp()
+    Dim DbConn As SQLiteCConnection
+    Dim ConnName As Variant
+    For Each ConnName In this.Connections.Keys
+        Set DbConn = this.Connections(ConnName)
+        DbConn.CleanUp
+        this.Connections.Remove ConnName
+    Next ConnName
+End Sub
 
 Public Property Get MainDbId() As Variant
     MainDbId = this.MainDB
 End Property
 
-
 Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
 End Property
-
 
 '''' vbNullString is an acceptable StmtName.
 '''' Raises an error if DbPathName (or resolved value) has already been used.
@@ -102,7 +112,7 @@ Public Function CreateConnection(ByVal DbPathName As String, _
                         Optional ByVal AllowNonExistent As Variant = True _
                         ) As SQLiteCConnection
 Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
-    If this.DbConnMan.Exists(DbPathName) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
+    If this.Connections.Exists(DbPathName) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(DbPathName, AllowNonExistent)
@@ -110,13 +120,12 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
     Dim DbConnId As String
     DbConnId = DbConn.DbPathName
-    If this.DbConnMan.Exists(DbConnId) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
+    If this.Connections.Exists(DbConnId) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
         "SQLiteC", "Connection pathname already exists!"
     If IsNull(this.MainDB) Then this.MainDB = DbConnId
-    Set this.DbConnMan(DbConnId) = DbConn
+    Set this.Connections(DbConnId) = DbConn
     Set CreateConnection = DbConn
 End Function
-
 
 '''' vbNullString is an acceptable DbPathName (should resolve to anon temp db).
 '@Description "Returns an existing SQLiteCConnection instance or Nothing."
@@ -124,15 +133,14 @@ Public Function ConnDb(Optional ByVal DbPathName As String = vbNullString _
                       ) As SQLiteCConnection
 Attribute ConnDb.VB_Description = "Returns an existing SQLiteCConnection instance or Nothing."
     '''' SQLiteCConnection is responsible for DbPathName validation/resolution
-    If this.DbConnMan.Exists(DbPathName) Then
-        Set ConnDb = this.DbConnMan(DbPathName)
-    ElseIf Len(DbPathName) = 0 And this.DbConnMan.Exists(this.MainDB) Then
-        Set ConnDb = this.DbConnMan(this.MainDB)
+    If this.Connections.Exists(DbPathName) Then
+        Set ConnDb = this.Connections(DbPathName)
+    ElseIf Len(DbPathName) = 0 And this.Connections.Exists(this.MainDB) Then
+        Set ConnDb = this.Connections(this.MainDB)
     Else
         Set ConnDb = Nothing
     End If
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/backup_finish.html
 '''' Reference: https://www.sqlite.org/backup.html
@@ -183,13 +191,11 @@ Attribute DupDbOnlineFull.VB_Description = "Performs online database backup."
     Debug.Assert ResultCode = SQLITE_OK
     DupDbOnlineFull = PagesDone
     Exit Function
-    
 RESULT_CODE:
     '@Ignore AssignmentNotUsed
     ResultCode = DbConnDst.ErrInfoRetrieve
     DupDbOnlineFull = 0
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/libversion.html
 ''''

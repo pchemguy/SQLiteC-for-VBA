@@ -244,8 +244,7 @@ Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEF
                 Err.Raise ErrNo.InvalidParameterErr, "LiteADO", _
                     "Invalid transaction mode: <" & CStr(Mode) & ">"
         End Select
-        Dim Result As Long
-        Result = ExecuteNonQuery("BEGIN" & TxMode)
+        ExecuteNonQuery "BEGIN" & TxMode
     End If
 End Sub
 
@@ -255,21 +254,18 @@ End Sub
 
 Private Sub ILiteADO_SavePoint(ByVal SavePointName As String)
     Guard.EmptyString SavePointName
-    Dim Result As Long
-    Result = ExecuteNonQuery("SAVEPOINT " & SavePointName)
+    ExecuteNonQuery "SAVEPOINT " & SavePointName
 End Sub
 
 Private Sub ILiteADO_ReleasePoint(ByVal SavePointName As String)
     Guard.EmptyString SavePointName
-    Dim Result As Long
-    Result = ExecuteNonQuery("RELEASE " & SavePointName)
+    ExecuteNonQuery "RELEASE " & SavePointName
 End Sub
 
 Private Sub ILiteADO_Rollback(Optional ByVal SavePointName As String = vbNullString)
     If Len(SavePointName) = 0 Then
         this.AdoConnection.RollbackTrans
     Else
-        Dim Result As Long
-        Result = ExecuteNonQuery("ROLLBACK " & SavePointName)
+        ExecuteNonQuery "ROLLBACK " & SavePointName
     End If
 End Sub

@@ -50,12 +50,9 @@ End Sub
 Private Sub CloneDb()
     Dim SourceDb As String
     SourceDb = FixObjAdo.DefaultDbName
-    Dim dbmSrc As LiteMan
-    Set dbmSrc = LiteMan(SourceDb)
-    
     Dim DestinationDb As String
     DestinationDb = "Dest.db"
-    Dim dbmDst As LiteMan
-    Set dbmDst = LiteMan.CloneDb(DestinationDb, SourceDb)
-    Debug.Print dbmDst.ExecADO.MainDB
+    Dim dbm As LiteMan
+    Set dbm = LiteMan.CloneDb(DestinationDb, SourceDb)
+    Debug.Print dbm.ExecADO.MainDB
 End Sub
