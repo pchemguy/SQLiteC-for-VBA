@@ -77,7 +77,7 @@ Public Enum SQLiteOpenFlags
     SQLITE_OPEN_DEFAULT = SQLITE_OPEN_READWRITE Or SQLITE_OPEN_CREATE
 End Enum
 
-Public Enum SQLiteTxnLockMode
+Public Enum SQLiteTxnType
     SQLITE_TXN_DEFERRED = 0&
     SQLITE_TXN_IMMEDIATE = 1&
     SQLITE_TXN_EXCLUSIVE = 2&
@@ -456,7 +456,7 @@ End Function
 '''' Reference: https://www.sqlite.org/lang_transaction.html
 ''''
 '@Description "Begins SQLite transaction."
-Public Function Begin(Optional ByVal Mode As SQLiteTxnLockMode = SQLITE_TXN_DEFERRED _
+Public Function Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED _
                      ) As SQLiteResultCodes
 Attribute Begin.VB_Description = "Begins SQLite transaction."
     Dim TxMode As String

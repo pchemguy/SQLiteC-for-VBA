@@ -13,15 +13,6 @@ Attribute VB_Description = "Handles query parameters"
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
-
-''''======================================================================''''
-'''' Parameters
-'''' https://www.sqlite.org/c3ref/bind_blob.html
-'''' https://www.sqlite.org/c3ref/bind_parameter_index.html
-'''' https://www.sqlite.org/c3ref/bind_parameter_count.html
-'''' https://www.sqlite.org/c3ref/bind_parameter_name.html
-''''======================================================================''''
-
 Option Explicit
 
 Public Enum SQLiteMemoryManagement
@@ -80,6 +71,11 @@ End Sub
 Private Sub Class_Terminate()
     BindClear
 End Sub
+
+
+Friend Property Get DbStatement() As SQLiteCStatement
+    Set DbStatement = this.DbStmt
+End Property
 
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_count.html

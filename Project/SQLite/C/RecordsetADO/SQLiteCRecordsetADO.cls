@@ -15,9 +15,7 @@ Attribute VB_Description = "Constructs ADO Recordset"
 Option Explicit
 
 Private Type TSQLiteCRecordsetADO
-    DbStmt As SQLiteCStatement
     DbExec As SQLiteCExecSQL
-    DbConn As SQLiteCConnection
     SQLQuery As String
     SQLQueryExpanded As String
     SQLQueryParameters As Variant
@@ -39,9 +37,7 @@ End Function
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     With this
-        Set .DbStmt = DbStmt
         Set .DbExec = DbStmt.DbExecutor
-        Set .DbConn = DbStmt.DbConnection
         Set .FabRecordset = New ADODB.Recordset
         AddMeta
         .SQLQuery = DbStmt.SQLQueryOriginal

@@ -216,7 +216,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     
     '''' === (1) === Check if FilePathName is a valid path to an existing file.
     If fso.FileExists(FilePathName) Then
-        VerifyOrGetDefaultPath = FilePathName
+        VerifyOrGetDefaultPath = fso.GetAbsolutePathName(FilePathName)
         Exit Function
     End If
     

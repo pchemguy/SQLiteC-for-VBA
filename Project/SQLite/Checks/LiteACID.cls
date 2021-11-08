@@ -43,6 +43,7 @@ Private Const SQLITE_NOTADB_CODE As Long = 26
 
 Private Type TLiteACID
     ExecADO As ILiteADO
+    MetaADO As LiteMetaADO
     MetaSQL As LiteMetaSQL
     ErrNumber As Long
     ErrSource As String
@@ -67,8 +68,11 @@ Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.NullReference ExecADO
     Guard.EmptyString ExecADO.MainDB
     
-    Set this.ExecADO = ExecADO
-    Set this.MetaSQL = LiteMetaSQL.Create()
+    With this
+        Set .ExecADO = ExecADO
+        Set .MetaADO = LiteMetaADO(ExecADO)
+        Set .MetaSQL = .MetaADO.MetaSQL
+    End With
 End Sub
 
 

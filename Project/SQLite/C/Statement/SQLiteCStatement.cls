@@ -13,14 +13,6 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
-
-''''======================================================================''''
-'''' Statement
-'''' https://www.sqlite.org/c3ref/prepare.html
-'''' https://www.sqlite.org/c3ref/reset.html
-'''' https://www.sqlite.org/c3ref/finalize.html
-''''======================================================================''''
-
 Option Explicit
 
 Implements ILiteADO
@@ -207,10 +199,10 @@ Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/reset.html
+''''
 '''' Reset should be called after execution before the statement object can be
 '''' reused (for example, with a new set of bound parameters).
-''''
-'''' Reference: https://www.sqlite.org/c3ref/reset.html
 ''''
 '@Description "Resets SQLite PSO after execution."
 Friend Function Reset() As SQLiteResultCodes
@@ -222,13 +214,13 @@ Attribute Reset.VB_Description = "Resets SQLite PSO after execution."
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/finalize.html
+''''
 '''' sqlite3_finalize should only return an error if the the most recent
 '''' evaluation of the statement failed. At the same time, if Prepare16V2
 '''' returns an error, StmtHandle is set to 0 to prevent an error here. The
 '''' only remaining documented possibility is an error generated in course of
 '''' automatic recompilation (https://www.sqlite.org/c3ref/prepare.html).
-''''
-'''' Reference: https://www.sqlite.org/c3ref/finalize.html
 ''''
 '@Description "Destructs SQLite PSO."
 Friend Function Finalize() As SQLiteResultCodes
@@ -246,6 +238,9 @@ Attribute Finalize.VB_Description = "Destructs SQLite PSO."
 End Function
 
 
+'''' Reference: https://www.sqlite.org/c3ref/stmt_busy.html
+'''' Reference: https://www.sqlite.org/c3ref/next_stmt.html
+''''
 '''' This method should be called on the predeclared SQLiteCStatement instance.
 '''' It enumerates not finalized statements and either attempts to finalize
 '''' them, if requested. Otherwise, it queries the busy status and returns a
@@ -257,9 +252,6 @@ End Function
 ''''
 ''''   FinStmt (optional, boolean, true):
 ''''     If true, finalize statements
-''''
-'''' Reference: https://www.sqlite.org/c3ref/stmt_busy.html
-'''' Reference: https://www.sqlite.org/c3ref/next_stmt.html
 ''''
 '''' @ClassMethod "Call on the predeclared instance"
 '@Description "Enumerates prepared statements with busy status."
@@ -624,3 +616,28 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
         ErrNo.UnknownClassErr, "SQLiteCStatement/ILiteADO_ExecuteNonQuery", _
         "Failed to close db."
 End Function
+
+Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = this.DbConn.Begin(Mode)
+End Sub
+
+Private Sub ILiteADO_Commit()
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = this.DbConn.Commit
+End Sub
+
+Private Sub ILiteADO_SavePoint(ByVal SavePointName As String)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = this.DbConn.SavePoint(SavePointName)
+End Sub
+
+Private Sub ILiteADO_ReleasePoint(ByVal SavePointName As String)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = this.DbConn.ReleasePoint(SavePointName)
+End Sub
+
+Private Sub ILiteADO_Rollback(Optional ByVal SavePointName As String = vbNullString)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = this.DbConn.Rollback(SavePointName)
+End Sub

@@ -64,6 +64,7 @@ End Function
 
 Friend Sub Init(ByVal DbPathName As String, _
        Optional ByVal AllowNonExistent As Variant = Empty)
+    Err.Clear
     this.DbPathName = ExistsAccesibleValid(DbPathName, AllowNonExistent)
 End Sub
 

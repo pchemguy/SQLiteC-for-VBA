@@ -13,7 +13,6 @@ Attribute VB_Description = "Executes statement and retrieves data"
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
-
 Option Explicit
 
 #If VBA7 Then
@@ -108,7 +107,7 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 
-Public Function SQLiteTypeName(ByVal DataTypeCode As SQLiteType) As String
+Public Function SQLiteTypeName(ByVal DataTypeCode As SQLiteDataType) As String
     SQLiteTypeName = Array("NONE", "INTEGER", "FLOAT", _
                            "TEXT", "BLOB", "NULL")(DataTypeCode)
 End Function
@@ -118,6 +117,11 @@ Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteTypeA
     SQLiteTypeAffinityName = Array("NONE", "BLOB", "TEXT", "NUMERIC", _
                                    "INTEGER", "REAL")(DataTypeAffinityCode - &H40)
 End Function
+
+
+Friend Property Get DbStatement() As SQLiteCStatement
+    Set DbStatement = this.DbStmt
+End Property
 
 
 Public Property Get MetaLoaded() As Boolean
@@ -434,7 +438,7 @@ Attribute GetColumnValueAPI.VB_Description = "Retrieves a single column value fr
     '''' used. Additional "if" is required, however, which should impose a slight
     '''' penalty in case when most columns are nullable and require this null-check.
     '''' The caller is responsible for querying/populating the metadata.
-    Dim ColumnType As SQLiteType
+    Dim ColumnType As SQLiteDataType
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
     If this.MetaLoaded Then
         Dim Affinity As SQLiteTypeAffinity

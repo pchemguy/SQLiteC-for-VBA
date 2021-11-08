@@ -320,6 +320,7 @@ End Function
 '@Description "SQL for retrieving a single column containing attached databases paths or the path of the alias."
 Public Function AttachedDbPaths( _
             Optional ByVal SchemaAlias As String = vbNullString) As String
+Attribute AttachedDbPaths.VB_Description = "SQL for retrieving a single column containing attached databases paths or the path of the alias."
     Dim WhereClause As String
     If Len(SchemaAlias) > 0 Then
         WhereClause = " WHERE name = " & SQLlib.QuoteSQLString(SchemaAlias)

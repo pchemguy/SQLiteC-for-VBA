@@ -39,8 +39,18 @@ Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.EmptyString ExecADO.MainDB
     
     Set this.ExecADO = ExecADO
-    Set this.MetaSQL = LiteMetaSQL.Create()
+    Set this.MetaSQL = LiteMetaSQL.Create("main")
 End Sub
+
+
+Public Property Get ExecADO() As ILiteADO
+    Set ExecADO = this.ExecADO
+End Property
+
+
+Public Property Get MetaSQL() As LiteMetaSQL
+    Set MetaSQL = this.MetaSQL
+End Property
 
 
 '''' Returns:

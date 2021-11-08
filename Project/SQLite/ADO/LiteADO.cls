@@ -229,3 +229,47 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
                                  ) As Long
     ILiteADO_ExecuteNonQuery = ExecuteNonQuery(SQLQuery)
 End Function
+
+Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)
+    If Mode = SQLITE_TXN_DEFERRED Then
+        this.AdoConnection.BeginTrans
+    Else
+        Dim TxMode As String
+        Select Case Mode
+            Case SQLITE_TXN_IMMEDIATE
+                TxMode = " IMMEDIATE"
+            Case SQLITE_TXN_EXCLUSIVE
+                TxMode = " EXCLUSIVE"
+            Case Else
+                Err.Raise ErrNo.InvalidParameterErr, "LiteADO", _
+                    "Invalid transaction mode: <" & CStr(Mode) & ">"
+        End Select
+        Dim Result As Long
+        Result = ExecuteNonQuery("BEGIN" & TxMode)
+    End If
+End Sub
+
+Private Sub ILiteADO_Commit()
+    this.AdoConnection.CommitTrans
+End Sub
+
+Private Sub ILiteADO_SavePoint(ByVal SavePointName As String)
+    Guard.EmptyString SavePointName
+    Dim Result As Long
+    Result = ExecuteNonQuery("SAVEPOINT " & SavePointName)
+End Sub
+
+Private Sub ILiteADO_ReleasePoint(ByVal SavePointName As String)
+    Guard.EmptyString SavePointName
+    Dim Result As Long
+    Result = ExecuteNonQuery("RELEASE " & SavePointName)
+End Sub
+
+Private Sub ILiteADO_Rollback(Optional ByVal SavePointName As String = vbNullString)
+    If Len(SavePointName) = 0 Then
+        this.AdoConnection.RollbackTrans
+    Else
+        Dim Result As Long
+        Result = ExecuteNonQuery("ROLLBACK " & SavePointName)
+    End If
+End Sub

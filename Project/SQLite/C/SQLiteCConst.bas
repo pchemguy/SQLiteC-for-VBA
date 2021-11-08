@@ -13,13 +13,10 @@ Option Explicit
     Public Const ARCH As String = "x64"
 #Else
     Public Const ARCH As String = "x32"
-#End If
-
-#If VBA7 <> True Then
     Public Const vbLongLong As Long = 20&
 #End If
 
-Public Enum SQLiteType
+Public Enum SQLiteDataType
     SQLITE_NONE = 0&
     SQLITE_INTEGER = 1&
     SQLITE_FLOAT = 2&
@@ -29,17 +26,7 @@ Public Enum SQLiteType
 End Enum
 
 '''' Reference: https://www.sqlite.org/datatype3.html
-'''' Highest priority at the top.
-Public Enum SQLiteTypeAffinity
-    SQLITE_AFF_INTEGER = &H44    ' /* 'D': "%INT%" */
-    SQLITE_AFF_TEXT = &H42       ' /* 'B': "%CHAR%" | "%CLOB%" | "%TEXT%" */
-    SQLITE_AFF_BLOB = &H41       ' /* 'A': "%BLOB%" */
-    SQLITE_AFF_REAL = &H45       ' /* 'E': "%REAL%" | "%FLOA%" | "%DOUB%" */
-    SQLITE_AFF_NUMERIC = &H43    ' /* 'C': "%%" */
-    SQLITE_AFF_NONE = &H40       ' /* '@': */
-End Enum
-
-'''' ====================================================================== ''''
+''''
 '''' ---------------- Mapping SQLiteTypeAffinity -> SQLiteType ------------ ''''
 '''' SQLITE_AFF_BLOB -> SQLITE_BLOB
 '''' SQLITE_AFF_TEXT -> SQLITE_TEXT
@@ -50,6 +37,16 @@ End Enum
 '''' MappedType = Array(SQLITE_BLOB, SQLITE_TEXT, SQLITE_TEXT, _
 ''''                    SQLITE_INTEGER, SQLITE_FLOAT)(ColumnAffinity - &H41)
 '''' ---------------------------------------------------------------------- ''''
+''''
+'''' Highest priority at the top.
+Public Enum SQLiteTypeAffinity
+    SQLITE_AFF_INTEGER = &H44    ' /* 'D': "%INT%" */
+    SQLITE_AFF_TEXT = &H42       ' /* 'B': "%CHAR%" | "%CLOB%" | "%TEXT%" */
+    SQLITE_AFF_BLOB = &H41       ' /* 'A': "%BLOB%" */
+    SQLITE_AFF_REAL = &H45       ' /* 'E': "%REAL%" | "%FLOA%" | "%DOUB%" */
+    SQLITE_AFF_NUMERIC = &H43    ' /* 'C': "%%" */
+    SQLITE_AFF_NONE = &H40       ' /* '@': */
+End Enum
 
 Public Type SQLiteCColumnMeta
     Name As String
@@ -59,10 +56,10 @@ Public Type SQLiteCColumnMeta
     DbName As String
     TableName As String
     OriginName As String
-    DataType As SQLiteType
+    DataType As SQLiteDataType
     DeclaredTypeC As String
     Affinity As SQLiteTypeAffinity
-    AffinityType As SQLiteType
+    AffinityType As SQLiteDataType
     DeclaredTypeT As String
     Collation As String
     NotNull As Boolean
@@ -74,19 +71,16 @@ Public Type SQLiteCColumnMeta
     RowId As Boolean
 End Type
 
-
 Public Enum SQLiteCTextEncoding
     SQLITE_ENCODING_UTF8 = 1&
     SQLITE_ENCODING_UTF16LE = 2&
     SQLITE_ENCODING_UTF16BE = 3&
 End Enum
 
-
 Public Enum SQLiteCFileFormat
     SQLITE_FORMAT_LEGACY = 1&
     SQLITE_FORMAT_WAL = 2&
 End Enum
-
 
 '''' https://sqlite.org/fileformat.html
 Public Type SQLiteCHeaderData
@@ -116,7 +110,6 @@ Public Type SQLiteCHeaderData
     SQLiteVersion As Long                   '''' Bytes 96-99
 End Type
 
-
 '''' https://sqlite.org/fileformat.html
 Public Type SQLiteCHeaderPacked
     MagicHeaderString(0 To 15) As Byte      '''' Bytes  0-15: "SQLite format 3" & vbNullChar
@@ -143,4 +136,3 @@ Public Type SQLiteCHeaderPacked
     VersionValidFor(0 To 3) As Byte         '''' Bytes 92-95
     SQLiteVersion(0 To 3) As Byte           '''' Bytes 96-99
 End Type
-

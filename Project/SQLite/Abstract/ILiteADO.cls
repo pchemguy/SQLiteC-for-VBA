@@ -35,3 +35,22 @@ Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty) As Long
 End Function
 
+'@Description "Begins SQLite transaction."
+Public Sub Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)
+End Sub
+
+'@Description "Commits all SQLite DBO transactions."
+Public Sub Commit()
+End Sub
+
+'@Description "Begins a named nestable SQLite transaction."
+Public Sub SavePoint(ByVal SavePointName As String)
+End Sub
+
+'@Description "Removes rollback savepoints from the transaction stack up to the first point with matching name."
+Public Sub ReleasePoint(ByVal SavePointName As String)
+End Sub
+
+'@Description "Rollbacks savepoints from the transaction stack up to the first point with matching name or the entire transaction."
+Public Sub Rollback(Optional ByVal SavePointName As String = vbNullString)
+End Sub
