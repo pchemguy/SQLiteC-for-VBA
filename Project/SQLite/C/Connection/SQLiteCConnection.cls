@@ -159,7 +159,7 @@ Friend Sub CleanUp()
     Dim ResultCode As SQLiteResultCodes
     ResultCode = CloseDb
     Debug.Assert ResultCode = SQLITE_OK
-    this.ErrorInfo.CleanUp
+    If Not this.ErrorInfo Is Nothing Then this.ErrorInfo.CleanUp
     Set this.ErrorInfo = Nothing
 End Sub
 
@@ -309,8 +309,8 @@ End Function
 '@Description "Generates SQLite DBO instance."
 Public Function OpenDb( _
             Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
-            Optional ByVal vfsName As String = vbNullString) As SQLiteResultCodes
-Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
+            Optional ByVal vfsName As String = vbNullString _
+            ) As SQLiteResultCodes
     If this.DbHandle > 0 Then
         OpenDb = SQLITE_OK
         Exit Function
@@ -339,7 +339,9 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
         ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
     If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
-    If VERBOUS Then Debug.Print "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Dim LogMsg As String
+    LogMsg = "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     OpenDb = ResultCode
 End Function
 
@@ -348,6 +350,10 @@ End Function
 '@Description "Destructs SQLite DBO instance."
 Public Function CloseDb() As SQLiteResultCodes
 Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
+    If this.DbHandle = 0 Then
+        CloseDb = SQLITE_OK
+        Exit Function
+    End If
     Dim ResultCode As SQLiteResultCodes
     ResultCode = Finalize
     Debug.Assert ResultCode = SQLITE_OK
@@ -359,7 +365,9 @@ Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
             ResultCode = ErrInfoRetrieve
         End If
     End If
-    If VERBOUS Then Debug.Print "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Dim LogMsg As String
+    LogMsg = "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     CloseDb = ResultCode
 End Function
 

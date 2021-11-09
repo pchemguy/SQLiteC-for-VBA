@@ -80,11 +80,13 @@ Friend Sub CleanUp()
     With this
         '@Ignore FunctionReturnValueDiscarded
         If .StmtHandle <> 0 Then Finalize
-        .DbPara.CleanUp
+        If Not .DbPara Is Nothing Then .DbPara.CleanUp
+        If Not .DbExec Is Nothing Then .DbExec.CleanUp
+        If Not .DbConn Is Nothing Then
+            If Not .DbConn.ErrorInfo Is Nothing Then .DbConn.ErrorInfo.CleanUp
+        End If
         Set .DbPara = Nothing
-        .DbExec.CleanUp
         Set .DbExec = Nothing
-        .DbConn.ErrorInfo.CleanUp
         Set .DbConn = Nothing
     End With
 End Sub
@@ -257,7 +259,10 @@ End Function
 Friend Function PreparedStatementsGet(ByVal DbConn As SQLiteCConnection, _
                              Optional ByVal FinStmt As Boolean = True) As Variant
 Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements with busy status."
-    FixGuard.DbNotOpened DbConn, "SQLiteCStatement/PreparedStatementsGet"
+    If DbConn.DbHandle = 0 Then
+        PreparedStatementsGet = SQLITE_OK
+        Exit Function
+    End If
     #If VBA7 Then
         Dim hStmt As LongPtr
     #Else

@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCStatementTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCStatementTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -38,6 +53,7 @@ End Sub
 '@TestMethod("DbStatement")
 Private Sub ztcCreateStatement_VerifiesNewStatement()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -63,6 +79,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_ThrowsOnClosedConnection()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -82,6 +99,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesPrepareSQLiteVersion()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -121,6 +139,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesPrepareOfCreateTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -159,6 +178,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesErrorOnInvalidSQL()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -210,6 +230,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcGetBusy_VerifiesBusyStatus()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -250,6 +271,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcPrepare16V2_VerifiesGetScalar()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -281,6 +303,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryAndNullParams()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -312,6 +335,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQuery_ThrowsOnInvalidParamsType()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -343,6 +367,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQuery_ThrowsOnBlankQueryToUnpreparedStatement()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -370,6 +395,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQuery_VerifiesCreateTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -406,6 +432,7 @@ End Sub
 '@TestMethod("Query Paged RowSet")
 Private Sub ztcGetPagedRowSet_VerifyPagedRowSetGeometry()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -458,6 +485,7 @@ End Sub
 '@TestMethod("Query Paged RowSet")
 Private Sub ztcGetPagedRowSet_SelectSubsetOfFunctions()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -507,6 +535,7 @@ End Sub
 '@TestMethod("Query 2D RowSet")
 Private Sub ztcGetRowSet2D_VerifyRowSet2DGeometry()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -550,6 +579,7 @@ End Sub
 '@TestMethod("Query 2D RowSet")
 Private Sub ztcGetRowSet2D_NamedParamsSelectWithDictVsArrayValues()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -596,6 +626,7 @@ End Sub
 '@TestMethod("Query 2D RowSet")
 Private Sub ztcGetRowSet2D_SelectPragmaTableWithUseTableMetadataAPI()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -638,6 +669,7 @@ End Sub
 '@TestMethod("Query 2D RowSet")
 Private Sub ztcGetRowSet2D_InsertPlainSelectFromITRBTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -685,6 +717,7 @@ End Sub
 '@TestMethod("Query ADO Recordset")
 Private Sub ztcGetRecordset_VerifyGetRecordsetGeometry()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -728,6 +761,7 @@ End Sub
 '@TestMethod("Query ADO Recordset")
 Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -772,6 +806,7 @@ End Sub
 '@TestMethod("Query ADO Recordset")
 Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowid()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -816,6 +851,7 @@ End Sub
 '@TestMethod("Query ADO Recordset")
 Private Sub ztcGetRecordset_InsertPlainSelectFromITRBTableRowidVerifyData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -865,6 +901,7 @@ End Sub
 '@TestMethod("INSERT")
 Private Sub ztcGetRowSet2D_InsertWithParamsSelectFromITRBTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -931,6 +968,7 @@ End Sub
 '@TestMethod("UPDATE")
 Private Sub ztcGetRowSet2D_UpdateWithParamsSelectFromITRBTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -989,6 +1027,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcGetScalar_VerifiesGetScalar()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection

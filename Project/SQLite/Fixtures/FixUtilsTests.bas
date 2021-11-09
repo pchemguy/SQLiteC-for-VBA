@@ -6,6 +6,9 @@ Attribute VB_Name = "FixUtilsTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "FixUtilsTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -21,6 +24,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -28,6 +41,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -39,6 +54,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcByteArray_ThrowsOnMultipleStringArgs()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim TargetArray() As Byte
     TargetArray = FixUtils.ByteArray("AA", "AB")
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -48,6 +64,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcByteArray_ThrowsOnOutOfRangePositiveNumber()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim TargetArray() As Byte
     TargetArray = FixUtils.ByteArray(Array(1, 256))
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -57,6 +74,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcByteArray_ThrowsOnOutOfRangeNegativeNumber()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim TargetArray() As Byte
     TargetArray = FixUtils.ByteArray(Array(1, -1))
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -66,6 +84,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcByteArray_ThrowsOnOneBasedArray()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim SourceArray(1 To 1) As Byte
     SourceArray(1) = Asc("A")
     Dim TargetArray() As Byte
@@ -77,6 +96,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromListOfBytes()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -100,6 +120,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromArrayOfBytes()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SourceArray(0 To 3) As Byte
@@ -128,6 +149,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromVariantArrayNumeric()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SourceArray As Variant
@@ -153,6 +175,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromArrayOfChars()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SourceArray As Variant
@@ -178,6 +201,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromVariant()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -201,6 +225,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcByteArray_VerifiesArrayFromString()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -224,6 +249,7 @@ End Sub
 '@TestMethod("ByteArrayToString")
 Private Sub ztcAsciiByteArrayToString_VerifiesStringFromArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Const Expected As String = "ABCD"
@@ -243,6 +269,7 @@ End Sub
 '@TestMethod("ByteToHex")
 Private Sub ztcByteToHex_VerifiesByteConversion()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -259,6 +286,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcKeysValuesToDict_VerifiesBasicDict()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim KeyValMap As Scripting.Dictionary
@@ -282,6 +310,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcKeysValuesToDict_VerifiesExtendedDict()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim KeyValMap As Scripting.Dictionary
@@ -330,6 +359,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcKeysValuesToDict_ThrowsOnNotArrayKeys()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim KeyValMap As Scripting.Dictionary
     Set KeyValMap = FixUtils.KeysValuesToDict("One", Array(0, 1))
     Guard.AssertExpectedError Assert, ErrNo.ExpectedArrayErr
@@ -339,6 +369,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcKeysValuesToDict_ThrowsOnNotArrayValues()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim KeyValMap As Scripting.Dictionary
     Set KeyValMap = FixUtils.KeysValuesToDict(Array("Zero", "One"), 0)
     Guard.AssertExpectedError Assert, ErrNo.ExpectedArrayErr
@@ -348,6 +379,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcKeysValuesToDict_ThrowsOnArrayShapeSizeMismatch()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim KeyValMap As Scripting.Dictionary
     Set KeyValMap = FixUtils.KeysValuesToDict(Array("Zero", "One"), Array(0, 1, 2))
     Guard.AssertExpectedError Assert, ErrNo.IncompatibleArraysErr
@@ -357,6 +389,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcXorElements_ThrowsOnTypeMismatch()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim XorHash As Long
     XorHash = Array("A", 1, 2)
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -366,6 +399,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcXorElements_VerifiesHashes()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -384,6 +418,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcArrayXB_ThrowsOnTypeMismatch()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim Result As Variant
     Result = FixUtils.ArrayXB("A", 1, 1)
     Guard.AssertExpectedError Assert, ErrNo.ExpectedArrayErr
@@ -393,6 +428,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcArrayXB_VerifiesArrayFromArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -416,6 +452,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcArrayXB_VerifiesArrayFromParamArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -439,6 +476,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcBytesFromHexString_ThrowsOnEmptyString()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim ByteData() As Byte
     ByteData = FixUtils.BytesFromHexString(vbNullString)
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -448,6 +486,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcBytesFromHexString_ThrowsOnOddLength()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim ByteData() As Byte
     ByteData = FixUtils.BytesFromHexString("0")
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -457,6 +496,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcBytesFromHexString_ThrowsOnBadPrefix()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim ByteData() As Byte
     ByteData = FixUtils.BytesFromHexString("0z")
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -466,6 +506,7 @@ End Sub
 '@TestMethod("ExpectedError")
 Private Sub ztcBytesFromHexString_ThrowsOnBadLetters()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim ByteData() As Byte
     ByteData = FixUtils.BytesFromHexString("0xHH")
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
@@ -475,6 +516,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcBytesFromHexString_VerifiesValidInput()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ByteData() As Byte
@@ -497,6 +539,7 @@ End Sub
 '@TestMethod("ValidInput")
 Private Sub ztcBytesFromHexString_VerifiesValidInputWithSpacers()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ByteData() As Byte

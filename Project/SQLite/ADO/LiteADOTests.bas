@@ -7,6 +7,9 @@ Attribute VB_Name = "LiteADOTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "LiteADOTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -24,6 +27,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -31,6 +44,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -49,6 +64,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesExistingDatabasePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -71,6 +87,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcFromConnection_ValidatesNewDbManager()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -96,6 +113,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesInMemoryDatabasePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -118,6 +136,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesNewRelativeDatabasePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim FileName As String
@@ -156,6 +175,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesNewAbsoluteDatabasePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
     
 Arrange:
     Dim Expected As String
@@ -183,6 +203,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesDefaultConnectionString()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -206,6 +227,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesNoCreatConnectionString()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -229,6 +251,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ValidatesCreatConnectionString()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -252,6 +275,7 @@ End Sub
 '@TestMethod("Recordset")
 Private Sub ztcCreate_ValidatesDefaultRecordset()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO

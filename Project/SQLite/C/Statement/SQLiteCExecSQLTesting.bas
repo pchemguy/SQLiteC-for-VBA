@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCExecSQLTesting"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCExecSQLTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -38,6 +53,7 @@ End Sub
 '@TestMethod("Data types")
 Private Sub ztcSQLiteTypeName_VerifiesSQLiteTypeName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -64,6 +80,7 @@ End Sub
 '@TestMethod("Data types")
 Private Sub ztcSQLiteTypeAffinityName_VerifiesSQLiteTypeAffinityName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -90,6 +107,7 @@ End Sub
 '@TestMethod("Data types")
 Private Sub ztcTypeAffinityFromDeclaredType_VerifiesDeclaredTypeHandling()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -117,6 +135,7 @@ End Sub
 '@TestMethod("Data types")
 Private Sub ztcTypeAffinityMap_VerifiesMappingToSQLiteTypes()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -143,6 +162,7 @@ End Sub
 '@TestMethod("Metadata")
 Private Sub ztcGetColumnMetaAPI_VerifiesFunctionsColumnMeta()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -194,6 +214,7 @@ End Sub
 '@TestMethod("Metadata")
 Private Sub ztcColumnMetaAPI_ThrowsOnUninitializedSQLiteColumnMeta()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -222,6 +243,7 @@ End Sub
 '@TestMethod("Metadata")
 Private Sub ztcGetTableMeta_VerifiesFunctionsTableMeta()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -265,6 +287,7 @@ End Sub
 '@TestMethod("Metadata")
 Private Sub ztcGetTableMeta_ThrowsOnUnpreparedStatement()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -289,6 +312,7 @@ End Sub
 '@TestMethod("Metadata")
 Private Sub ztcGetTableMeta_VerifiesFunctionsTableMetaRowid()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection

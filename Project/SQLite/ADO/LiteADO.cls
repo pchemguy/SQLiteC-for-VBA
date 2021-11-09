@@ -12,7 +12,7 @@ Attribute VB_Description = "Minimalistic ADODB wrapper used by SQLiteDB"
 '@ModuleDescription "Minimalistic ADODB wrapper used by SQLiteDB"
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule IndexedDefaultMemberAccess
+'@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
 Option Explicit
 
 Implements ILiteADO

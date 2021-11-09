@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCConnectionOpenCloseTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCConnectionOpenCloseTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -38,6 +53,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -58,6 +74,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcGetDbPathName_VerifiesMemoryDbPathName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -78,6 +95,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcGetDbPathName_VerifiesAnonDbPathName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -98,6 +116,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcAttachedDbPathName_ThrowsOnClosedConnection()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -110,6 +129,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcAttachedDbPathName_VerifiesTempDbPathName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -134,6 +154,7 @@ End Sub
 '@TestMethod("DbConnection")
 Private Sub ztcOpenDbCloseDb_VerifiesWithRegularDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -158,6 +179,7 @@ End Sub
 '@TestMethod("DbConnection")
 Private Sub ztcOpenDbCloseDb_VerifiesWithTempDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -182,6 +204,7 @@ End Sub
 '@TestMethod("DbConnection")
 Private Sub ztcOpenDbCloseDb_VerifiesWithMemoryDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:

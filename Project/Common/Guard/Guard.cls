@@ -530,7 +530,7 @@ Attribute RaiseError.VB_Description = "Formats and raises a run-time error."
             "message: " & .Message, _
             "description: " & .Description, _
             "source: " & .Source)
-        Debug.Print Join(Message, vbNewLine & vbTab)
+        Logger.Logg Join(Message, vbNewLine & vbTab), , DEBUGLEVEL_ERROR
         VBA.Err.Raise .Number, .Source, .Message
     End With
 End Sub

@@ -232,6 +232,7 @@ Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single qu
 End Function
 
 
+'@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
 Attribute CountSelectNoCTE.VB_Description = "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."

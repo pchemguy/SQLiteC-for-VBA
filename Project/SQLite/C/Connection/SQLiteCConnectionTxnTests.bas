@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCConnectionTxnTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCConnectionTxnTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -40,6 +55,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesTxnDEFERRED()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -64,6 +80,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesTxnIMMEDIATE()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -89,6 +106,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesTxnEXCLUSIVE()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -114,6 +132,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesTxnRead()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -141,6 +160,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginRollback_VerifiesTxnState()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -165,6 +185,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginRollbackCommit_VerifiesError()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -188,6 +209,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommitRollback_VerifiesError()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -211,6 +233,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcReleasePoint_VerifiesError()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -232,6 +255,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcSaveRelease_VerifiesTxnState()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -255,6 +279,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcSavepointBeginCommit_VerifiesError()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -278,6 +303,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesBusyStatusWithLockingTransaction()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -309,6 +335,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcBeginCommit_VerifiesNoTransactionLockingWithMemoryDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -341,6 +368,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcSavePointRelease_VerifiesTransactionStates()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -394,6 +422,7 @@ End Sub
 '@TestMethod("Transactions")
 Private Sub ztcDbIsLocked_VerifiesLockState()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -419,5 +448,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-

@@ -6,6 +6,8 @@ Attribute VB_Name = "LiteFSCheckTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "LiteFSCheckTests"
+Private TestCounter As Long
 Private Const PATH_SEP As String = "\"
 
 Private FilePathName As String
@@ -30,6 +32,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -37,13 +49,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-End Sub
-
-
-'This method runs after every test in the module.
-'@TestCleanup
-Private Sub TestCleanup()
-    Err.Clear
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -102,6 +109,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnLastFolderACLLock()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("ACLLocked\LockedFolder\LT100.db")
@@ -135,6 +143,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnIllegalPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = ":Illegal Path<|>:"
@@ -167,6 +176,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnNonExistentPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("Dummy" & PATH_SEP & "Dummy.db")
@@ -199,6 +209,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnNonExistentFile()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("Dummy.db")
@@ -228,6 +239,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnLT100File()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("LT100.db")
@@ -258,6 +270,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnBadMagic()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("BadMagic.db")
@@ -288,6 +301,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnReadLockedFile()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath("TestC.db")
@@ -325,6 +339,7 @@ End Sub
 '@TestMethod("Path checking")
 Private Sub ztcCreate_FailsOnEmptyPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = vbNullString
@@ -357,6 +372,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesRelativePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.DefaultDbPathNameRel
@@ -378,6 +394,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_FailsResolveCreatableWithEmptyPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = vbNullString
@@ -407,6 +424,7 @@ End Sub
 '@TestMethod("New database")
 Private Sub ztcCreate_FailsCreateDbInReadOnlyDir()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = Environ$("ALLUSERSPROFILE") & PATH_SEP & "Dummy.db"
@@ -437,6 +455,7 @@ End Sub
 '@TestMethod("New database")
 Private Sub ztcCreate_FailsCreateDbNoFileName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = FixObjAdo.FixPath
@@ -467,6 +486,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesBlankNoCreatePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
     
 Arrange:
     FilePathName = vbNullString
@@ -488,6 +508,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesNameOnlyNoCreatePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
     
 Arrange:
     FilePathName = FixObjAdo.DefaultDbName
@@ -509,6 +530,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesInMemory()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = ":MEmoRy:"
@@ -530,6 +552,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesAnonPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = ":blank:"
@@ -551,6 +574,7 @@ End Sub
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesTemp()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     FilePathName = ":temp:"
@@ -573,5 +597,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-

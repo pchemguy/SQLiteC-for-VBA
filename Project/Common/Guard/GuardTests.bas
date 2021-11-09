@@ -7,6 +7,9 @@ Attribute VB_Description = "Tests for the Guard class."
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "GuardTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -22,6 +25,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -29,15 +42,20 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
-'==================================================
-'==================================================
+'===================================================='
+'==================== TEST CASES ===================='
+'===================================================='
+
 
 '@TestMethod("Guard.EmptyString")
 Private Sub EmptyString_Pass()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.EmptyString "Non-empty string"
     Guard.AssertExpectedError Assert, ErrNo.PassedNoErr
 End Sub
@@ -45,6 +63,7 @@ End Sub
 '@TestMethod("Guard.EmptyString")
 Private Sub EmptyString_ThrowsIfNotString()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.EmptyString True
     Guard.AssertExpectedError Assert, ErrNo.TypeMismatchErr
 End Sub
@@ -52,6 +71,7 @@ End Sub
 '@TestMethod("Guard.EmptyString")
 Private Sub EmptyString_ThrowsIfEmptyString()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.EmptyString vbNullString
     Guard.AssertExpectedError Assert, ErrNo.EmptyStringErr
 End Sub
@@ -59,6 +79,7 @@ End Sub
 '@TestMethod("Guard.ObjectNotSet")
 Private Sub ObjectNotSet_Pass()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NullReference Guard
     Guard.AssertExpectedError Assert, ErrNo.PassedNoErr
 End Sub
@@ -66,6 +87,7 @@ End Sub
 '@TestMethod("Guard.ObjectNotSet")
 Private Sub ObjectNotSet_ThrowsIfNotObject()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NullReference Empty
     Guard.AssertExpectedError Assert, ErrNo.ObjectRequiredErr
 End Sub
@@ -73,6 +95,7 @@ End Sub
 '@TestMethod("Guard.ObjectNotSet")
 Private Sub ObjectNotSet_ThrowsIfNothing()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NullReference Nothing
     Guard.AssertExpectedError Assert, ErrNo.ObjectNotSetErr
 End Sub
@@ -80,6 +103,7 @@ End Sub
 '@TestMethod("Guard.ObjectSet")
 Private Sub ObjectSet_Pass()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NonNullReference Nothing
     Guard.AssertExpectedError Assert, ErrNo.PassedNoErr
 End Sub
@@ -87,6 +111,7 @@ End Sub
 '@TestMethod("Guard.ObjectSet")
 Private Sub ObjectSet_ThrowsIfNotObject()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NonNullReference Empty
     Guard.AssertExpectedError Assert, ErrNo.ObjectRequiredErr
 End Sub
@@ -94,6 +119,7 @@ End Sub
 '@TestMethod("Guard.ObjectSet")
 Private Sub ObjectSet_ThrowsIfNotNothing()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NonNullReference Guard
     Guard.AssertExpectedError Assert, ErrNo.ObjectSetErr
 End Sub
@@ -101,6 +127,7 @@ End Sub
 '@TestMethod("Guard.NonDefaultInstance")
 Private Sub NonDefaultInstance_Pass()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NonDefaultInstance Guard
     Guard.AssertExpectedError Assert, ErrNo.PassedNoErr
 End Sub
@@ -108,6 +135,7 @@ End Sub
 '@TestMethod("Guard.NonDefaultInstance")
 Private Sub NonDefaultInstance_ThrowsIfNothing()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.NonDefaultInstance Nothing
     Guard.AssertExpectedError Assert, ErrNo.ObjectNotSetErr
 End Sub
@@ -115,6 +143,7 @@ End Sub
 '@TestMethod("Guard.DefaultInstance")
 Private Sub DefaultInstance_ThrowsIfDefaultInstance()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Guard.DefaultInstance Guard
     Guard.AssertExpectedError Assert, ErrNo.DefaultInstanceErr
 End Sub
@@ -123,6 +152,7 @@ End Sub
 '@TestMethod("Guard.Self")
 Private Sub Self_CheckAvailability()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim instanceVar As Object
@@ -144,6 +174,7 @@ End Sub
 '@TestMethod("Guard.Class")
 Private Sub Class_CheckAvailability()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim classVar As Object

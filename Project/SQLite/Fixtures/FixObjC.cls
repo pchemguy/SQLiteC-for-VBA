@@ -20,6 +20,7 @@ Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SE
 
 Private Type TFixObjC
     DllMan As DllManager
+    dbm As SQLiteC
     LibDir As String
 End Type
 Private this As TFixObjC
@@ -29,8 +30,25 @@ Private Sub Class_Initialize()
     this.LibDir = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX
 End Sub
 
+'''' In general, tests reuse the dbm object, which is set the first time it is
+'''' needed. However, some tests verify the state of the dbm object straight
+'''' after Init is completed, or value of properties which are only changed once
+'''' after dbm.Init. These test require a fresh dbm, so this routine must be
+'''' called first to reset the saved dbm object.
+Friend Sub CleanUp()
+    If Not this.dbm Is Nothing Then
+        this.dbm.SkipCleanUp = False
+        this.dbm.CleanUp
+        Set this.dbm = Nothing
+    End If
+End Sub
+
 Public Property Get DefaultDbPathName() As String
     DefaultDbPathName = this.LibDir & LITE_LIB & ".db"
+End Property
+
+Public Property Get DbMan() As SQLiteC
+    Set DbMan = this.dbm
 End Property
 
 '@Description "Loads SQLite dll and returns DbManager (SQLiteC) object."
@@ -40,9 +58,18 @@ Attribute GetDBM.VB_Description = "Loads SQLite dll and returns DbManager (SQLit
     DllPath = LITE_RPREFIX & "dll\" & ARCH
     Dim dbm As SQLiteC
     '''' Using default library names hardcoded in the SQLiteC constructor.
-    Set dbm = SQLiteC(DllPath)
-    If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-        "FixObjC", "Failed to create an SQLiteC instance."
+    If this.dbm Is Nothing Then
+        Set dbm = SQLiteC(DllPath)
+        If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+            "FixObjC", "Failed to create an SQLiteC instance."
+        '''' Keep references to prevent undesired object destruction
+        Set this.dbm = dbm
+        Set this.DllMan = dbm.DllMan
+    Else
+        Set dbm = this.dbm
+        Logger.Logg "FixObjC/GetDBM: Using previous DBM manager.", , DEBUGLEVEL_INFO
+        dbm.CleanUp
+    End If
     Set GetDBM = dbm
 End Function
 
@@ -52,8 +79,6 @@ Public Function GetDBC(ByVal DbPathName As String, _
 Attribute GetDBC.VB_Description = "Given database path, obtains a DbManager reference and returns a connection (SQLiteCConnection) object."
     Dim dbm As SQLiteC
     Set dbm = GetDBM()
-    '''' Keep a reference to the DllManager to prevent library unloading due to object destruction
-    Set this.DllMan = dbm.DllMan
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(DbPathName, AllowNonExistent)
     If dbc Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
@@ -173,7 +198,9 @@ Attribute CreateFunctionsTableWithData.VB_Description = "Given SQLiteCConnection
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Guard.ExpressionTrueErr ResultCode <> SQLITE_OK, ErrNo.UnknownClassErr, _
         "FixObjC", "Failed to create table."
-    Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    Dim LogMsg As String
+    LogMsg = "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
         ErrNo.UnknownClassErr, "FixObjC", "Failed to close db."
     CreateFunctionsTableWithData = AffectedRows
@@ -195,7 +222,9 @@ Attribute CreateITRBTableWithData.VB_Description = "Given SQLiteCConnection obje
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Guard.ExpressionTrueErr ResultCode <> SQLITE_OK, ErrNo.UnknownClassErr, _
         "FixObjC", "Failed to create table."
-    Debug.Print "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    Dim LogMsg As String
+    LogMsg = "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
         ErrNo.UnknownClassErr, "FixObjC", "Failed to close db."
     CreateITRBTableWithData = AffectedRows

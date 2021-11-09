@@ -30,8 +30,6 @@ Option Explicit
         (ByVal hModule As Long, ByVal lpFilename As Long, ByVal nSize As Long) As Long
 #End If
 
-Private Const VERBOUS As Boolean = False
-
 Public Enum DllLoadStatus
     LOAD_OK = -1
     LOAD_FAIL = 0
@@ -110,7 +108,9 @@ Public Property Let DefaultPath(ByVal Value As String)
     If ExecStatus Then
         this.DefaultPath = Path
     Else
-        Debug.Print "SetDllDirectory failed. Error code: " & CStr(Err.LastDllError)
+        Dim LogMsg As String
+        LogMsg = "SetDllDirectory failed. Error code: " & CStr(Err.LastDllError)
+        Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
     End If
 End Property
 
@@ -122,7 +122,9 @@ Public Sub ResetDllSearchPath()
     If ExecStatus Then
         this.DefaultPath = vbNullString
     Else
-        Debug.Print "Reset SetDllDirectory failed. Error code: " & CStr(Err.LastDllError)
+        Dim LogMsg As String
+        LogMsg = "Reset SetDllDirectory failed. Error code: " & CStr(Err.LastDllError)
+        Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
     End If
 End Sub
 
@@ -132,12 +134,14 @@ Public Function Load(ByVal DllName As String, _
             Optional ByVal ResolvePath As Boolean = True) As DllLoadStatus
     Guard.EmptyString DllName
     
+    Dim LogMsg As String
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
     FileName = fso.GetFileName(DllName)
     
     If this.Dlls.Exists(FileName) Then
-        Debug.Print "A library with file name <" & FileName & "> has already been loaded."
+        LogMsg = "A library with file name <" & FileName & "> has already been loaded."
+        Logger.Logg LogMsg, , DEBUGLEVEL_WARN
         Load = LOAD_ALREADY_LOADED
         Exit Function
     End If
@@ -186,11 +190,13 @@ Public Function Load(ByVal DllName As String, _
     DllHandle = LoadLibrary(FilePathName)
     If DllHandle <> 0 Then
         this.Dlls(FileName) = DllHandle
-        If VERBOUS Then Debug.Print "<" & DllName & "> loaded."
+        LogMsg = "<" & DllName & "> loaded."
+        Logger.Logg LogMsg, , DEBUGLEVEL_INFO
         Load = LOAD_OK
     Else
         LastDllError = Err.LastDllError
-        Debug.Print "Library <" & FilePathName & "> loading error: " & CStr(LastDllError)
+        LogMsg = "Library <" & FilePathName & "> loading error: " & CStr(LastDllError)
+        Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
         If LastDllError = ERROR_BAD_EXE_FORMAT Then
             '''' TODO: Make PE Format analyzer class to check target architechture
             ''''       and imports (dependencies).
@@ -204,23 +210,27 @@ End Function
 
 
 Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
+    Dim LogMsg As String
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
     FileName = fso.GetFileName(DllName)
     Dim Result As Long
     If Not this.Dlls.Exists(FileName) Then
-        Debug.Print "<" & DllName & "> not loaded."
+        LogMsg = "<" & DllName & "> not loaded."
+        Logger.Logg LogMsg, , DEBUGLEVEL_WARN
         Free = LOAD_OK
     Else
         Result = FreeLibrary(this.Dlls(FileName))
         If Result <> 0 Then
-            If VERBOUS Then Debug.Print "<" & DllName & "> unloaded."
+            LogMsg = "<" & DllName & "> unloaded."
+            Logger.Logg LogMsg, , DEBUGLEVEL_INFO
             Free = LOAD_OK
             this.Dlls.Remove FileName
         Else
             Free = LOAD_FAIL
-            Debug.Print "Error unloading <" & DllName & ">. Result: " _
-                & CStr(Result) & ". LastDllError: "; CStr(Err.LastDllError)
+            LogMsg = "Error unloading <" & DllName & ">. Result: " _
+                & CStr(Result) & ". LastDllError: " & CStr(Err.LastDllError)
+            Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
         End If
     End If
 End Function
@@ -235,7 +245,11 @@ Public Function LoadMultiple(ParamArray DllNames() As Variant) As DllLoadStatus
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
         Result = Result And Load(FileNames(FileNameIndex))
     Next FileNameIndex
-    If -Abs(Result) = LOAD_OK Then Debug.Print "DLLs loaded"
+    If -Abs(Result) = LOAD_OK Then
+        Dim LogMsg As String
+        LogMsg = "DLLs loaded"
+        Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    End If
     LoadMultiple = -Abs(Result)
 End Function
 
@@ -251,7 +265,11 @@ Public Function FreeMultiple(ParamArray DllNames() As Variant) As DllLoadStatus
     For FileNameIndex = LBound(FileNames) To UBound(FileNames)
         Result = Result And Free(FileNames(FileNameIndex))
     Next FileNameIndex
-    If Result = LOAD_OK Then Debug.Print "DLLs unloaded"
+    If Result = LOAD_OK Then
+        Dim LogMsg As String
+        LogMsg = "DLLs unloaded"
+        Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    End If
     FreeMultiple = Result
 End Function
 
@@ -267,6 +285,7 @@ Public Function GetDllPath(ByVal DllName As String) As String
     PathName = Space$(MAX_PATH + 1)
     Dim PathLength As Long
     PathLength = GetModuleFileName(this.Dlls(DllName), StrPtr(PathName), MAX_PATH)
-    If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, "DllManager", "Failed to obtain Dll path."
+    If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, "DllManager", _
+                           "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function

@@ -6,6 +6,9 @@ Attribute VB_Name = "LiteACIDTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "LiteACIDTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -21,6 +24,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -28,13 +41,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-End Sub
-
-
-'This method runs after every test in the module.
-'@TestCleanup
-Private Sub TestCleanup()
-    Err.Clear
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -61,6 +69,7 @@ End Function
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_PassesDefaultDatabaseIntegrityCheck()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -79,6 +88,7 @@ End Sub
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_ThrowsOnFileNotDatabase()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     zfxDefDBM(ThisWorkbook.Name).IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
@@ -87,6 +97,7 @@ End Sub
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_ThrowsOnCorruptedDatabase()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     zfxDefDBM(FixObjAdo.RelPrefix & "ICfailFKCfail.db").IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.IntegrityCheckErr
 End Sub
@@ -95,6 +106,7 @@ End Sub
 '@TestMethod("Integrity checking")
 Private Sub ztcIntegrityADODB_ThrowsOnFailedFKCheck()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     zfxDefDBM(FixObjAdo.RelPrefix & "ICokFKCfail.db").IntegrityADODB
     Guard.AssertExpectedError Assert, ErrNo.ConsistencyCheckErr
 End Sub

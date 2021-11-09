@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLlibTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLlibTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,13 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
-End Sub
-
-
-'This method runs after every test in the module.
-'@TestCleanup
-Private Sub TestCleanup()
-    Err.Clear
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -57,6 +65,7 @@ End Function
 '@TestMethod("SQL")
 Private Sub ztcSelectAll_ValidatesWildcardQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -79,6 +88,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcSelectAll_ValidatesFieldsQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -101,6 +111,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcSelectOne_ValidatesQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -125,6 +136,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcAsText_ValidatesQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -147,6 +159,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcSelectIdAsText_ValidatesQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -170,6 +183,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcSelectAllAsText_ValidatesQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -193,6 +207,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcUpdateSingleRecord_ValidatesQuery()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -215,6 +230,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcAttach_ValidatesQueryWithMissingAlias()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim SQL As SQLlib
@@ -240,6 +256,7 @@ End Sub
 '@TestMethod("SQL")
 Private Sub ztcVacuum_ValidatesQueries()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String

@@ -107,6 +107,7 @@ Friend Sub AddMeta()
     this.DbExec.TableMeta = TableMeta
 End Sub
 
+'@Ignore ProcedureNotUsed
 Public Sub SQLQuerySet(Optional ByVal SQLQuery As String = vbNullString, _
                        Optional ByVal SQLQueryExpanded As String = vbNullString)
     If Len(SQLQuery) > 0 Then this.SQLQuery = SQLQuery

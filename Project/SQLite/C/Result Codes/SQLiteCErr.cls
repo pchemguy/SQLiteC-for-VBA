@@ -111,12 +111,13 @@ End Sub
 
 Public Sub PrintErr()
     With this
-        Debug.Print "========== Error Details ========== " & vbNewLine & _
+        Logger.Logg "========== Error Details ========== " & vbNewLine & _
                     "ErrCode:          " & CStr(.ErrorCode) & vbNewLine & _
                     "ErrCode Extended: " & CStr(.ErrorCodeEx) & vbNewLine & _
                     "Error Name:       " & ErrorName & vbNewLine & _
                     "ErrStr:           " & .ErrorString & vbNewLine & _
-                    "ErrMsg:           " & .ErrorMessage & vbNewLine
+                    "ErrMsg:           " & .ErrorMessage & vbNewLine _
+                    , , DEBUGLEVEL_ERROR
     End With
 End Sub
 

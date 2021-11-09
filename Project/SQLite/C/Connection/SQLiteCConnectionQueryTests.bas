@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCConnectionQueryTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCConnectionQueryTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -38,6 +53,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQueryPlain_VerifiesTxnStateAndAffectedRecords()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -75,6 +91,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQueryPlain_VerifiesCreateTable()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -107,6 +124,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQueryPlain_VerifiesModifyQueryOnlyError()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -149,6 +167,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcExecuteNonQueryPlain_TransactionTriggeredByAttemptedTableDrop()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -189,6 +208,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcChangesCount_ThrowsOnClosedConnection()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMem
@@ -209,6 +229,7 @@ End Sub
 '@TestMethod("DbStatement")
 Private Sub ztcCreateStatement_VerifiesNewStatement()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -231,6 +252,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcAtDetach_VerifiesAttachExistingNewMem()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -292,6 +314,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcVacuum_VerifiesVacuumMainInPlace()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -314,6 +337,7 @@ End Sub
 '@TestMethod("Query")
 Private Sub ztcVacuum_VerifiesVacuumMainToNew()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
@@ -353,5 +377,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-

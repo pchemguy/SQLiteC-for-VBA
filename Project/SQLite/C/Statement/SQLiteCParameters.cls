@@ -98,6 +98,7 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_name.html
 ''''
+'@Ignore ProcedureNotUsed
 '@Description "Retrieves named parameter name."
 Public Function NameFromIndex(ByVal ParamIndex As Long) As String
 Attribute NameFromIndex.VB_Description = "Retrieves named parameter name."
@@ -235,6 +236,7 @@ Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCod
 End Function
 
 Public Sub BindClear()
+    If this.DbStmt Is Nothing Then Exit Sub
     If this.DbStmt.StmtHandle = 0 Then Exit Sub
     Dim ResultCode As SQLiteResultCodes
     ResultCode = sqlite3_clear_bindings(this.DbStmt.StmtHandle)

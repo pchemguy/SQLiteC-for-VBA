@@ -5,6 +5,9 @@ Attribute VB_Name = "SQLiteCConnectionAccessModTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCConnectionAccessModTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -20,6 +23,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -27,6 +40,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -38,6 +53,7 @@ End Sub
 '@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesDefaultAccess()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -64,6 +80,7 @@ End Sub
 '@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesReadAccess()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -90,6 +107,7 @@ End Sub
 '@TestMethod("AccessMode")
 Private Sub ztcAccessMode_VerifiesDefaultAccessReadOnlyFile()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:

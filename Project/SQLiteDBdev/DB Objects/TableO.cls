@@ -285,6 +285,7 @@ Public Sub CreateTable(Optional ByVal OnConflictAction As Variant = Empty)
     If Not IsEmpty(OnConflictAction) Then
         this.CreateActionIfExists = OnConflictAction
     End If
+    '@Ignore FunctionReturnValueDiscarded
     this.DbManager.ExecuteNonQuery Me.SQL
 End Sub
 

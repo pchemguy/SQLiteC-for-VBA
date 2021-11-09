@@ -6,6 +6,9 @@ Attribute VB_Name = "DllManagerTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "DllManagerTests"
+Private TestCounter As Long
+
 Private Const LITE_LIB As String = "DllManager"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
@@ -27,6 +30,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -34,6 +47,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -76,6 +91,7 @@ End Function
 '@TestMethod("Factory")
 Private Sub ztcCreate_VerifiesEmptyPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DefaultPath As String
@@ -96,6 +112,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_VerifiesRelativePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DefaultPath As String
@@ -116,6 +133,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_VerifiesAbsolutePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DefaultPath As String
@@ -136,6 +154,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ThrowsOnInvalidPath()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create("____INVALID PATH____")
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
@@ -145,6 +164,7 @@ End Sub
 '@TestMethod("DefaultPath")
 Private Sub ztcDefaultPath_VerifiesRelativePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DefaultPath As String
@@ -167,6 +187,7 @@ End Sub
 '@TestMethod("DefaultPath")
 Private Sub ztcDefaultPath_ThrowsOnInvalidPath()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(vbNullString)
     DllMan.DefaultPath = "____INVALID PATH____"
@@ -177,6 +198,7 @@ End Sub
 '@TestMethod("Load")
 Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     '''' Set mismatched path to test for error
     Dim DllPath As String
     #If WIN64 Then
@@ -200,6 +222,7 @@ End Sub
 '@TestMethod("Load")
 Private Sub ztcLoad_VerifiesLoad()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllPath As String
@@ -236,6 +259,7 @@ End Sub
 '@TestMethod("Load")
 Private Sub ztcLoadMultiple_VerifiesLoadOne()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllPath As String
@@ -267,6 +291,7 @@ End Sub
 '@TestMethod("Load")
 Private Sub ztcLoadMultiple_VerifiesLoadArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -287,6 +312,7 @@ End Sub
 '@TestMethod("Load")
 Private Sub ztcLoadMultiple_VerifiesLoadParamArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllPath As String
@@ -317,6 +343,7 @@ End Sub
 '@TestMethod("Free")
 Private Sub ztcFree_VerifiesFree()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllMan As DllManager
@@ -343,6 +370,7 @@ End Sub
 '@TestMethod("Free")
 Private Sub ztcFreeMultiple_VerifiesFreeOne()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllMan As DllManager
@@ -365,6 +393,7 @@ End Sub
 '@TestMethod("Free")
 Private Sub ztcFreeMultiple_VerifiesFreeTwoParamArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllICUName As String
@@ -394,6 +423,7 @@ End Sub
 '@TestMethod("Free")
 Private Sub ztcFreeMultiple_VerifiesFreeTwoArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllICUName As String
@@ -423,6 +453,7 @@ End Sub
 '@TestMethod("Free")
 Private Sub ztcFreeMultiple_VerifiesFreeAll()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllMan As DllManager
@@ -439,4 +470,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-

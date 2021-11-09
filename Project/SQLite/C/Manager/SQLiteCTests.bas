@@ -7,6 +7,9 @@ Attribute VB_Name = "SQLiteCTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "SQLiteCTests"
+Private TestCounter As Long
+
 Private Const LITE_LIB As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
@@ -26,6 +29,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -33,6 +46,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -44,6 +59,7 @@ End Sub
 '@TestMethod("SQLiteVersion")
 Private Sub ztcSQLite3Version_VerifiesVersionInfo()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllPath As String
@@ -75,6 +91,7 @@ End Sub
 '@TestMethod("SQLiteVersion")
 Private Sub ztcSQLite3Version_VerifiesVersionInfoV2()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim DllPath As String
@@ -103,6 +120,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_VerifiesDefaultManager()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -120,8 +138,13 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcGetMainDbId_VerifiesIsNull()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
+    '''' In general, tests may reuse the db manager. This test verifies the
+    '''' state of the freshly instantiated SQLiteC object, so cleanup must
+    '''' be executed before the test. (dbm.MainDbId is set to Null in dbm.Init)
+    FixObjC.CleanUp
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM
 Assert:
@@ -137,6 +160,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcGetDllMan_VerifiesIsSet()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -154,6 +178,7 @@ End Sub
 '@TestMethod("ConnMan")
 Private Sub ztcConnDb_VerifiesIsNotSet()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -171,6 +196,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim DllPath As String
     Dim DllNames As Variant
     #If WIN64 Then
@@ -189,6 +215,7 @@ End Sub
 '@TestMethod("Factory")
 Private Sub ztcCreate_ThrowsOnInvalidDllPath()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim DllPath As String
     DllPath = "____INVALID PATH____"
     Dim dbm As SQLiteC
@@ -200,6 +227,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -217,6 +245,7 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As SQLiteC
@@ -227,8 +256,8 @@ Arrange:
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
     Assert.IsNotNothing DbConn, "Default SQLiteCConnection is not set."
-    Assert.AreEqual DbPathName, dbm.MainDbId
-    Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
+    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
     
 CleanExit:
     Exit Sub
@@ -240,8 +269,14 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
+    '''' In general, tests may reuse the db manager. This test verifies the
+    '''' state of the freshly instantiated SQLiteC object, so cleanup must
+    '''' be executed before the test. (dbm.MainDbId is set the first time
+    '''' the dbm.CreateConnection is called.)
+    FixObjC.CleanUp
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
@@ -249,8 +284,8 @@ Arrange:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.AreEqual DbPathName, dbm.MainDbId
-    Assert.AreSame DbConn, dbm.ConnDb(DbPathName)
+    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
     
 CleanExit:
     Exit Sub
@@ -262,8 +297,14 @@ End Sub
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesTempMainDb()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
+    '''' In general, tests may reuse the db manager. This test verifies the
+    '''' state of the freshly instantiated SQLiteC object, so cleanup must
+    '''' be executed before the test. (dbm.MainDbId is set the first time
+    '''' the dbm.CreateConnection is called.)
+    FixObjC.CleanUp
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
@@ -271,8 +312,8 @@ Arrange:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.AreEqual vbNullString, dbm.MainDbId
-    Assert.AreSame DbConn, dbm.ConnDb(vbNullString)
+    Assert.AreEqual vbNullString, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(vbNullString), "Connection reference mismatch"
     
 CleanExit:
     Exit Sub
@@ -281,15 +322,19 @@ TestFail:
 End Sub
 
 
-'@TestMethod("SQLiteVersion")
+'''' See SQLiteC.CleanUp comments
+'@TestMethod("Backup")
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyMemToTemp()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCMemITRBWithData
+    FixObjC.DbMan.SkipCleanUp = True
     Dim dbcDst As SQLiteCConnection
     Set dbcDst = FixObjC.GetDBCTmp
+    FixObjC.DbMan.SkipCleanUp = False
 
     Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
@@ -323,15 +368,19 @@ TestFail:
 End Sub
 
 
-'@TestMethod("SQLiteVersion")
+'''' See SQLiteC.CleanUp comments
+'@TestMethod("Backup")
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyTempToMem()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCTmpITRBWithData
+    FixObjC.DbMan.SkipCleanUp = True
     Dim dbcDst As SQLiteCConnection
     Set dbcDst = FixObjC.GetDBCMem
+    FixObjC.DbMan.SkipCleanUp = False
 
     Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."

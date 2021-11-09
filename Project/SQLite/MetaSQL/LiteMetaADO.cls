@@ -160,7 +160,7 @@ Attribute GetTableColumnsEx.VB_Description = "Retrieves full fields metadata fro
     Set AdoRecordset = this.ExecADO.GetAdoRecordset(this.MetaSQL.TableColumnsEx(TableName))
     Dim TableSQL As String
     TableSQL = this.ExecADO.GetAdoRecordset(this.MetaSQL.TableSQL(TableName)).Fields("sql")
-    Debug.Print TableSQL
+    Logger.Logg TableSQL, , DEBUGLEVEL_VERB
     Dim CreateTableLines As Variant
     CreateTableLines = Split(TableSQL, vbLf)
 

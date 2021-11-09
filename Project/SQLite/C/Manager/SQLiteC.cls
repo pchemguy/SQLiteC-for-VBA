@@ -43,6 +43,9 @@ Private Declare Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As L
 Private Type TSQLiteC
     DllMan As DllManager
     Connections As Scripting.Dictionary
+    SkipCleanUp As Boolean
+    '''' The first created connection is designated as the main db, MainDB and
+    '''' is set to this connection's ID, which is the pathname of its 'main' db.
     MainDB As Variant
 End Type
 Private this As TSQLiteC
@@ -81,13 +84,44 @@ Friend Sub Init(ByVal DllPath As String, _
     Set this.Connections = New Scripting.Dictionary
     this.Connections.CompareMode = TextCompare
     this.MainDB = Null
+    this.SkipCleanUp = False
 End Sub
 
 Private Sub Class_Terminate()
-    CleanUp
+    Dim LogMsg As String
+    LogMsg = "========== SQLiteC Class_Terminate ==========" & vbNewLine & _
+             "Cleanup " & IIf(SkipCleanUp, "skipped", "performed")
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    If Not this.SkipCleanUp Then CleanUp
 End Sub
 
+'''' SQLiteC class hierarchy includes multiple instances of circular references,
+'''' (parent object holding references to its children and children keeping a
+'''' parent reference (see class diagram in the project docs). Such objects
+'''' cannot be disposed of properly automatically by VBA.
+''''
+'''' SQLiteC is the top-level class and its encapsulated class SQLiteCConnection
+'''' does not need and does not hold a reference to the manager. Thus, SQLiteC
+'''' objects are destructed automatically, and through its Class_Terminate, this
+'''' routines initiates a descending cascade of cleanup routines responsible for
+'''' unraveling the circular references.
+''''
+'''' FixObjC is extensively used as a fixture for testing the SQLiteC subpackage.
+'''' For testing purposes, a single manager is normally sufficient. SQLiteC is
+'''' responsible for loading DLL libraries, so its instantiation is somewhat
+'''' expensive. FixObjC class instantiates SQLiteC class the first time it is
+'''' requested and reuses the manager. To minimize undesired test interactions,
+'''' however, the Cleanup routine is called to clear all descendant objects, and
+'''' most of the time it works fine. In case of SQLiteC.DupDbOnlineFull, however,
+'''' the current test use two independent SQLiteCConnection objects generated via
+'''' FixObjC. That means the when the second object is requested, the first one
+'''' is by the FixObjC.GetDBM initiated cleanup cascade. To permit an exception,
+'''' the SkipCleanUp attribute is introduced into the SQLiteC class. If set to
+'''' true SQLiteC.Cleanup cascade is aborted. This attribute, in turn is exposed
+'''' on dbm, and FixObjC exposes its dbm object, making it possible to perform
+'''' the test (see SQLiteCTests.ztcDupDbOnlineFull_*).
 Friend Sub CleanUp()
+    If SkipCleanUp Or this.Connections Is Nothing Then Exit Sub
     Dim DbConn As SQLiteCConnection
     Dim ConnName As Variant
     For Each ConnName In this.Connections.Keys
@@ -96,6 +130,15 @@ Friend Sub CleanUp()
         this.Connections.Remove ConnName
     Next ConnName
 End Sub
+
+Friend Property Get SkipCleanUp() As Boolean
+    SkipCleanUp = this.SkipCleanUp
+End Property
+
+'@Ignore ProcedureNotUsed
+Friend Property Let SkipCleanUp(ByVal Value As Boolean)
+    this.SkipCleanUp = Value
+End Property
 
 Public Property Get MainDbId() As Variant
     MainDbId = this.MainDB

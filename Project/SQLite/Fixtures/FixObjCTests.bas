@@ -6,6 +6,9 @@ Attribute VB_Name = "FixObjCTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "FixObjCTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -21,6 +24,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -28,6 +41,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -39,6 +54,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBCTmpFuncWithData_VerifiesTmpDatabase()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -76,6 +92,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBCMemFuncWithData_VerifiesMemDatabase()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -116,6 +133,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBSMemITRBWithData_VerifiesDBSMemITRBWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbs As ILiteADO
@@ -136,6 +154,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBSMemFuncWithData_VerifiesDBSMemFuncWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbs As ILiteADO
@@ -158,6 +177,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBSTmpITRBWithData_VerifiesDBSTmpITRBWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbs As ILiteADO
@@ -178,6 +198,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBSTmpFuncWithData_VerifiesDBSTmpFuncWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbs As ILiteADO

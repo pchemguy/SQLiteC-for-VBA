@@ -6,6 +6,9 @@ Attribute VB_Name = "FixObjAdoTests"
 Option Explicit
 Option Private Module
 
+Private Const MODULE_NAME As String = "FixObjAdoTests"
+Private TestCounter As Long
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -21,6 +24,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -28,6 +41,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -39,6 +54,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMReg_VerifiesDBMReg()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -92,6 +108,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMMem_VerifiesDBMMem()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -118,6 +135,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMMemITRB_VerifiesDBMMemITRB()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -146,6 +164,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMMemITRBWithData_VerifiesDBMMemITRBWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -166,6 +185,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMMemFuncWithData_VerifiesDBMMemFuncWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -188,6 +208,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMTmp_VerifiesDBMTmp()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -208,6 +229,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMTmpITRBWithData_VerifiesGetDBMTmpITRBWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -228,6 +250,7 @@ End Sub
 '@TestMethod("Fixture")
 Private Sub ztcGetDBMTmpFuncWithData_VerifiesDBMTmpFuncWithData()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim dbm As ILiteADO
@@ -245,5 +268,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-
