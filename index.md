@@ -13,7 +13,7 @@ VBA incorporates several [technologies][VBA RDBMS] for accessing databases, prov
 
 ### Existing database-centric VBA "middleware" projects
 
-A few existing VBA projects develop database-related tools worth mentioning. Here are three notable generic projects:
+A few existing VBA projects develop database-related tools worth mentioning. Here are three generic projects:
 
 * [SecureADODB][] is a thin wrapper around the ADODB library. SecureADODB is a generic (database-agnostic) fully object-oriented VBA library focused on database connectivity workflows. The project employs advanced OOP techniques and patterns, demonstrating VBA implementation details, and presents powerful testing strategies.
 * [VBA SQL Library][] targets the generation of SQL queries, another common component of the database interaction workflow. I have not studied its code yet or tried to use it, so I cannot comment on its functionality.
