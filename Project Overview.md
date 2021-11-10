@@ -10,7 +10,7 @@ permalink: /project-overview
 I started this project as the [SQLiteDB VBA][] class, wrapping the ADODB library to facilitate introspection of the SQLite engine and databases. Later, I refactored the SQLiteDB class and several supporting class modules into the SQLiteADO subpackage shown on the left in [Fig. 1](#LibraryStructure). SQLiteADO incorporates a set of class modules with a shared prefix *Lite-*. Shown on the right, the other core subpackage SQLiteC uses SQLite C-API directly (and the *SQLiteC-* prefix).
 
 <a name="LibraryStructure"></a>  
-<div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/Major%20Componenets.svg" alt="Library structure" width="80%" /></div>
+<div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/Major%20Componenets.svg" alt="Library structure" /></div>
 <p align="center"><b>Fig. 1. Library structure</b></p>  
 
 The ILiteADO interface module shown in the center is a part of the SQLiteADO subpackage. It formalizes the high-level core functionality necessary for database interaction. As an OOP exercise, I implemented ILiteADO by the SQLiteC subpackage as well. An application may interact with SQLiteADO/SQLiteC directly via their APIs, which differ substantially. Or it may use the ILiteADO interface, which only exposes partial functionality but provides a unified API.
