@@ -6,9 +6,7 @@ nav_order: 1
 permalink: /sqliteado/structure
 ---
 
-### SQLiteADO functional structure
-
-SQLiteADO includes a basic wrapper around the ADODB library. SQLiteADO classes can be grouped into several sets based on their functionality.
+SQLiteADO includes a basic wrapper around the ADODB library, and its classes can be grouped into several sets based on their functionality.
 
 #### Database connectivity: *LiteADO* and *LiteMan*
 
