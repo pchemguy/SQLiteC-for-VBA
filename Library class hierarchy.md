@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Class hierarchy overview
+title: Class hierarchy
 nav_order: 3
 permalink: /class-hierarchy
 ---
