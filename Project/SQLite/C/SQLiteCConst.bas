@@ -9,13 +9,6 @@ Attribute VB_Name = "SQLiteCConst"
 
 Option Explicit
 
-#If Win64 Then
-    Public Const ARCH As String = "x64"
-#Else
-    Public Const ARCH As String = "x32"
-    Public Const vbLongLong As Long = 20&
-#End If
-
 Public Enum SQLiteDataType
     SQLITE_NONE = 0&
     SQLITE_INTEGER = 1&

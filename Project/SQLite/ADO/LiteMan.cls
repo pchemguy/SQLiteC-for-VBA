@@ -43,7 +43,7 @@ Friend Sub Init(ByVal Database As String, _
     End With
 End Sub
 
-Public Function NewDB(ByVal Database As String, _
+Friend Function NewDB(ByVal Database As String, _
                       ByVal AllowNonExistent As Variant) As ILiteADO
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
