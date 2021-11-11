@@ -1,8 +1,9 @@
 ---
 layout: default
-title: SQLiteADO dissection
-nav_order: 4
-permalink: /sqliteado-dissection
+title: Functional structure
+parent: SQLiteADO core
+nav_order: 1
+permalink: /sqliteado/structure
 ---
 
 ### SQLiteADO functional structure

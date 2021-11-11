@@ -1,8 +1,8 @@
 ---
 layout: default
-title: SQLiteCAdo class hierarchy
+title: Class hierarchy overview
 nav_order: 3
-permalink: /sqlitecado-class-hierarchy
+permalink: /class-hierarchy
 ---
 
 ### SQLiteADO subpackage
