@@ -36,7 +36,6 @@ End Function
 
 Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.NullReference ExecADO
-    Guard.EmptyString ExecADO.MainDB
     
     Set this.ExecADO = ExecADO
     Set this.MetaSQL = LiteMetaSQL.Create("main")

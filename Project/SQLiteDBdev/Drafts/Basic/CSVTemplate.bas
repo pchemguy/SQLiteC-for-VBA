@@ -7,7 +7,7 @@ Option Explicit
 
 Private Function GetConnectionString() As Scripting.Dictionary
     Dim Driver As String
-    #If WIN64 Then
+    #If Win64 Then
         Driver = "Microsoft Access Text Driver (*.txt, *.csv)"
     #Else
         Driver = "{Microsoft Text Driver (*.txt; *.csv)}"

@@ -198,7 +198,7 @@ Assert:
         Assert.AreEqual "rowid", .OriginName, "Name mismatch."
     End With
     
-CleanUp:
+Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbc.CloseDb
@@ -271,7 +271,7 @@ Assert:
     Assert.AreEqual 5, UBound(TableMeta), "TableMeta size mismatch."
     Assert.AreEqual "enc", TableMeta(3).Name, "enc column name mismatch."
     Assert.AreEqual "narg", TableMeta(4).Name, "nargs column name mismatch "
-CleanUp:
+Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbc.CloseDb
@@ -387,7 +387,7 @@ Assert:
         Assert.AreEqual SQLITE_BLOB, .AffinityType, "Expected AffinityType=SQLITE_BLOB"
         Assert.AreEqual "BLOB", .DeclaredTypeT, "Expected DeclaredTypeT=BLOB"
     End With
-CleanUp:
+Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     ResultCode = dbc.CloseDb

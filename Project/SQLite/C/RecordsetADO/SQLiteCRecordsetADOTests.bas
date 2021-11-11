@@ -145,7 +145,7 @@ Assert:
         Attr = adFldIsNullable + adFldMayBeNull + adFldUpdatable + adFldLong
         Assert.AreEqual Attr, .Attributes, "Rst field Attributes mismatch"
     End With
-CleanUp:
+Cleanup:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
     ResultCode = dbc.CloseDb

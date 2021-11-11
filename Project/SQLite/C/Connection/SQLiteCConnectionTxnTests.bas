@@ -67,7 +67,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_DEFERRED), "Unexpected Txn Begin error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -93,7 +93,7 @@ Assert:
     Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -119,7 +119,7 @@ Assert:
     Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -147,7 +147,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
     Assert.AreEqual SQLITE_TXN_READ, dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -172,7 +172,7 @@ Assert:
     Assert.IsTrue SQLITE_TXN_NONE < dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.Rollback, "Unexpected Txn Rollback error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -196,7 +196,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
     Assert.AreEqual SQLITE_OK, dbc.Rollback, "Unexpected Txn Rollback error"
     Assert.AreEqual SQLITE_ERROR, dbc.Commit, "Expected SQLITE_ERROR error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -220,7 +220,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_ERROR, dbc.Rollback, "Expected SQLITE_ERROR error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -242,7 +242,7 @@ Act:
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
 Assert:
     Assert.AreEqual SQLITE_ERROR, dbc.ReleasePoint("ABCDEFG"), "Expected SQLITE_ERROR error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -266,7 +266,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, dbc.SavePoint("ABCDEFG"), "Unexpected Txn SavePoint error"
     Assert.AreEqual SQLITE_TXN_NONE, dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual SQLITE_OK, dbc.ReleasePoint("ABCDEFG"), "Unexpected Txn ReleasePoint error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -290,7 +290,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, dbc.SavePoint("ABCD"), "Unexpected Txn SavePoint error"
     Assert.AreEqual SQLITE_ERROR, dbc.Begin, "Expected SQLITE_ERROR error"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -320,7 +320,7 @@ Act:
 Assert:
     Assert.AreEqual SQLITE_BUSY, dbcA.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin status"
     Assert.AreEqual SQLITE_TXN_NONE, dbcA.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_OK, dbcA.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
@@ -352,7 +352,7 @@ Act:
 Assert:
     Assert.AreEqual SQLITE_OK, dbcA.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin status"
     Assert.AreEqual SQLITE_TXN_WRITE, dbcA.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbcA.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_OK, dbc.Commit, "Unexpected Txn Commit error"
     Assert.AreEqual SQLITE_OK, dbcA.CloseDb, "Unexpected CloseDb error"
@@ -409,7 +409,7 @@ Assert:
     
     Assert.AreEqual SQLITE_OK, dbc.Begin(SQLITE_TXN_IMMEDIATE), "Unexpected Txn Begin error"
     Assert.AreEqual SQLITE_TXN_READ, dbc.TxnState("main"), "Unexpected Txn state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -440,7 +440,7 @@ Assert:
     Assert.AreEqual SQLITE_TXN_WRITE, dbc.TxnState("main"), "Unexpected Txn state"
     Assert.AreEqual CVErr(ErrNo.AdoInTransactionErr), dbc.DbIsLocked, "Unexpected lock state"
     Assert.AreEqual True, dbcA.DbIsLocked, "Unexpected lock state"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:

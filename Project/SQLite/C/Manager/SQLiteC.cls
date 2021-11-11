@@ -22,7 +22,7 @@ Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr 
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Backup
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, _
-    ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As Long
+    ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As LongPtr
 Private Declare PtrSafe Function sqlite3_backup_step Lib "SQLite3" (ByVal hBackup As LongPtr, ByVal nPage As Long) As Long
 Private Declare PtrSafe Function sqlite3_backup_remaining Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
@@ -67,7 +67,7 @@ Friend Sub Init(ByVal DllPath As String, _
     If Not IsEmpty(DllNames) Then
         FileNames = DllNames
     Else
-        #If WIN64 Then
+        #If Win64 Then
             '''' SQLite3.dll-x64 is built with MSYS2/MinGWx64
             '''' LoadLibrary resolves/loads dependencies automatically.
             FileNames = "sqlite3.dll"
@@ -92,7 +92,7 @@ Private Sub Class_Terminate()
     LogMsg = "========== SQLiteC Class_Terminate ==========" & vbNewLine & _
              "Cleanup " & IIf(SkipCleanUp, "skipped", "performed")
     Logger.Logg LogMsg, , DEBUGLEVEL_INFO
-    If Not this.SkipCleanUp Then CleanUp
+    If Not this.SkipCleanUp Then Cleanup
 End Sub
 
 '''' SQLiteC class hierarchy includes multiple instances of circular references,
@@ -120,13 +120,13 @@ End Sub
 '''' true SQLiteC.Cleanup cascade is aborted. This attribute, in turn is exposed
 '''' on dbm, and FixObjC exposes its dbm object, making it possible to perform
 '''' the test (see SQLiteCTests.ztcDupDbOnlineFull_*).
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     If SkipCleanUp Or this.Connections Is Nothing Then Exit Sub
     Dim DbConn As SQLiteCConnection
     Dim ConnName As Variant
     For Each ConnName In this.Connections.Keys
         Set DbConn = this.Connections(ConnName)
-        DbConn.CleanUp
+        DbConn.Cleanup
         this.Connections.Remove ConnName
     Next ConnName
 End Sub

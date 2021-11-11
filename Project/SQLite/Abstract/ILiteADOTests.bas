@@ -57,14 +57,14 @@ Private Sub ztcExecuteNonQuery_VerifiesInsertPlainITRB()
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMemITRB
-    Assert.IsNotNothing dbm, "FixObjAdo.GetDBMMemITRB returned Nothing."
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMemITRB
+    Assert.IsNotNothing dbq, "FixObjAdo.GetDBMMemITRB returned Nothing."
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQLITRB.InsertPlain()
     Dim AffectedRecords As Long
-    AffectedRecords = dbm.ExecuteNonQuery(SQLQuery)
+    AffectedRecords = dbq.ExecuteNonQuery(SQLQuery)
     Dim ExpectedChanges As Long
     ExpectedChanges = Len(SQLQuery) - Len(Replace(SQLQuery, "(", vbNullString)) - 1
 Assert:

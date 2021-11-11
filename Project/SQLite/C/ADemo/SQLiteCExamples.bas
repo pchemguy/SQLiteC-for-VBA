@@ -68,11 +68,11 @@ Attribute Main.VB_Description = "Main entry point"
     PrepareStatementGetScalar
     FinalizeStatement
     CloseDb
-    CleanUp
+    Cleanup
 End Sub
 
 
-Private Sub CleanUp()
+Private Sub Cleanup()
     Set this.dbs = Nothing
     Set this.dbc = Nothing
     Set this.dbm = Nothing
@@ -86,7 +86,7 @@ Attribute InitDBM.VB_Description = "Creates database manager (SQLiteC) instance 
     Dim DllPath As String
     DllPath = LITE_RPREFIX & "dll\" & ARCH
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllNames = "sqlite3.dll"
     #Else
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _

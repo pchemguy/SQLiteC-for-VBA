@@ -35,10 +35,10 @@ End Sub
 '''' after Init is completed, or value of properties which are only changed once
 '''' after dbm.Init. These test require a fresh dbm, so this routine must be
 '''' called first to reset the saved dbm object.
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     If Not this.dbm Is Nothing Then
         this.dbm.SkipCleanUp = False
-        this.dbm.CleanUp
+        this.dbm.Cleanup
         Set this.dbm = Nothing
     End If
 End Sub
@@ -68,7 +68,7 @@ Attribute GetDBM.VB_Description = "Loads SQLite dll and returns DbManager (SQLit
     Else
         Set dbm = this.dbm
         Logger.Logg "FixObjC/GetDBM: Using previous DBM manager.", , DEBUGLEVEL_INFO
-        dbm.CleanUp
+        dbm.Cleanup
     End If
     Set GetDBM = dbm
 End Function
@@ -287,8 +287,12 @@ Public Function GetDBCTmpITRBWithData() As SQLiteCConnection
 Attribute GetDBCTmpITRBWithData.VB_Description = "Returns a connection (SQLiteCConnection) object using a new random databse in the temp folder with 'ITRB' table and data."
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBCTmp()
-    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
-    Set GetDBCTmpITRBWithData = dbc
+    If CreateITRBTableWithData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBCTmpITRBWithData = Nothing
+    Else
+        Set GetDBCTmpITRBWithData = dbc
+    End If
 End Function
 
 '@Description "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'ITRB' table and data."
@@ -296,8 +300,12 @@ Public Function GetDBSMemITRBWithData() As ILiteADO
 Attribute GetDBSMemITRBWithData.VB_Description = "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'ITRB' table and data."
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBCMem(OpenDb:=True)
-    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
-    Set GetDBSMemITRBWithData = dbc.CreateStatement(vbNullString)
+    If CreateITRBTableWithData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSMemITRBWithData = Nothing
+    Else
+        Set GetDBSMemITRBWithData = dbc.CreateStatement(vbNullString)
+    End If
 End Function
 
 '@Description "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'functions' table and data."
@@ -305,8 +313,12 @@ Public Function GetDBSMemFuncWithData() As ILiteADO
 Attribute GetDBSMemFuncWithData.VB_Description = "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'functions' table and data."
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBCMem(OpenDb:=True) '''' DO NOT CLOSE In-Memory Database!
-    If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
-    Set GetDBSMemFuncWithData = dbc.CreateStatement(vbNullString)
+    If CreateFunctionsTableWithData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSMemFuncWithData = Nothing
+    Else
+        Set GetDBSMemFuncWithData = dbc.CreateStatement(vbNullString)
+    End If
 End Function
 
 '@Description "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'ITRB' table and data."
@@ -314,8 +326,12 @@ Public Function GetDBSTmpITRBWithData() As ILiteADO
 Attribute GetDBSTmpITRBWithData.VB_Description = "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'ITRB' table and data."
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBCTmp()
-    If CreateITRBTableWithData(dbc) <= 0 Then Set dbc = Nothing
-    Set GetDBSTmpITRBWithData = dbc.CreateStatement(vbNullString)
+    If CreateITRBTableWithData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSTmpITRBWithData = Nothing
+    Else
+        Set GetDBSTmpITRBWithData = dbc.CreateStatement(vbNullString)
+    End If
 End Function
 
 '@Description "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'functions' table and data."
@@ -323,6 +339,10 @@ Public Function GetDBSTmpFuncWithData() As ILiteADO
 Attribute GetDBSTmpFuncWithData.VB_Description = "Returns an SQLiteCStatement/ILiteADO object using a new random databse in the temp folder with 'functions' table and data."
     Dim dbc As SQLiteCConnection
     Set dbc = GetDBCTmp()
-    If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
-    Set GetDBSTmpFuncWithData = dbc.CreateStatement(vbNullString)
+    If CreateFunctionsTableWithData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSTmpFuncWithData = Nothing
+    Else
+        Set GetDBSTmpFuncWithData = dbc.CreateStatement(vbNullString)
+    End If
 End Function

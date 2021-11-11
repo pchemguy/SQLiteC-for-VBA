@@ -4,7 +4,7 @@ Attribute VB_Name = "DllManagerDemo"
 Option Explicit
 Option Private Module
 
-#If WIN64 Then
+#If Win64 Then
 Private Const ARCH As String = "x64"
 #Else
 Private Const ARCH As String = "x32"
@@ -95,7 +95,7 @@ Private Sub SQLiteLoadMultipleArrayCompact()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = "Library\SQLiteCforVBA\dll\x64"
         DllNames = "sqlite3.dll"
     #Else
@@ -117,14 +117,14 @@ End Sub
 
 Private Sub SQLiteLoadMultipleParamArray()
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = "Library\SQLiteCforVBA\dll\x64"
     #Else
         DllPath = "Library\SQLiteCforVBA\dll\x32"
     #End If
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath)
-    #If WIN64 Then
+    #If Win64 Then
         DllMan.LoadMultiple "sqlite3.dll"
     #Else
         DllMan.LoadMultiple _
@@ -141,7 +141,7 @@ End Sub
 Private Sub SQLiteLoad()
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = "Library\SQLiteCforVBA\dll\x64"
         DllNames = Array("sqlite3.dll")
     #Else

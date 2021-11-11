@@ -52,25 +52,25 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMReg_VerifiesDBMReg()
+Private Sub ztcGetDbReg_VerifiesDbReg()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMReg()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbReg()
     Dim SQLiteMajorVersion As String
     SQLiteMajorVersion = "3"
     Dim SQLQuery As String
 Act:
 Assert:
     SQLQuery = "SELECT sqlite_version()"
-    Assert.AreEqual SQLiteMajorVersion, Left(dbm.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
-    Assert.AreEqual FixObjAdo.DefaultDbPathName, dbm.MainDB, "Database name (dbm.MainDB) mismatch."
+    Assert.AreEqual SQLiteMajorVersion, Left$(dbq.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
+    Assert.AreEqual FixObjAdo.DefaultDbPathName, dbq.MainDB, "Database name (dbq.MainDB) mismatch."
     SQLQuery = "SELECT count(*) FROM pragma_database_list()"
-    Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Database count mismatch."
+    Assert.AreEqual 1, dbq.GetScalar(SQLQuery), "Database count mismatch."
     SQLQuery = "SELECT '_' || file || '_' FROM pragma_database_list() WHERE name='main'"
-    Assert.AreEqual "_" & dbm.MainDB & "_", dbm.GetScalar(SQLQuery), "Database name mismatch."
+    Assert.AreEqual "_" & dbq.MainDB & "_", dbq.GetScalar(SQLQuery), "Database name mismatch."
 
 CleanExit:
     Exit Sub
@@ -80,23 +80,23 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMAnon_VerifiesDBMAnon()
+Private Sub ztcGetDbAnon_VerifiesDbAnon()
     On Error GoTo TestFail
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMAnon()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbAnon()
     Dim SQLiteMajorVersion As String
     SQLiteMajorVersion = "3"
     Dim SQLQuery As String
 Act:
 Assert:
     SQLQuery = "SELECT sqlite_version()"
-    Assert.AreEqual SQLiteMajorVersion, Left(dbm.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
+    Assert.AreEqual SQLiteMajorVersion, Left$(dbq.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
     SQLQuery = "SELECT count(*) FROM pragma_database_list()"
-    Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Database count mismatch."
+    Assert.AreEqual 1, dbq.GetScalar(SQLQuery), "Database count mismatch."
     SQLQuery = "SELECT '_' || file || '_' FROM pragma_database_list() WHERE name='main'"
-    Assert.AreEqual "__", dbm.GetScalar(SQLQuery), "Database name mismatch."
+    Assert.AreEqual "__", dbq.GetScalar(SQLQuery), "Database name mismatch."
 
 CleanExit:
     Exit Sub
@@ -106,24 +106,24 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMMem_VerifiesDBMMem()
+Private Sub ztcGetDbMem_VerifiesDbMem()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMem()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMem()
     Dim SQLiteMajorVersion As String
     SQLiteMajorVersion = "3"
     Dim SQLQuery As String
 Act:
 Assert:
     SQLQuery = "SELECT sqlite_version()"
-    Assert.AreEqual SQLiteMajorVersion, Left(dbm.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
+    Assert.AreEqual SQLiteMajorVersion, Left$(dbq.GetScalar(SQLQuery), 1), "SQLiteMajorVersion mismatch."
     SQLQuery = "SELECT count(*) FROM pragma_database_list()"
-    Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Database count mismatch."
+    Assert.AreEqual 1, dbq.GetScalar(SQLQuery), "Database count mismatch."
     SQLQuery = "SELECT '_' || file || '_' FROM pragma_database_list() WHERE name='main'"
-    Assert.AreEqual "__", dbm.GetScalar(SQLQuery), "Database name mismatch."
+    Assert.AreEqual "__", dbq.GetScalar(SQLQuery), "Database name mismatch."
 
 CleanExit:
     Exit Sub
@@ -133,13 +133,13 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMMemITRB_VerifiesDBMMemITRB()
+Private Sub ztcGetDbMemITRB_VerifiesDbMemITRB()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMemITRB
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMemITRB
 Act:
     Dim TableDDLExpected As String
     TableDDLExpected = FixSQLITRB.Create
@@ -148,10 +148,10 @@ Act:
                SQLlib.SubQuery(LiteMetaSQL.Create("main").Tables) & _
                "WHERE tbl_name = 'itrb'"
     Dim TableDDLActual As String
-    TableDDLActual = dbm.GetScalar(SQLQuery)
+    TableDDLActual = dbq.GetScalar(SQLQuery)
     SQLQuery = SQLlib.CountSelect(LiteMetaSQL.Create("main").Tables)
 Assert:
-    Assert.AreEqual 1, dbm.GetScalar(SQLQuery), "Table count mismatch."
+    Assert.AreEqual 1, dbq.GetScalar(SQLQuery), "Table count mismatch."
     Assert.AreEqual TableDDLExpected, TableDDLActual, "Table CREATE mismatch."
 
 CleanExit:
@@ -162,18 +162,18 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMMemITRBWithData_VerifiesDBMMemITRBWithData()
+Private Sub ztcGetDbMemITRBWithData_VerifiesDbMemITRBWithData()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMemITRBWithData
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMemITRBWithData
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
-    Assert.AreEqual 5, dbm.GetScalar(SQLQuery), "Row count mismatch."
+    Assert.AreEqual 5, dbq.GetScalar(SQLQuery), "Row count mismatch."
 
 CleanExit:
     Exit Sub
@@ -183,20 +183,20 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMMemFuncWithData_VerifiesDBMMemFuncWithData()
+Private Sub ztcGetDbMemFuncWithData_VerifiesDbMemFuncWithData()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMemFuncWithData
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMemFuncWithData
     Dim Expected As Long
-    Expected = dbm.GetScalar("SELECT count(*) FROM pragma_function_list()")
+    Expected = dbq.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
-    Assert.AreEqual Expected, dbm.GetScalar(SQLQuery), "Row count mismatch."
+    Assert.AreEqual Expected, dbq.GetScalar(SQLQuery), "Row count mismatch."
 
 CleanExit:
     Exit Sub
@@ -206,18 +206,18 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMTmp_VerifiesDBMTmp()
+Private Sub ztcGetDbTmp_VerifiesDbTmp()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMTmp
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbTmp
     Dim TmpPath As String
     TmpPath = FixObjAdo.RandomTempFileName
 Act:
 Assert:
-    Assert.AreEqual Len(TmpPath), Len(dbm.MainDB), "TMP database path template is wrong."
+    Assert.AreEqual Len(TmpPath), Len(dbq.MainDB), "TMP database path template is wrong."
 
 CleanExit:
     Exit Sub
@@ -227,18 +227,18 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMTmpITRBWithData_VerifiesGetDBMTmpITRBWithData()
+Private Sub ztcGetDbTmpITRBWithData_VerifiesGetDBMTmpITRBWithData()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMTmpITRBWithData
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbTmpITRBWithData
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLITRB.SelectNoRowid)
 Assert:
-    Assert.AreEqual 5, dbm.GetScalar(SQLQuery), "Row count mismatch."
+    Assert.AreEqual 5, dbq.GetScalar(SQLQuery), "Row count mismatch."
 
 CleanExit:
     Exit Sub
@@ -248,23 +248,25 @@ End Sub
 
 
 '@TestMethod("Fixture")
-Private Sub ztcGetDBMTmpFuncWithData_VerifiesDBMTmpFuncWithData()
+Private Sub ztcGetDbTmpFuncWithData_VerifiesDbTmpFuncWithData()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMTmpFuncWithData
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbTmpFuncWithData
     Dim Expected As Long
-    Expected = dbm.GetScalar("SELECT count(*) FROM pragma_function_list()")
+    Expected = dbq.GetScalar("SELECT count(*) FROM pragma_function_list()")
 Act:
     Dim SQLQuery As String
     SQLQuery = SQLlib.CountSelect(FixSQLFunc.SelectNoRowid)
 Assert:
-    Assert.AreEqual Expected, dbm.GetScalar(SQLQuery), "Row count mismatch."
+    Assert.AreEqual Expected, dbq.GetScalar(SQLQuery), "Row count mismatch."
 
 CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+

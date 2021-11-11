@@ -73,17 +73,17 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
 End Sub
 
 Private Sub Class_Terminate()
-    CleanUp
+    Cleanup
 End Sub
 
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     With this
         '@Ignore FunctionReturnValueDiscarded
         If .StmtHandle <> 0 Then Finalize
-        If Not .DbPara Is Nothing Then .DbPara.CleanUp
-        If Not .DbExec Is Nothing Then .DbExec.CleanUp
+        If Not .DbPara Is Nothing Then .DbPara.Cleanup
+        If Not .DbExec Is Nothing Then .DbExec.Cleanup
         If Not .DbConn Is Nothing Then
-            If Not .DbConn.ErrorInfo Is Nothing Then .DbConn.ErrorInfo.CleanUp
+            If Not .DbConn.ErrorInfo Is Nothing Then .DbConn.ErrorInfo.Cleanup
         End If
         Set .DbPara = Nothing
         Set .DbExec = Nothing

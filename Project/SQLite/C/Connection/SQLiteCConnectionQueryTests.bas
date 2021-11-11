@@ -77,7 +77,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_WRITE, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-CleanUp:
+Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -108,7 +108,7 @@ Act:
 Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected ExecuteNonQueryPlain error"
     Assert.AreEqual 5, AffectedRecords, "AffectedRecords mismatch"
-CleanUp:
+Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -151,7 +151,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_NONE, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-CleanUp:
+Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -194,7 +194,7 @@ Assert:
     Assert.IsTrue TxnStateCode = SQLITE_TXN_READ, "Unexpected Txn state"
     ResultCode = dbc.ReleasePoint("ABCDEFG")
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Txn ReleasePoint error"
-CleanUp:
+Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -301,7 +301,7 @@ Assert:
     ResultCode = dbc.Detach(fso.GetBaseName(dbcTmp.DbPathName))
     Assert.AreEqual SQLITE_OK, ResultCode, "Failed to detach existing db"
     Assert.AreEqual 1, dbs.GetScalar(SQLDbCount), "Unexpected DbCount (exist)."
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -324,7 +324,7 @@ Arrange:
 Act:
 Assert:
     Assert.AreEqual SQLITE_OK, dbc.Vacuum(), "Vacuum in-place error"
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbc.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
@@ -346,11 +346,11 @@ Arrange:
     Set dbcDst = FixObjC.GetDBCTmp(True)
 
     Dim DbStmtNameSrc As String
-    DbStmtNameSrc = Left(GenerateGUID, 8)
+    DbStmtNameSrc = Left$(GenerateGUID, 8)
     Dim dbsSrc As SQLiteCStatement
     Set dbsSrc = dbcSrc.CreateStatement(DbStmtNameSrc)
     Dim DbStmtNameDst As String
-    DbStmtNameDst = Left(GenerateGUID, 8)
+    DbStmtNameDst = Left$(GenerateGUID, 8)
     Dim dbsDst As SQLiteCStatement
     Set dbsDst = dbcDst.CreateStatement(DbStmtNameDst)
 
@@ -368,7 +368,7 @@ Assert:
     Dim Actual As Long
     Actual = dbsDst.GetScalar(SQLQuery)
     Assert.AreEqual Expected, Actual, "Row count mismatch."
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 
@@ -377,3 +377,4 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+

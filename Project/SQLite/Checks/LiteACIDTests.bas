@@ -51,13 +51,10 @@ End Sub
 '===================================================='
 
 
-Private Function zfxDefDBM( _
-            Optional ByVal FilePathName As String = vbNullString) As LiteACID
-    If Len(FilePathName) > 0 Then
-        Set zfxDefDBM = LiteACID(LiteADO(FilePathName))
-    Else
-        Set zfxDefDBM = LiteACID(LiteADO(FixObjAdo.DefaultDbPathName))
-    End If
+Private Function zfxIntegrityADODB(Optional ByVal FilePathName As String = vbNullString) As Boolean
+    Dim DbPathName As String
+    DbPathName = IIf(Len(FilePathName) > 0, FilePathName, FixObjAdo.DefaultDbPathName)
+    zfxIntegrityADODB = LiteACID(LiteMan(DbPathName).ExecADO).IntegrityADODB
 End Function
 
 
@@ -73,10 +70,8 @@ Private Sub ztcIntegrityADODB_PassesDefaultDatabaseIntegrityCheck()
 
 Arrange:
 Act:
-    Dim CheckResult As Boolean
-    CheckResult = zfxDefDBM().IntegrityADODB
 Assert:
-    Assert.IsTrue CheckResult, "Integrity check on default database failed"
+    Assert.IsTrue zfxIntegrityADODB(), "Integrity check on default database failed"
 
 CleanExit:
     Exit Sub
@@ -89,7 +84,8 @@ End Sub
 Private Sub ztcIntegrityADODB_ThrowsOnFileNotDatabase()
     On Error Resume Next
     TestCounter = TestCounter + 1
-    zfxDefDBM(ThisWorkbook.Name).IntegrityADODB
+    Dim CheckResult As Boolean
+    CheckResult = zfxIntegrityADODB(ThisWorkbook.Name)
     Guard.AssertExpectedError Assert, ErrNo.OLE_DB_ODBC_Err
 End Sub
 
@@ -98,7 +94,8 @@ End Sub
 Private Sub ztcIntegrityADODB_ThrowsOnCorruptedDatabase()
     On Error Resume Next
     TestCounter = TestCounter + 1
-    zfxDefDBM(FixObjAdo.RelPrefix & "ICfailFKCfail.db").IntegrityADODB
+    Dim CheckResult As Boolean
+    CheckResult = zfxIntegrityADODB(FixObjAdo.RelPrefix & "ICfailFKCfail.db")
     Guard.AssertExpectedError Assert, ErrNo.IntegrityCheckErr
 End Sub
 
@@ -107,41 +104,7 @@ End Sub
 Private Sub ztcIntegrityADODB_ThrowsOnFailedFKCheck()
     On Error Resume Next
     TestCounter = TestCounter + 1
-    zfxDefDBM(FixObjAdo.RelPrefix & "ICokFKCfail.db").IntegrityADODB
+    Dim CheckResult As Boolean
+    CheckResult = zfxIntegrityADODB(FixObjAdo.RelPrefix & "ICokFKCfail.db")
     Guard.AssertExpectedError Assert, ErrNo.ConsistencyCheckErr
 End Sub
-
-
-''@EntryPoint
-'Private Sub ztcTest()
-'    Dim FilePathName As String
-'    FilePathName = REL_PREFIX & LIB_NAME & ".db"
-'
-'    Dim dbm As ILiteADO
-'    Set dbm = LiteADO(FilePathName)
-'    Dim dbmCI As LiteADO
-'    Set dbmCI = dbm
-'
-'    '@Ignore VariableNotUsed
-'    Dim PathCheck As LiteFSCheck
-'    Set PathCheck = LiteFSCheck(FilePathName, False)
-'
-'    Dim ACIDTool As LiteACID
-'    Set ACIDTool = LiteACID(dbm)
-'
-'    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
-'    dbm.ExecuteNonQuery "PRAGMA busy_timeout=1000"
-'    dbmCI.AdoCommand.CommandTimeout = 1
-'    Debug.Print dbm.GetScalar("PRAGMA busy_timeout")
-'    Do While True
-'        Debug.Print ACIDTool.LockedReadOnly
-'        '@Ignore StopKeyword
-'        Stop
-'    Loop
-'
-'    Debug.Print ACIDTool.JournalModeToggle
-'    Debug.Print ACIDTool.JournalModeToggle
-'    Debug.Print ACIDTool.JournalModeToggle
-'    dbmCI.AdoConnection.Close
-'    Set dbm = Nothing
-'End Sub

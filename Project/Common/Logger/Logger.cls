@@ -160,6 +160,7 @@ End Sub
 '@Description "Logs elapsed time and removes named timer."
 Public Sub TimerLogClear(ByVal TimerId As String, _
                 Optional ByVal ObjectCount As Long = 1)
+Attribute TimerLogClear.VB_Description = "Logs elapsed time and removes named timer."
     With this.Timers
         Guard.ExpressionErr .Exists(TimerId), InvalidParameterErr, _
                             "Logger/TimerSet", "Timer ID does not exist."

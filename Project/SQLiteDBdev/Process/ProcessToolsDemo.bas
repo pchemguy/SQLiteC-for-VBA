@@ -151,9 +151,9 @@ End Type
         ByRef lpProcessInformation As PROCESS_INFORMATION) As LongPtr
     
     Private Declare PtrSafe Sub GetSystemInfo Lib "kernel32" (ByRef lpSystemInfo As SYSTEM_INFO)
-    Private Declare PtrSafe Function VirtualQueryEx Lib "kernel32" Alias "VirtualQueryEx" ( _
+    Private Declare PtrSafe Function VirtualQueryEx Lib "kernel32" ( _
         ByVal hProcess As LongPtr, ByVal lpAddress As Any, ByRef lpBuffer As MEMORY_BASIC_INFORMATION, ByVal dwLength As LongPtr) As LongPtr
-    Private Declare PtrSafe Function ReadProcessMemory Lib "kernel32" Alias "ReadProcessMemory" ( _
+    Private Declare PtrSafe Function ReadProcessMemory Lib "kernel32" ( _
         ByVal hProcess As LongPtr, ByVal lpBaseAddress As Any, ByRef lpBuffer As Any, ByVal nSize As LongPtr, ByRef lpNumberOfBytesWritten As LongPtr) As Long
     Private Declare PtrSafe Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As LongPtr, ByVal pSource As LongPtr, ByVal Length As Long)
 #Else
@@ -215,13 +215,17 @@ Public Sub GetSQLiteMemTest()
     #If VBA7 Then
         Dim DbAddress As LongPtr
         Dim BaseAddress As LongPtr
+        Dim BufferSize As LongPtr
+        Dim MemoryBlockSize As LongPtr
+        Dim ByteCount As LongPtr
     #Else
         Dim DbAddress As Long
         Dim BaseAddress  As Long
+        Dim BufferSize As Long
+        Dim MemoryBlockSize As Long
+        Dim ByteCount As Long
     #End If
     
-    Dim MemoryBlockSize As Long
-    Dim BufferSize As Long
     Dim Buffer() As Long
     
     Dim ElementIndex As Long
@@ -229,7 +233,6 @@ Public Sub GetSQLiteMemTest()
     Dim MemoryInfo As MEMORY_BASIC_INFORMATION
     
     Dim Result As Long
-    Dim ByteCount As Long
     BufferSize = 0
     
     BaseAddress = SystemInfo.lpMinimumApplicationAddress
@@ -368,12 +371,18 @@ Public Sub GetSQLiteMem(Optional ByVal ProcessID As Long = 0)
         
     #If VBA7 Then
         Dim BaseAddress As LongPtr
+        Dim MemoryBlockSize As LongPtr
+        Dim MemoryBlockSizeOld As LongPtr
+        Dim BufferSize As LongPtr
+        Dim ByteCount As LongPtr
     #Else
         Dim BaseAddress  As Long
+        Dim MemoryBlockSize As Long
+        Dim MemoryBlockSizeOld As Long
+        Dim BufferSize As Long
+        Dim ByteCount As Long
     #End If
     
-    Dim MemoryBlockSize As Long
-    Dim BufferSize As Long
     Dim Buffer() As Long
     
     Dim ElementIndex As Long
@@ -381,7 +390,6 @@ Public Sub GetSQLiteMem(Optional ByVal ProcessID As Long = 0)
     Dim MemoryInfo As MEMORY_BASIC_INFORMATION
     
     Dim Result As Long
-    Dim ByteCount As Long
     BufferSize = 0
     
     BaseAddress = SystemInfo.lpMinimumApplicationAddress
@@ -447,7 +455,6 @@ COLLECT_DB:
     BaseAddressOld = BaseAddress
     Dim ElementIndexOld As Long
     ElementIndexOld = ElementIndex
-    Dim MemoryBlockSizeOld As Long
     MemoryBlockSizeOld = MemoryBlockSize
     
     DbAddressRemote = BaseAddress + ElementIndex * Len(Buffer(0))
@@ -473,7 +480,7 @@ COLLECT_DB:
     Dim DbTailSize As Long
     DbTailSize = DbSize
     Dim BufferTailSize As Long
-    BufferTailSize = ByteCount - ElementIndex * Len(Buffer(0))
+    BufferTailSize = CLng(ByteCount) - ElementIndex * Len(Buffer(0))
     Do While BufferTailSize < DbTailSize
         RtlMoveMemory DbDataCursor, BufferCursor, BufferTailSize
         DbDataCursor = DbDataCursor + BufferTailSize
@@ -502,7 +509,7 @@ COLLECT_DB:
             Return
         End If
         ElementIndex = 0
-        BufferTailSize = ByteCount
+        BufferTailSize = CLng(ByteCount)
         BufferCursor = VarPtr(Buffer(0))
     Loop
     If DbTailSize > 0 Then
@@ -545,6 +552,12 @@ End Sub
 
 
 Private Sub RunChildCreateProcess()
+    #If VBA7 Then
+        Dim hProcess As LongPtr
+    #Else
+        Dim hProcess As Long
+    #End If
+    
     Dim CommandLine As String
     CommandLine = Environ("USERPROFILE") & "\Downloads\WindowsAPIViewer\x86\WinAPIExcelp.exe"
 
@@ -553,11 +566,10 @@ Private Sub RunChildCreateProcess()
     Dim SecAttrThr As SECURITY_ATTRIBUTES
     SecAttrThr.nLength = Len(SecAttrThr)
 
-    Dim StartInfo  As STARTUPINFO ' : startInfo.cb = len(startInfo)
-    Dim ProcInfo   As PROCESS_INFORMATION
+    Dim StartInfo As STARTUPINFO ' : startInfo.cb = len(startInfo)
+    Dim ProcInfo As PROCESS_INFORMATION
 
-    Dim Result As Long
-    Result = CreateProcess( _
+    hProcess = CreateProcess( _
         lpApplicationName:=CommandLine, _
         lpCommandLine:=vbNullString, _
         lpProcessAttributes:=SecAttrProc, _
@@ -615,17 +627,19 @@ Public Sub SurveyMem(Optional ByVal ProcessID As Long = 0)
         
     #If VBA7 Then
         Dim BaseAddress As LongPtr
+        Dim ByteCount As LongPtr
+        Dim MemoryBlockSize As LongPtr
     #Else
         Dim BaseAddress  As Long
+        Dim ByteCount As Long
+        Dim MemoryBlockSize As Long
     #End If
     
     Const MAX_PATH_LENGTH As Long = 512
     Dim MemInfoSummary As String
-    Dim ByteCount As Long
     Dim FilePathName As String * MAX_PATH_LENGTH
     Dim Blank As String
     Blank = String(Len(FilePathName), vbNullChar)
-    Dim MemoryBlockSize As Long
     Dim MemoryInfo As MEMORY_BASIC_INFORMATION
     BaseAddress = SystemInfo.lpMinimumApplicationAddress
     Do While BaseAddress < SystemInfo.lpMaximumApplicationAddress

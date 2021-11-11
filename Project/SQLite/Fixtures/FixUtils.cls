@@ -121,12 +121,12 @@ Attribute BytesFromHexString.VB_Description = "converts hex-encoded string to by
         Err.Raise 13, "FixUtils", "Empty string received."
     ElseIf Len(Buffer) Mod 2 <> 0 Then
         Err.Raise 13, "FixUtils", "HexString must have even length."
-    ElseIf UCase$(Left(Buffer, 2)) <> "0X" Then
+    ElseIf UCase$(Left$(Buffer, 2)) <> "0X" Then
         Err.Raise 13, "FixUtils", "HexString must have '0x' prefix."
     End If
     
     Dim HexByteCodes As String
-    HexByteCodes = UCase$(Right(Buffer, Len(Buffer) - 2))
+    HexByteCodes = UCase$(Right$(Buffer, Len(Buffer) - 2))
     Dim ByteCount As Long
     ByteCount = Len(HexByteCodes) \ 2
     Dim Bytes() As Byte
@@ -184,7 +184,7 @@ Attribute XorElements.VB_Description = "Calculates XOR-hash of a whole number ar
     Guard.NotArray Elements
     Select Case VarType(Elements(LBound(Elements)))
         Case vbByte, vbInteger, vbLong, vbLongLong, vbBoolean, vbCurrency
-            #If WIN64 Then
+            #If Win64 Then
                 Dim Result As LongLong
             #Else
                 Dim Result As Long

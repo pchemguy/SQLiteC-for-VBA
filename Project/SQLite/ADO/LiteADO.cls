@@ -45,12 +45,6 @@ End Function
 ''''     If True, Database may refer to a non-existent database, which will be
 ''''     created. If Empty, path resolution will be skipped.
 ''''
-'''' Note:
-''''   VerifyOrGetDefaultPath should be called with two arguments max. If
-''''   the second argument is not Empty, the third argument will be ignored.
-''''   The first argument is allowed to refer to a non-existent file only if
-''''   the third argument is True.
-''''
 Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Variant = False)
     Set this.AdoCommand = New ADODB.Command
@@ -62,6 +56,13 @@ Friend Sub Init(ByVal Database As String, _
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
+End Sub
+
+
+Private Sub Class_Terminate()
+    On Error Resume Next
+    this.AdoConnection.Close
+    On Error GoTo 0
 End Sub
 
 
@@ -113,25 +114,17 @@ Private Function ConnectionString(ByVal Database As String, _
                          Optional ByVal AllowNonExistent As Variant = False _
                          ) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
-    Dim PathCheck As LiteFSCheck
-    Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
-    If PathCheck.ErrNumber <> 0 Then PathCheck.Raise
-    Debug.Assert (Len(PathCheck.DatabasePathName) > 0 And Database <> ":blank:") Or _
-                 (Len(PathCheck.DatabasePathName) = 0 And Database = ":blank:")
-    
-    Dim FilePathName As String
-    FilePathName = PathCheck.DatabasePathName
-    this.MainDB = FilePathName
-    
+    this.MainDB = Database
+
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
 
     Dim Options As String
     Options = "SyncPragma=NORMAL;FKSupport=True;"
-    If Not (AllowNonExistent Or PathCheck.IsSpecial) Then _
+    If Not AllowNonExistent Then _
         Options = Options & "NoCreat=True;"
         
-    this.ConnectionString = "Driver=" & Driver & ";Database=" & FilePathName & ";" & Options
+    this.ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & Options
     ConnectionString = this.ConnectionString
 End Function
 

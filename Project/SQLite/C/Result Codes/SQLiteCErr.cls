@@ -57,10 +57,10 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
 End Sub
 
 Private Sub Class_Terminate()
-    CleanUp
+    Cleanup
 End Sub
 
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     Set this.DbConn = Nothing
 End Sub
 

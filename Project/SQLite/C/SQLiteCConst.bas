@@ -9,7 +9,7 @@ Attribute VB_Name = "SQLiteCConst"
 
 Option Explicit
 
-#If WIN64 Then
+#If Win64 Then
     Public Const ARCH As String = "x64"
 #Else
     Public Const ARCH As String = "x32"

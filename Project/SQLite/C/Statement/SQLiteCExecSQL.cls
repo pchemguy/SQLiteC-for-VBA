@@ -108,11 +108,11 @@ End Sub
 
 
 Private Sub Class_Terminate()
-    CleanUp
+    Cleanup
 End Sub
 
 
-Public Sub CleanUp()
+Public Sub Cleanup()
     Set this.DbStmt = Nothing
 End Sub
 

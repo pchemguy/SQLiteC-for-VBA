@@ -58,7 +58,7 @@ End Sub
 
 
 Private Function zfxGetDefaultDllPath() As String
-    #If WIN64 Then
+    #If Win64 Then
         zfxGetDefaultDllPath = LITE_RPREFIX & "dll\x64"
     #Else
         zfxGetDefaultDllPath = LITE_RPREFIX & "dll\x32"
@@ -70,7 +70,7 @@ Private Function zfxGetDefaultManager() As DllManager
     Dim DllPath As String
     DllPath = zfxGetDefaultDllPath
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllNames = Array("sqlite3.dll", "libicudt68.dll", "libstdc++-6.dll", "libwinpthread-1.dll", "libicuuc68.dll", "libicuin68.dll")
     #Else
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
@@ -201,7 +201,7 @@ Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     TestCounter = TestCounter + 1
     '''' Set mismatched path to test for error
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x32"
     #Else
         DllPath = LITE_RPREFIX & "dll\x64"
@@ -228,7 +228,7 @@ Arrange:
     Dim DllPath As String
     DllPath = zfxGetDefaultDllPath
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllNames = "sqlite3.dll"
     #Else
         DllNames = "icudt68.dll"
@@ -265,7 +265,7 @@ Arrange:
     Dim DllPath As String
     DllPath = zfxGetDefaultDllPath
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllNames = "sqlite3.dll"
     #Else
         DllNames = "icudt68.dll"
@@ -321,7 +321,7 @@ Arrange:
     Set DllMan = DllManager.Create(DllPath)
 Act:
     Dim ResultCode As DllLoadStatus
-    #If WIN64 Then
+    #If Win64 Then
         ResultCode = DllMan.LoadMultiple("sqlite3.dll", "libicudt68.dll", "libstdc++-6.dll", "libwinpthread-1.dll", "libicuuc68.dll", "libicuin68.dll")
     #Else
         ResultCode = DllMan.LoadMultiple("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
@@ -397,7 +397,7 @@ Private Sub ztcFreeMultiple_VerifiesFreeTwoParamArray()
 
 Arrange:
     Dim DllICUName As String
-    #If WIN64 Then
+    #If Win64 Then
         DllICUName = "libicudt68.dll"
     #Else
         DllICUName = "icudt68.dll"
@@ -427,7 +427,7 @@ Private Sub ztcFreeMultiple_VerifiesFreeTwoArray()
 
 Arrange:
     Dim DllICUName As String
-    #If WIN64 Then
+    #If Win64 Then
         DllICUName = "libicudt68.dll"
     #Else
         DllICUName = "icudt68.dll"

@@ -49,48 +49,48 @@ Public Function FixPath(Optional ByVal RelPath As String = vbNullString) As Stri
 End Function
 
 '@Description "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
-Public Function GetDBM(ByVal DbPathName As String) As ILiteADO
-Attribute GetDBM.VB_Description = "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
-    Set GetDBM = LiteADO.Create(DbPathName)
+Public Function GetDb(ByVal DbPathName As String) As ILiteADO
+Attribute GetDb.VB_Description = "Given database path returns a LiteADO/ILiteADO object suitable for working with the database."
+    Set GetDb = LiteMan(DbPathName).ExecADO
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object suitable for working the default database."
-Public Function GetDBMReg() As ILiteADO
-Attribute GetDBMReg.VB_Description = "Returns a LiteADO/ILiteADO object suitable for working the default database."
-    Set GetDBMReg = GetDBM(this.LibDir & LITE_LIB & ".db")
+Public Function GetDbReg() As ILiteADO
+Attribute GetDbReg.VB_Description = "Returns a LiteADO/ILiteADO object suitable for working the default database."
+    Set GetDbReg = GetDb(this.LibDir & LITE_LIB & ".db")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an anonymous database."
-Public Function GetDBMAnon() As ILiteADO
-Attribute GetDBMAnon.VB_Description = "Returns a LiteADO/ILiteADO object for an anonymous database."
-    Set GetDBMAnon = GetDBM(":blank:")
+Public Function GetDbAnon() As ILiteADO
+Attribute GetDbAnon.VB_Description = "Returns a LiteADO/ILiteADO object for an anonymous database."
+    Set GetDbAnon = GetDb(":blank:")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database."
-Public Function GetDBMMem() As ILiteADO
-Attribute GetDBMMem.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database."
-    Set GetDBMMem = GetDBM(":memory:")
+Public Function GetDbMem() As ILiteADO
+Attribute GetDbMem.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database."
+    Set GetDbMem = GetDb(":memory:")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
-Public Function GetDBMMemITRB() As ILiteADO
-Attribute GetDBMMemITRB.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
-    Set GetDBMMemITRB = GetDBMMem()
-    GetDBMMemITRB.ExecuteNonQuery FixSQLITRB.Create
+Public Function GetDbMemITRB() As ILiteADO
+Attribute GetDbMemITRB.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table defined."
+    Set GetDbMemITRB = GetDbMem()
+    GetDbMemITRB.ExecuteNonQuery FixSQLITRB.Create
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table and data."
-Public Function GetDBMMemITRBWithData() As ILiteADO
-Attribute GetDBMMemITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table and data."
-    Set GetDBMMemITRBWithData = GetDBMMem()
-    GetDBMMemITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
+Public Function GetDbMemITRBWithData() As ILiteADO
+Attribute GetDbMemITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with ITRB table and data."
+    Set GetDbMemITRBWithData = GetDbMem()
+    GetDbMemITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for an in-memory database with Functions table and data."
-Public Function GetDBMMemFuncWithData() As ILiteADO
-Attribute GetDBMMemFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with Functions table and data."
-    Set GetDBMMemFuncWithData = GetDBMMem()
-    GetDBMMemFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
+Public Function GetDbMemFuncWithData() As ILiteADO
+Attribute GetDbMemFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for an in-memory database with Functions table and data."
+    Set GetDbMemFuncWithData = GetDbMem()
+    GetDbMemFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
 End Function
 
 '@Description "Generates a path pointing to a randomly named non-existing file in the temp folder."
@@ -101,21 +101,21 @@ Attribute RandomTempFileName.VB_Description = "Generates a path pointing to a ra
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for a temp database."
-Public Function GetDBMTmp() As ILiteADO
-Attribute GetDBMTmp.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
-    Set GetDBMTmp = GetDBM(":temp:")
+Public Function GetDbTmp() As ILiteADO
+Attribute GetDbTmp.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
+    Set GetDbTmp = GetDb(":temp:")
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for a temp database."
-Public Function GetDBMTmpITRBWithData() As ILiteADO
-Attribute GetDBMTmpITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
-    Set GetDBMTmpITRBWithData = GetDBM(":temp:")
-    GetDBMTmpITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
+Public Function GetDbTmpITRBWithData() As ILiteADO
+Attribute GetDbTmpITRBWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
+    Set GetDbTmpITRBWithData = GetDb(":temp:")
+    GetDbTmpITRBWithData.ExecuteNonQuery FixSQLITRB.CreateWithData
 End Function
 
 '@Description "Returns a LiteADO/ILiteADO object for a temp database."
-Public Function GetDBMTmpFuncWithData() As ILiteADO
-Attribute GetDBMTmpFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
-    Set GetDBMTmpFuncWithData = GetDBM(":temp:")
-    GetDBMTmpFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
+Public Function GetDbTmpFuncWithData() As ILiteADO
+Attribute GetDbTmpFuncWithData.VB_Description = "Returns a LiteADO/ILiteADO object for a temp database."
+    Set GetDbTmpFuncWithData = GetDb(":temp:")
+    GetDbTmpFuncWithData.ExecuteNonQuery FixSQLFunc.CreateWithData
 End Function

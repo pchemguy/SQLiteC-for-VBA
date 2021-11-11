@@ -67,10 +67,10 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 Private Sub Class_Terminate()
-    CleanUp
+    Cleanup
 End Sub
 
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     BindClear
     Set this.DbStmt = Nothing
 End Sub

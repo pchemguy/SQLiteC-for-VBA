@@ -42,7 +42,7 @@ End Function
 
 '@EntryPoint
 Public Function RandomLong() As Long
-    RandomLong = Val("&H" & Left(GenerateGUID, 8))
+    RandomLong = Val("&H" & Left$(GenerateGUID, 8))
 End Function
 
 

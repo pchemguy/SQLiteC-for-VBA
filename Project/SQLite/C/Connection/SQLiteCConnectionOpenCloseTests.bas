@@ -140,7 +140,7 @@ Act:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
     Assert.AreEqual dbc.DbPathName, dbc.AttachedDbPathName, "AttachedDbPathName mismatch."
-CleanUp:
+Cleanup:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 

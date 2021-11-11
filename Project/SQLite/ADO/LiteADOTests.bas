@@ -16,8 +16,6 @@ Private TestCounter As Long
     Private Assert As Rubberduck.PermissiveAssertClass
 #End If
 
-Private Const PATH_SEP As String = "\"
-
 
 'This method runs once per module.
 '@ModuleInitialize
@@ -49,13 +47,6 @@ Private Sub ModuleCleanup()
 End Sub
 
 
-'This method runs after every test in the module.
-'@TestCleanup
-Private Sub TestCleanup()
-    Err.Clear
-End Sub
-
-
 '===================================================='
 '==================== TEST CASES ===================='
 '===================================================='
@@ -70,10 +61,10 @@ Arrange:
     Dim Expected As String
     Expected = FixObjAdo.DefaultDbPathName
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMReg()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbReg()
     Dim Actual As String
-    Actual = dbm.MainDB
+    Actual = dbq.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "Existing db path mismatch"
     
@@ -90,18 +81,18 @@ Private Sub ztcFromConnection_ValidatesNewDbManager()
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName)
-    Dim dbmCI As LiteADO
-    Set dbmCI = dbm
+    Dim dbq As ILiteADO
+    Set dbq = LiteADO(FixObjAdo.DefaultDbPathName)
+    Dim dbqCI As LiteADO
+    Set dbqCI = dbq
 Act:
-    Dim dbmClone As ILiteADO
-    Set dbmClone = LiteADO.FromConnection(dbmCI.AdoConnection)
-    Dim dbmCloneCI As LiteADO
-    Set dbmCloneCI = dbm
+    Dim dbqClone As ILiteADO
+    Set dbqClone = LiteADO.FromConnection(dbqCI.AdoConnection)
+    Dim dbqCloneCI As LiteADO
+    Set dbqCloneCI = dbq
 Assert:
-    Assert.AreEqual dbm.MainDB, dbmClone.MainDB, "Db path mismatch"
-    Assert.IsTrue dbmCI.AdoConnection Is dbmCloneCI.AdoConnection, "Bad connection"
+    Assert.AreEqual dbq.MainDB, dbqClone.MainDB, "Db path mismatch"
+    Assert.IsTrue dbqCI.AdoConnection Is dbqCloneCI.AdoConnection, "Bad connection"
     
 CleanExit:
     Exit Sub
@@ -119,52 +110,13 @@ Arrange:
     Dim Expected As String
     Expected = ":memory:"
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMMem()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbMem()
     Dim Actual As String
-    Actual = dbm.MainDB
+    Actual = dbq.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "InMemory path mismatch"
     
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Factory")
-Private Sub ztcCreate_ValidatesNewRelativeDatabasePath()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-    Dim FileName As String
-    FileName = "NewDB" & GenerateGUID & ".tmp"
-    Dim RelativePathName As String
-    RelativePathName = "Temp" & PATH_SEP & FileName
-    Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & RelativePathName
-    '''' This test creates a new db file that remains locked for a certain
-    '''' period of time. If this test is rerun too soon, deletion will fail.
-    On Error Resume Next
-    MkDir ThisWorkbook.Path & PATH_SEP & "Temp"
-    Kill ThisWorkbook.Path & PATH_SEP & "Temp" & PATH_SEP & "*.tmp"
-    On Error GoTo TestFail
-Act:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO.Create(RelativePathName, AllowNonExistent:=True)
-    Dim dbmCI As LiteADO
-    Set dbmCI = dbm
-    Dim Actual As String
-    Actual = dbm.MainDB
-Assert:
-    Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
-CleanUp:
-    dbmCI.AdoConnection.Close
-    Set dbm = Nothing
-    Set dbmCI = Nothing
-
 CleanExit:
     Exit Sub
 TestFail:
@@ -181,15 +133,15 @@ Arrange:
     Dim Expected As String
     Expected = FixObjAdo.RandomTempFileName
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO.Create(Expected, AllowNonExistent:=True)
-    Dim dbmCI As LiteADO
-    Set dbmCI = dbm
+    Dim dbq As ILiteADO
+    Set dbq = LiteADO.Create(Expected, AllowNonExistent:=True)
+    Dim dbqCI As LiteADO
+    Set dbqCI = dbq
     Dim Actual As String
-    Actual = dbm.MainDB
-CleanUp:
-    dbmCI.AdoConnection.Close
-    Set dbm = Nothing
+    Actual = dbq.MainDB
+Cleanup:
+    dbqCI.AdoConnection.Close
+    Set dbq = Nothing
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
     
@@ -210,10 +162,10 @@ Arrange:
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMReg()
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbReg()
     Dim Actual As String
-    Actual = dbm.ConnectionString
+    Actual = dbq.ConnectionString
 Assert:
     Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
 
@@ -234,10 +186,10 @@ Arrange:
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName, False)
+    Dim dbq As ILiteADO
+    Set dbq = LiteADO(FixObjAdo.DefaultDbPathName, False)
     Dim Actual As String
-    Actual = dbm.ConnectionString
+    Actual = dbq.ConnectionString
 Assert:
     Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
 
@@ -258,10 +210,10 @@ Arrange:
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
                ";SyncPragma=NORMAL;FKSupport=True;"
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FixObjAdo.DefaultDbPathName, True)
+    Dim dbq As ILiteADO
+    Set dbq = LiteADO(FixObjAdo.DefaultDbPathName, True)
     Dim Actual As String
-    Actual = dbm.ConnectionString
+    Actual = dbq.ConnectionString
 Assert:
     Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
 
@@ -278,19 +230,19 @@ Private Sub ztcCreate_ValidatesDefaultRecordset()
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim dbm As ILiteADO
-    Set dbm = FixObjAdo.GetDBMReg()
-    Dim dbmCI As LiteADO
-    Set dbmCI = dbm
+    Dim dbq As ILiteADO
+    Set dbq = FixObjAdo.GetDbReg()
+    Dim dbqCI As LiteADO
+    Set dbqCI = dbq
     Dim DefaultSQL As String
     DefaultSQL = "SELECT sqlite_version() AS version"
 Act:
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = dbm.GetAdoRecordset(vbNullString)
+    Set AdoRecordset = dbq.GetAdoRecordset(vbNullString)
 Assert:
-    Assert.IsNotNothing dbmCI.AdoCommand, "AdoCommand is not set"
-    Assert.IsNotNothing dbmCI.AdoConnection, "AdoConnection is not set"
-    Assert.AreEqual DefaultSQL, dbmCI.AdoCommand.CommandText, "SQL mismatch"
+    Assert.IsNotNothing dbqCI.AdoCommand, "AdoCommand is not set"
+    Assert.IsNotNothing dbqCI.AdoConnection, "AdoConnection is not set"
+    Assert.AreEqual DefaultSQL, dbqCI.AdoCommand.CommandText, "SQL mismatch"
     Assert.IsNotNothing AdoRecordset, "AdoRecordset is not set"
     Assert.IsNothing AdoRecordset.ActiveConnection, "AdoRecordset is not disconnected"
     Assert.AreEqual 1, AdoRecordset.RecordCount, "Expected record count mismatch"
@@ -300,3 +252,5 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+

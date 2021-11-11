@@ -37,11 +37,25 @@ End Function
 Friend Sub Init(ByVal Database As String, _
        Optional ByVal AllowNonExistent As Variant = False)
     With this
-        Set .ExecADO = LiteADO(Database, AllowNonExistent)
+        Set .ExecADO = NewDB(Database, AllowNonExistent)
         Set .MetaADO = LiteMetaADO(.ExecADO)
         Set .MetaSQL = .MetaADO.MetaSQL
     End With
 End Sub
+
+Public Function NewDB(ByVal Database As String, _
+                      ByVal AllowNonExistent As Variant) As ILiteADO
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
+    With PathCheck
+        If .ErrNumber <> 0 Then .Raise
+        Dim FilePathName As String
+        FilePathName = .DatabasePathName
+        Debug.Assert (Len(FilePathName) > 0 And Database <> ":blank:") _
+                  Or (Len(FilePathName) = 0 And Database = ":blank:")
+        Set NewDB = LiteADO(.DatabasePathName, AllowNonExistent Or .IsSpecial)
+    End With
+End Function
 
 Public Property Get ExecADO() As ILiteADO
     Set ExecADO = this.ExecADO
@@ -56,12 +70,12 @@ Public Property Get MetaSQL() As LiteMetaSQL
 End Property
 
 '@Description "Attaches SQLite database to existing connection"
-Public Sub AttachDatabase(ByVal DatabaseName As String, _
-                 Optional ByVal DatabaseAlias As String = vbNullString)
+Public Sub AttachDatabase(ByVal DbName As String, _
+                 Optional ByVal DbAlias As String = vbNullString)
 Attribute AttachDatabase.VB_Description = "Attaches SQLite database to existing connection"
-    Dim DbPathName As String
-    DbPathName = LiteADO(DatabaseName, AllowNonExistent:=False).MainDB
-    this.ExecADO.ExecuteNonQuery SQLlib.Attach(DbPathName, DatabaseAlias)
+    Dim SQLQuery As String
+    SQLQuery = SQLlib.Attach(NewDB(DbName, False).MainDB, DbAlias)
+    this.ExecADO.ExecuteNonQuery SQLQuery
 End Sub
 
 '@Description "Detaches SQLite database from existing connection"
@@ -244,8 +258,8 @@ Attribute CloneDb.VB_Description = "Clones SQLite database."
     Dim CheckResult As Boolean
     
     '''' 1) Check source integrity
-    ''''      SQLiteDB reference is not saved, so the db is released at check exit.
-    LiteACID(LiteADO(SrcDbName)).IntegrityADODB
+    ''''      DB reference is not saved, so the db is released at check exit.
+    LiteACID(NewDB(SrcDbName, False)).IntegrityADODB
     
     '''' 2) Attach destination db
     Dim dbm As LiteMan

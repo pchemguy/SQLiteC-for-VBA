@@ -9,6 +9,7 @@ Option Private Module
 
 Private Const MODULE_NAME As String = "SQLiteCTests"
 Private TestCounter As Long
+Private Const STOP_IN_TEST As Long = 0
 
 Private Const LITE_LIB As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
@@ -60,11 +61,15 @@ End Sub
 Private Sub ztcSQLite3Version_VerifiesVersionInfo()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
+    
 Arrange:
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x64"
         DllNames = "sqlite3.dll"
     #Else
@@ -84,7 +89,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -92,10 +101,16 @@ End Sub
 Private Sub ztcSQLite3Version_VerifiesVersionInfoV2()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x64"
     #Else
         DllPath = LITE_RPREFIX & "dll\x32"
@@ -113,7 +128,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -121,6 +140,10 @@ End Sub
 Private Sub ztcCreate_VerifiesDefaultManager()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -131,7 +154,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -139,12 +166,16 @@ End Sub
 Private Sub ztcGetMainDbId_VerifiesIsNull()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     '''' In general, tests may reuse the db manager. This test verifies the
     '''' state of the freshly instantiated SQLiteC object, so cleanup must
     '''' be executed before the test. (dbm.MainDbId is set to Null in dbm.Init)
-    FixObjC.CleanUp
+    FixObjC.Cleanup
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM
 Assert:
@@ -153,7 +184,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -161,6 +196,10 @@ End Sub
 Private Sub ztcGetDllMan_VerifiesIsSet()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -171,7 +210,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -179,6 +222,10 @@ End Sub
 Private Sub ztcConnDb_VerifiesIsNotSet()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -189,7 +236,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -197,9 +248,13 @@ End Sub
 Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
     On Error Resume Next
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x32"
         DllNames = "sqlite3.dll"
     #Else
@@ -216,6 +271,10 @@ End Sub
 Private Sub ztcCreate_ThrowsOnInvalidDllPath()
     On Error Resume Next
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
     Dim DllPath As String
     DllPath = "____INVALID PATH____"
     Dim dbm As SQLiteC
@@ -228,6 +287,10 @@ End Sub
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -238,7 +301,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -246,6 +313,10 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -262,7 +333,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -270,13 +345,17 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     '''' In general, tests may reuse the db manager. This test verifies the
     '''' state of the freshly instantiated SQLiteC object, so cleanup must
     '''' be executed before the test. (dbm.MainDbId is set the first time
     '''' the dbm.CreateConnection is called.)
-    FixObjC.CleanUp
+    FixObjC.Cleanup
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
@@ -290,7 +369,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -298,13 +381,17 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesTempMainDb()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     '''' In general, tests may reuse the db manager. This test verifies the
     '''' state of the freshly instantiated SQLiteC object, so cleanup must
     '''' be executed before the test. (dbm.MainDbId is set the first time
     '''' the dbm.CreateConnection is called.)
-    FixObjC.CleanUp
+    FixObjC.Cleanup
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM()
     Dim DbPathName As String
@@ -318,7 +405,11 @@ Assert:
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
@@ -327,6 +418,10 @@ End Sub
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyMemToTemp()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
@@ -340,11 +435,11 @@ Arrange:
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
     
     Dim DbStmtNameSrc As String
-    DbStmtNameSrc = Left(GenerateGUID, 8)
+    DbStmtNameSrc = Left$(GenerateGUID, 8)
     Dim dbsSrc As SQLiteCStatement
     Set dbsSrc = dbcSrc.CreateStatement(DbStmtNameSrc)
     Dim DbStmtNameDst As String
-    DbStmtNameDst = Left(GenerateGUID, 8)
+    DbStmtNameDst = Left$(GenerateGUID, 8)
     Dim dbsDst As SQLiteCStatement
     Set dbsDst = dbcDst.CreateStatement(DbStmtNameDst)
     
@@ -357,22 +452,30 @@ Act:
 Assert:
     Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
     Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub
 
 
 '''' See SQLiteC.CleanUp comments
-'@TestMethod("Backup")
+''@TestMethod("Backup")
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyTempToMem()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
@@ -386,11 +489,11 @@ Arrange:
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
     
     Dim DbStmtNameSrc As String
-    DbStmtNameSrc = Left(GenerateGUID, 8)
+    DbStmtNameSrc = Left$(GenerateGUID, 8)
     Dim dbsSrc As SQLiteCStatement
     Set dbsSrc = dbcSrc.CreateStatement(DbStmtNameSrc)
     Dim DbStmtNameDst As String
-    DbStmtNameDst = Left(GenerateGUID, 8)
+    DbStmtNameDst = Left$(GenerateGUID, 8)
     Dim dbsDst As SQLiteCStatement
     Set dbsDst = dbcDst.CreateStatement(DbStmtNameDst)
     
@@ -403,12 +506,16 @@ Act:
 Assert:
     Assert.AreEqual 3, PagesDone, "PagesDone mismatch."
     Assert.AreEqual 5, dbsDst.GetScalar(SQLQuery), "Unexpected RowCount."
-CleanUp:
+Cleanup:
     Assert.AreEqual SQLITE_OK, dbcSrc.CloseDb, "Unexpected CloseDb error"
     Assert.AreEqual SQLITE_OK, dbcDst.CloseDb, "Unexpected CloseDb error"
 
 CleanExit:
     Exit Sub
 TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
 End Sub

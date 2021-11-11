@@ -314,12 +314,12 @@ Arrange:
     ErrStack = "ExistsAccesibleValid" & vbNewLine & _
                "FileAccessibleValid" & vbNewLine
 Act:
-    Dim dbm As ILiteADO
-    Set dbm = LiteADO(FilePathName)
+    Dim dbq As ILiteADO
+    Set dbq = LiteADO(FilePathName)
     FilePathName = FilePathName & "-shm"
-    dbm.ExecuteNonQuery "BEGIN IMMEDIATE"
+    dbq.ExecuteNonQuery "BEGIN IMMEDIATE"
     Set PathCheck = LiteFSCheck(FilePathName)
-    dbm.ExecuteNonQuery "ROLLBACK"
+    dbq.ExecuteNonQuery "ROLLBACK"
 Assert:
     With PathCheck
         Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"

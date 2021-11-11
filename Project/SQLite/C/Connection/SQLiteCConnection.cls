@@ -25,8 +25,6 @@ Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO
 
 Option Explicit
 
-Private Const VERBOUS As Boolean = True
-
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
@@ -145,21 +143,21 @@ Friend Sub Init(ByVal DbPathName As String, _
 End Sub
 
 Private Sub Class_Terminate()
-    CleanUp
+    Cleanup
 End Sub
 
-Friend Sub CleanUp()
+Friend Sub Cleanup()
     Dim DbStmt As SQLiteCStatement
     Dim StmtName As Variant
     For Each StmtName In this.Statements.Keys
         Set DbStmt = this.Statements(StmtName)
-        DbStmt.CleanUp
+        DbStmt.Cleanup
         this.Statements.Remove StmtName
     Next StmtName
     Dim ResultCode As SQLiteResultCodes
     ResultCode = CloseDb
     Debug.Assert ResultCode = SQLITE_OK
-    If Not this.ErrorInfo Is Nothing Then this.ErrorInfo.CleanUp
+    If Not this.ErrorInfo Is Nothing Then this.ErrorInfo.Cleanup
     Set this.ErrorInfo = Nothing
 End Sub
 
@@ -311,6 +309,7 @@ Public Function OpenDb( _
             Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
             Optional ByVal vfsName As String = vbNullString _
             ) As SQLiteResultCodes
+Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
     If this.DbHandle > 0 Then
         OpenDb = SQLITE_OK
         Exit Function
