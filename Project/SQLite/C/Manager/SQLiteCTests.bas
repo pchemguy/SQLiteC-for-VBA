@@ -2,13 +2,14 @@ Attribute VB_Name = "SQLiteCTests"
 '@Folder "SQLite.C.Manager"
 '@TestModule
 '@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
-'@IgnoreModule UnhandledOnErrorResumeNext
+'@IgnoreModule UnhandledOnErrorResumeNext, StopKeyword
 '@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded, UseMeaningfulName
 Option Explicit
 Option Private Module
 
 Private Const MODULE_NAME As String = "SQLiteCTests"
 Private TestCounter As Long
+'''' When >0, test runner will stop at every test, starting from #STOP_IN_TEST
 Private Const STOP_IN_TEST As Long = 0
 
 Private Const LITE_LIB As String = "SQLiteCAdo"

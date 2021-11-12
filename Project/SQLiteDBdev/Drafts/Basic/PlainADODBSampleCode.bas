@@ -337,4 +337,3 @@ Private Sub TestADODBConnectBlankSQLite()
     Set AdoRecordset.ActiveConnection = Nothing
     On Error GoTo 0
 End Sub
-

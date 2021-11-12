@@ -2,7 +2,7 @@ Attribute VB_Name = "LiteACIDTests"
 '@Folder "SQLite.Checks"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
-'@IgnoreModule IndexedDefaultMemberAccess, AssignmentNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, AssignmentNotUsed, VariableNotUsed
 Option Explicit
 Option Private Module
 

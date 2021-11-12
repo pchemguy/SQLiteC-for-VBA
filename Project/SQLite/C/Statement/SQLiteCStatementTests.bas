@@ -410,7 +410,7 @@ Arrange:
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQLITRB.CreateRowid
-    Dim AffectedRows As Long
+    Dim AffectedRows As Long: AffectedRows = 0 '''' RD ByRef workaround.
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
     Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
 Assert:

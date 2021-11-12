@@ -10,7 +10,6 @@ Option Compare Text
     Public Const vbLongLong As Long = 20&
 #End If
 
-
 Public Enum EnvArchEnum
     ENVARCH_NOTSUP = -1&
     ENVARCH_NATIVE = 1&
@@ -18,36 +17,24 @@ Public Enum EnvArchEnum
 End Enum
 
 
-'''' This function attempts to confirm that the standard registry key for the
-'''' SQLite3ODBC driver is present and that the file driver exists. No attempt
-'''' is made to verify its usability.
-''''
-'''' Attempt to determine environment (native X32onX32 or X64onX64) or X32onX64.
-'''' If successfull, try retrieving SQLite3ODBC driver file pathname from the
-'''' standard registry key (adjusted to the type of environment, if necessary).
-'''' If successful, adjust path to the type of environment, if necessary, and
-'''' check if file driver exists. If successful, return true, or false otherwise.
-''''
-'@Description "Checks if SQLite3ODBC diver is available."
-Public Function SQLite3ODBCDriverCheck() As Boolean
-Attribute SQLite3ODBCDriverCheck.VB_Description = "Checks if SQLite3ODBC diver is available."
+'@Description "Determines environment type (native, X32onX64, or not supported)"
+Public Function GetEnvX32X64Type() As EnvArchEnum
+Attribute GetEnvX32X64Type.VB_Description = "Determines environment type (native, X32onX64, or not supported)"
+    '@Ignore SelfAssignedDeclaration
     Dim wsh As New IWshRuntimeLibrary.WshShell
-    Dim fso As New IWshRuntimeLibrary.FileSystemObject
-    
     Dim OfficeArch As Long
-    OfficeArch = Val(Right(ARCH, 2))
+    OfficeArch = Val(Right$(ARCH, 2))
     
+    '''' Check actual Windows architecture. Environ returns a virtual value.
     On Error Resume Next
     Dim ProcArch As String
     ProcArch = wsh.RegRead("HKLM\SYSTEM\CurrentControlSet\Control\" & _
         "Session Manager\Environment\PROCESSOR_ARCHITECTURE")
     On Error GoTo 0
     If Len(ProcArch) = 0 Then
-        Debug.Print "Failed to determine Win/Office architecture or unsupported."
-        SQLite3ODBCDriverCheck = False
+        GetEnvX32X64Type = ENVARCH_NOTSUP
         Exit Function
     End If
-    
     Dim WindowsArch As Long
     Select Case ProcArch
         Case "AMD64"
@@ -57,44 +44,12 @@ Attribute SQLite3ODBCDriverCheck.VB_Description = "Checks if SQLite3ODBC diver i
         Case Else
             WindowsArch = 0
     End Select
-    
-    Dim RegPrefix As String
-    Dim EnvArch As EnvArchEnum
+
     If OfficeArch = WindowsArch And WindowsArch <> 0 Then
-        EnvArch = ENVARCH_NATIVE
-        RegPrefix = "HKLM\SOFTWARE\ODBC\ODBC.INI\"
+        GetEnvX32X64Type = ENVARCH_NATIVE
     ElseIf OfficeArch = 32 And WindowsArch = 64 Then
-        EnvArch = ENVARCH_32ON64
-        RegPrefix = "HKLM\SOFTWARE\WOW6432Node\ODBC\ODBC.INI\"
+        GetEnvX32X64Type = ENVARCH_32ON64
     Else
-        EnvArch = ENVARCH_NOTSUP
-        Debug.Print "Failed to determine Win/Office architecture or unsupported."
-        SQLite3ODBCDriverCheck = False
-        Exit Function
-    End If
-    
-    Const SYSTEM_NATIVE As String = "System32"
-    Const SYSTEM_32ON64 As String = "SysWOW64"
-        
-    Dim SQLite3ODBCDriverPath As String
-    On Error Resume Next
-        SQLite3ODBCDriverPath = _
-            wsh.RegRead(RegPrefix & "SQLite3 Datasource\Driver")
-    On Error GoTo 0
-    If Len(SQLite3ODBCDriverPath) = 0 Then
-        Debug.Print "Failed to verify SQLite3ODBC driver availability"
-        Exit Function
-    End If
-    If EnvArch = ENVARCH_32ON64 Then
-        SQLite3ODBCDriverPath = _
-            Replace(SQLite3ODBCDriverPath, SYSTEM_NATIVE, SYSTEM_32ON64)
-    End If
-    
-    If fso.FileExists(SQLite3ODBCDriverPath) Then
-        Debug.Print "SQLite3ODBC driver appears to be available."
-        SQLite3ODBCDriverCheck = True
-    Else
-        Debug.Print "Failed to verify SQLite3ODBC driver availability"
-        SQLite3ODBCDriverCheck = False
+        GetEnvX32X64Type = ENVARCH_NOTSUP
     End If
 End Function
