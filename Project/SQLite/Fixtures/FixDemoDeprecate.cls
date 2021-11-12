@@ -19,7 +19,7 @@ Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SE
 
 '''' Custom functions added to SQLite source for testing/verification purposes
 #If VBA7 Then
-    #If Win64 Then
+    #If WIN64 Then
     Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As LongLong
     #Else
     Private Declare PtrSafe Function sqlite3_libversion_number_i64 Lib "SQLite3" () As Currency

@@ -86,7 +86,7 @@ Attribute InitDBM.VB_Description = "Creates database manager (SQLiteC) instance 
     Dim DllPath As String
     DllPath = LITE_RPREFIX & "dll\" & ARCH
     Dim DllNames As Variant
-    #If Win64 Then
+    #If WIN64 Then
         DllNames = "sqlite3.dll"
     #Else
         DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _

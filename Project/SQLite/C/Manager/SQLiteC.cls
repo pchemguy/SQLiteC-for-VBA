@@ -67,7 +67,7 @@ Friend Sub Init(ByVal DllPath As String, _
     If Not IsEmpty(DllNames) Then
         FileNames = DllNames
     Else
-        #If Win64 Then
+        #If WIN64 Then
             '''' SQLite3.dll-x64 is built with MSYS2/MinGWx64
             '''' LoadLibrary resolves/loads dependencies automatically.
             FileNames = "sqlite3.dll"
@@ -129,6 +129,7 @@ Friend Sub Cleanup()
         DbConn.Cleanup
         this.Connections.Remove ConnName
     Next ConnName
+    this.MainDB = Null
 End Sub
 
 Friend Property Get SkipCleanUp() As Boolean

@@ -3,7 +3,7 @@ Attribute VB_Name = "SQLiteGlobals"
 Option Explicit
 Option Compare Text
 
-#If Win64 Then
+#If WIN64 Then
     Public Const ARCH As String = "x64"
 #Else
     Public Const ARCH As String = "x32"

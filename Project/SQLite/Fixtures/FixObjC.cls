@@ -38,7 +38,6 @@ End Sub
 Friend Sub Cleanup()
     If Not this.dbm Is Nothing Then
         this.dbm.SkipCleanUp = False
-        this.dbm.Cleanup
         Set this.dbm = Nothing
     End If
 End Sub

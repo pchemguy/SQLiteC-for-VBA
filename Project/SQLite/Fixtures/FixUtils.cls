@@ -184,7 +184,7 @@ Attribute XorElements.VB_Description = "Calculates XOR-hash of a whole number ar
     Guard.NotArray Elements
     Select Case VarType(Elements(LBound(Elements)))
         Case vbByte, vbInteger, vbLong, vbLongLong, vbBoolean, vbCurrency
-            #If Win64 Then
+            #If WIN64 Then
                 Dim Result As LongLong
             #Else
                 Dim Result As Long
