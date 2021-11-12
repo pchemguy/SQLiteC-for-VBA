@@ -42,23 +42,37 @@ Private Const LoadingDllErr As Long = 48
 Private Type TDllManager
     DefaultPath As String
     Dlls As Scripting.Dictionary '''' Dll file name to handle map
+    Singleton As DllManager
 End Type
 Private this As TDllManager
 
 
 Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
-                       Optional ByVal DllNames As Variant = Empty) As DllManager
+                       Optional ByVal DllNames As Variant = Empty, _
+                       Optional ByVal GetShared As Boolean = True) As DllManager
     Dim Instance As DllManager
-    Set Instance = New DllManager
-    Instance.Init DefaultPath, DllNames
+    If GetShared Then
+        If Not this.Singleton Is Nothing Then
+            Set Instance = this.Singleton
+        Else
+            Set Instance = New DllManager
+            Set this.Singleton = Instance
+        End If
+    Else
+        Set Instance = New DllManager
+    End If
+    Instance.Init DefaultPath, DllNames, GetShared
     Set Create = Instance
 End Function
 
 
 Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
-                Optional ByVal DllNames As Variant = Empty)
-    Set this.Dlls = New Scripting.Dictionary
-    this.Dlls.CompareMode = TextCompare
+                Optional ByVal DllNames As Variant = Empty, _
+                Optional ByVal GetShared As Boolean = True)
+    If this.Dlls Is Nothing Then
+        Set this.Dlls = New Scripting.Dictionary
+        this.Dlls.CompareMode = TextCompare
+    End If
     Me.DefaultPath = DefaultPath
     If Not IsEmpty(DllNames) Then
         If Not LoadMultiple(DllNames) = LOAD_OK Then
@@ -89,17 +103,19 @@ End Property
 Public Property Let DefaultPath(ByVal Value As String)
     Dim fso As New Scripting.FileSystemObject
     Dim Path As String
-    If fso.FolderExists(Value) Then
+    Const PATH_SEP As String = "\"
+    Path = IIf(Len(Value) > 0, Value, PATH_SEP & "Library" & PATH_SEP & _
+        ThisWorkbook.VBProject.Name & PATH_SEP & "dll" & PATH_SEP & CStr(ARCH))
+    If fso.FolderExists(Path) Then
         '''' Absolute existing path is provided
-        Path = Value
-    ElseIf fso.FolderExists(fso.BuildPath(ThisWorkbook.Path, Value)) Then
+        Path = fso.GetAbsolutePathName(Path)
+    ElseIf fso.FolderExists(ThisWorkbook.Path & PATH_SEP & Path) Then
         '''' Relative existing path is provided
-        Path = fso.BuildPath(ThisWorkbook.Path, Value)
+        Path = fso.GetAbsolutePathName(ThisWorkbook.Path & PATH_SEP & Path)
     Else
         Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
                   "DefaultPath not found: <" & Value & ">"
     End If
-    Path = fso.GetAbsolutePathName(Path)
     
     '''' Set the default dll directory for LoadLibrary
     '''' https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectorya#remarks
@@ -113,6 +129,11 @@ Public Property Let DefaultPath(ByVal Value As String)
         Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
     End If
 End Property
+
+
+Public Sub ForgetSingleton()
+    Set this.Singleton = Nothing
+End Sub
 
 
 '''' https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectorya#remarks
