@@ -17,7 +17,13 @@ The ILiteADO interface module shown in the center is a part of the SQLiteADO sub
 
 ### Development environment
 
-I use Excel 2002 (x32/VBA6) as my primary development environment. Additionally, I run tests under Excel 2016 (x64, VBA7). *SQLite C/ADO with Introspection for VBA* lives within the *SQLiteCAdoReflectVBAdev.xls* Excel Workbook located in the repository root. [Rubber Duck VBA][Rubber Duck VBA] VBA IDE add-in has become an essential VBA development component for me. I also regularly use [RDVBA Project Utils][] for exporting/importing the virtual VBA project structure.
+I use Excel 2002 (x32/VBA6) as my primary development environment. *SQLite C/ADO with Introspection for VBA* lives within the *SQLiteCAdoReflectVBAdev.xls* Excel Workbook located in the repository root. [Rubber Duck VBA][Rubber Duck VBA] VBA IDE add-in has become an essential VBA development component for me (and it installs just fine without the admin privileges on the user's account, which is a nice bonus). I also regularly use [RDVBA Project Utils][] for exporting/importing the virtual VBA project structure.
+
+### Compatibility end testing
+
+This project uses the RDVBA's unit testing framework as the primary means for testing, which means RDVBA addin is required to run the tests. As of this writing, I use RDVBA 2.5.2.5871 (I had some issues with the latest following release v2.5.2.1 / build 2.5.2.5906, as I do with the currently used version, but I am waiting for now for the next release). Testing-wise, this build has a known very annoying GUI-related issue, rendering the testing framework barely usable when the number of tests grows above, say, 100. As a workaround, I disable the display of tests with unknown and successful result statuses.
+
+I run tests under x32/VBA6 (Excel XP/2002 SP3) and x64/VBA7 (Excel 2016) environments and might also include a small set of tests that will run without RDVBA. The project, therefore, should be compatible with both x32/VBA6 and x64/VBA7. The primary source of compatibility concerns is the declarations of API routines, and it boils down to three keywords: *PtrSafe*, *LongPtr*, and *LongLong*. To achieve portability, I use conditional compilation coupled primarily with the VBA7 constant. I have only a couple of instances of *LongLong*, and I added the WIN64 test within the VBA7 block for those cases, and I defined it as Currency within the VBA6 code. While not tested, this arrangement should make the code compatible with x32/VBA7, but it may not work on x64/VBA6.
 
 ### VBA project structure
 
@@ -42,6 +48,9 @@ Each package should host its files in a subdirectory under *Library*. This way, 
 
 I prepare diagrams starting from the [yWorks yEd][] graph editor. I save originals in the native GraphML format and export them in the EPS format. Then I open EPS files in Adobe Illustrator CS6 and save them as SVGs (I also make jpg or png files at this point if necessary).
 
+### Writing aids
+
+I should acknowledge [Grammarly][] service:  it can significantly facilitate the writing process and help improve the linguistic quality of the texts.
 
 <!-- References -->
 
@@ -50,3 +59,4 @@ I prepare diagrams starting from the [yWorks yEd][] graph editor. I save origina
 [SQLiteDB VBA]: https://pchemguy.github.io/SQLiteDB-VBA-Library/
 [CPearson Array]: http://www.cpearson.com/Excel/VBAArrays.htm
 [yWorks yEd]: https://www.yworks.com/products/yed
+[Grammarly]: https://www.grammarly.com/
