@@ -2,7 +2,7 @@ remote_theme: pmarsceill/just-the-docs
 
 title: "SQLite C API"
 
-markdown: CommonMarkGhPages
+markdown: GFM
 
 webmaster_verifications:
   google: "eeyANkR7sUrPKHD5z5GheWmEg9GY5Sjpn1aCSpbx0J0"
