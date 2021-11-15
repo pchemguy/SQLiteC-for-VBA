@@ -11,10 +11,6 @@ From the calling code's perspective, the LiteMan class is the top-level API obje
 
 The top-level class of the package core is the LiteADO class, which is the only class that interacts with the ADODB library directly (note the green rectangles with ADODB objects in [Fig. 1](#SQLiteADO-Core) associated with LiteADO). ILiteADO formalizes LiteADO's interface, and it represents the main database-associated object. All other core classes encapsulate the ILiteADO object, if necessary. Therefore, the remaining components can be used by the SQLiteC package as well via its ILiteADO implementation.
 
-<a name="SQLiteADO-Core"></a>  
-<div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteADO-Core.svg" alt="SQLiteADO Core" width="100%" /></div>
-<p align="center"><b>Fig. 1. SQLiteADO core classes diagram</b></p>  
-
 ### LiteMan
 
 The LiteMan class is the top-level API class. This predeclared class generates its instances via the Create factory. The factory is the default class member taking a string describing the database (relative/full path or a special name) and an optional argument controlling whether a new database is acceptable and whether LiteFSCheck should use its path resolution protocol. If no error occurs, LiteMan passes the resolved database descriptor to the LiteADO class, which generates the ILiteADO database object. LiteMan also provides routines for checking driver availability, attaching/detaching/cloning databases, placing the query result on an Excel worksheet, and controlling the journal type. The following table shows some commands, which can be executed from the *immediate pane* without any additional code:
@@ -43,3 +39,7 @@ The two other groups of SQLiteADO classes take an ILiteADO object. Even though t
 ### ADOlib
 
 ADOlib is a legacy module designed as a container for helper routines involving operations on ADODB objects. Presently, SQLiteCAdo uses only one method, RecordsetToQT, which outputs the contents of a Recordset onto an Excel worksheet via the QueryTable feature (see SQLiteIntropectionExample in 'SQLite/MetaSQL/Examples' for examples).
+
+<a name="SQLiteADO-Core"></a>  
+<div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteADO-Core.svg" alt="SQLiteADO Core" width="100%" /></div>
+<p align="center"><b>Fig. 1. SQLiteADO core classes diagram</b></p>  
