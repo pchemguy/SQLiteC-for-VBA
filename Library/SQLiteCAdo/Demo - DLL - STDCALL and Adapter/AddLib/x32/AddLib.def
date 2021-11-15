@@ -1,0 +1,4 @@
+EXPORTS
+    Add@8 @1
+    bar @2 DATA
+    foo @3 DATA

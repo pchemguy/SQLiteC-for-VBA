@@ -26,18 +26,14 @@ main() {
     readonly ARCH="x32"
   fi
 
-  rm -rf "./${ARCH}"
-  mkdir -p "./${ARCH}"
+  [[ ! -r "./${ARCH}/addlib.dll" ]] && echo "addlib.dll not found." && exit 101
   
   # Only use -DADD_EXPORTS when compiling the library
-  gcc -O3 -Wall -c add.c -o add.o -DADD_EXPORTS
-  gcc -o AddLib.dll add.o -shared -Wl,--subsystem,windows,--output-def,AddLib.def
-  gcc -o AddLib.dll add.o -shared -Wl,--subsystem,windows,--kill-at
-  dlltool --kill-at -d AddLib.def -D AddLib.dll -l libaddlib.a
+  gcc -c addclient.c -o addclient.o
+  gcc addclient.o -o addclient.exe -L"./${ARCH}" -laddlib
 
-  rm add.o
-  mv AddLib.d* "./${ARCH}"
-  mv libaddlib.a "./${ARCH}"
+  rm addclient.o
+  mv addclient.exe "./${ARCH}"
 
   return 0
 }
