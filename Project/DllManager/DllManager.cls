@@ -42,11 +42,12 @@ Private Const LoadingDllErr As Long = 48
 Private Type TDllManager
     DefaultPath As String
     Dlls As Scripting.Dictionary '''' Dll file name to handle map
-    Singleton As DllManager
+    Singleton As DllManager      '''' Should only be used by the default instance
 End Type
 Private this As TDllManager
 
 
+'''' If GetShared is true, return singleton instance, otherwise return an independent instance
 Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
                        Optional ByVal DllNames As Variant = Empty, _
                        Optional ByVal GetShared As Boolean = True) As DllManager
@@ -66,6 +67,7 @@ Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
 End Function
 
 
+'@Ignore ParameterNotUsed: added to match signtaure with factory
 Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
                 Optional ByVal DllNames As Variant = Empty, _
                 Optional ByVal GetShared As Boolean = True)
@@ -103,15 +105,14 @@ End Property
 Public Property Let DefaultPath(ByVal Value As String)
     Dim fso As New Scripting.FileSystemObject
     Dim Path As String
-    Const PATH_SEP As String = "\"
-    Path = IIf(Len(Value) > 0, Value, PATH_SEP & "Library" & PATH_SEP & _
-        ThisWorkbook.VBProject.Name & PATH_SEP & "dll" & PATH_SEP & CStr(ARCH))
+    Path = IIf(Len(Value) > 0, Value, _
+               "Library\" & ThisWorkbook.VBProject.Name & "\dll\" & CStr(ARCH))
     If fso.FolderExists(Path) Then
         '''' Absolute existing path is provided
         Path = fso.GetAbsolutePathName(Path)
-    ElseIf fso.FolderExists(ThisWorkbook.Path & PATH_SEP & Path) Then
+    ElseIf fso.FolderExists(ThisWorkbook.Path & "\" & Path) Then
         '''' Relative existing path is provided
-        Path = fso.GetAbsolutePathName(ThisWorkbook.Path & PATH_SEP & Path)
+        Path = fso.GetAbsolutePathName(ThisWorkbook.Path & "\" & Path)
     Else
         Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
                   "DefaultPath not found: <" & Value & ">"
@@ -310,3 +311,4 @@ Public Function GetDllPath(ByVal DllName As String) As String
                            "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
+

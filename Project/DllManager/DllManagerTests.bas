@@ -11,7 +11,8 @@ Private TestCounter As Long
 
 Private Const LITE_LIB As String = "DllManager"
 Private Const PATH_SEP As String = "\"
-Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
+Private Const LITE_RPREFIX As String = _
+    "Library" & PATH_SEP & LITE_LIB & PATH_SEP & "dll" & PATH_SEP
 
 Public Const LoadingDllErr As Long = 48
 
@@ -57,23 +58,31 @@ End Sub
 '===================================================='
 
 
-Private Function zfxGetDefaultDllPath() As String
-    zfxGetDefaultDllPath = "Library" & PATH_SEP & ThisWorkbook.VBProject.Name & _
-                           PATH_SEP & "dll" & PATH_SEP & CStr(ARCH)
+Private Function zfxGetDefaultAppDllPath() As String
+    zfxGetDefaultAppDllPath = ThisWorkbook.Path & "\Library\" & _
+                              ThisWorkbook.VBProject.Name & "\dll\" & CStr(ARCH)
+End Function
+
+
+Private Function zfxGetLibraryArray() As Variant
+    #If WIN64 Then
+        zfxGetLibraryArray = Array("sqlite3.dll", "libicudt68.dll", _
+                                   "libstdc++-6.dll", "libwinpthread-1.dll", _
+                                   "libicuuc68.dll", "libicuin68.dll")
+    #Else
+        zfxGetLibraryArray = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
+                                   "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+    #End If
 End Function
 
 
 Private Function zfxGetDefaultManager() As DllManager
     Dim DllPath As String
-    DllPath = zfxGetDefaultDllPath
+    DllPath = LITE_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
-    #If WIN64 Then
-        DllNames = Array("sqlite3.dll", "libicudt68.dll", "libstdc++-6.dll", "libwinpthread-1.dll", "libicuuc68.dll", "libicuin68.dll")
-    #Else
-        DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", "icuio68.dll", "icutu68.dll", "sqlite3.dll")
-    #End If
+    DllNames = zfxGetLibraryArray()
     Dim DllMan As DllManager
-    Set DllMan = DllManager.Create(DllPath, DllNames)
+    Set DllMan = DllManager.Create(DllPath, DllNames, False)
     If DllMan Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "DllManagerTests", "Failed to create a DllManager instance."
     Set zfxGetDefaultManager = DllMan
@@ -97,7 +106,7 @@ Act:
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DefaultPath)
     Dim Expected As String
-    Expected = ThisWorkbook.Path & PATH_SEP & zfxGetDefaultDllPath
+    Expected = zfxGetDefaultAppDllPath()
     Dim Actual As String
     Actual = DllMan.DefaultPath
 Assert:
@@ -162,6 +171,132 @@ Private Sub ztcCreate_ThrowsOnInvalidPath()
 End Sub
 
 
+'@TestMethod("Singleton")
+Private Sub ztcCreate_VerifiesNotSingleton()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllPath As String
+    DllPath = LITE_RPREFIX & CStr(ARCH)
+    Dim DllNames As Variant
+    DllNames = zfxGetLibraryArray()
+Act:
+    Dim DllMan As DllManager
+    Set DllMan = DllManager.Create(DllPath, DllNames, False)
+    Assert.IsNotNothing DllMan, "Failed to create a DllManager instance."
+    Assert.AreEqual 6, DllMan.Dlls.Count, "Dlls.Count mismatch"
+    Assert.IsTrue DllMan.Dlls.Exists("sqlite3.dll"), "sqlite3.dll is not in DllMan"
+Assert:
+    Dim DllManAlias As DllManager
+    Set DllManAlias = DllManager.Create(, , False)
+    Assert.IsNotNothing DllManAlias, "Failed to create a DllManager instance."
+    Assert.AreNotSame DllMan, DllManAlias
+    Set DllManAlias = Nothing
+    Set DllManAlias = DllManager.Create()
+    Assert.IsNotNothing DllManAlias, "Failed to create a DllManager instance."
+    Assert.AreNotSame DllMan, DllManAlias
+    Assert.AreEqual zfxGetDefaultAppDllPath(), DllManAlias.DefaultPath, "DefaultPath mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Singleton")
+Private Sub ztcCreate_VerifiesNotSingletonAfterSingleton()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllPath As String
+    DllPath = LITE_RPREFIX & CStr(ARCH)
+    Dim DllNames As Variant
+    DllNames = zfxGetLibraryArray()
+Act:
+    Dim DllMan As DllManager
+    Set DllMan = DllManager.Create(DllPath, DllNames)
+    Assert.IsNotNothing DllMan, "Failed to create a DllManager instance."
+Assert:
+    Dim DllManAlias As DllManager
+    Set DllManAlias = DllManager.Create(, , False)
+    Assert.IsNotNothing DllManAlias, "Failed to create a DllManager instance."
+    Assert.AreNotSame DllMan, DllManAlias
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Singleton")
+Private Sub ztcCreate_VerifiesSingleton()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllPath As String
+    DllPath = LITE_RPREFIX & CStr(ARCH)
+    Dim DllNames As Variant
+    DllNames = zfxGetLibraryArray()
+Act:
+    Dim DllMan As DllManager
+    Set DllMan = DllManager.Create(DllPath, DllNames)
+    Assert.IsNotNothing DllMan, "Failed to create a DllManager instance."
+    Assert.AreEqual 6, DllMan.Dlls.Count, "Dlls.Count mismatch"
+    Assert.IsTrue DllMan.Dlls.Exists("sqlite3.dll"), "sqlite3.dll is not in DllMan"
+Assert:
+    Dim DllManAlias As DllManager
+    Set DllManAlias = DllManager.Create()
+    Assert.IsNotNothing DllManAlias, "Failed to create a DllManager instance."
+    Assert.AreSame DllMan, DllManAlias
+    Assert.AreEqual zfxGetDefaultAppDllPath(), DllManAlias.DefaultPath, "DefaultPath mismatch"
+    Assert.AreEqual 6, DllManAlias.Dlls.Count, "DllManAlias.Count mismatch"
+    Assert.IsTrue DllManAlias.Dlls.Exists("sqlite3.dll"), "sqlite3.dll is not in DllManAlias"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Singleton")
+Private Sub ztcForgetSugleton_VerifiesForgetSingleton()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllPath As String
+    DllPath = LITE_RPREFIX & CStr(ARCH)
+    Dim DllNames As Variant
+    DllNames = zfxGetLibraryArray()
+Act:
+    Dim DllMan As DllManager
+    Set DllMan = DllManager.Create(DllPath, DllNames)
+    Assert.IsNotNothing DllMan, "Failed to create a DllManager instance."
+    Assert.AreEqual 6, DllMan.Dlls.Count, "Dlls.Count mismatch"
+    Assert.IsTrue DllMan.Dlls.Exists("sqlite3.dll"), "sqlite3.dll is not in DllMan"
+    DllManager.ForgetSingleton
+Assert:
+    Dim DllManAlias As DllManager
+    Set DllManAlias = DllManager.Create()
+    Assert.IsNotNothing DllManAlias, "Failed to create a DllManager instance."
+    Assert.AreNotSame DllMan, DllManAlias
+    Assert.AreEqual zfxGetDefaultAppDllPath(), DllManAlias.DefaultPath, "DefaultPath mismatch"
+    Assert.AreEqual 0, DllManAlias.Dlls.Count, "DllManAlias.Count mismatch"
+    Assert.IsFalse DllManAlias.Dlls.Exists("sqlite3.dll"), "sqlite3.dll should not be in DllManAlias"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
 '@TestMethod("DefaultPath")
 Private Sub ztcDefaultPath_VerifiesRelativePath()
     On Error GoTo TestFail
@@ -200,22 +335,21 @@ End Sub
 Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     On Error Resume Next
     TestCounter = TestCounter + 1
+    Err.Clear
     '''' Set mismatched path to test for error
     Dim DllPath As String
-    #If WIN64 Then
-        DllPath = LITE_RPREFIX & "dll\x32"
-    #Else
-        DllPath = LITE_RPREFIX & "dll\x64"
-    #End If
+    If ARCH = "x32" Then
+        DllPath = LITE_RPREFIX & "x64"
+    Else
+        DllPath = LITE_RPREFIX & "x32"
+    End If
     Dim DllName As String
     DllName = "sqlite3.dll"
     
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath, , False)
     Dim ResultCode As DllLoadStatus
-    ResultCode = LOAD_ALREADY_LOADED
     ResultCode = DllMan.Load(DllName)
-    Assert.AreEqual LOAD_ALREADY_LOADED, ResultCode, "Unexpected result code."
     Guard.AssertExpectedError Assert, LoadingDllErr
 End Sub
 
@@ -227,7 +361,7 @@ Private Sub ztcLoad_VerifiesLoad()
 
 Arrange:
     Dim DllPath As String
-    DllPath = zfxGetDefaultDllPath
+    DllPath = LITE_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     #If WIN64 Then
         DllNames = "sqlite3.dll"
@@ -264,7 +398,7 @@ Private Sub ztcLoadMultiple_VerifiesLoadOne()
 
 Arrange:
     Dim DllPath As String
-    DllPath = zfxGetDefaultDllPath
+    DllPath = LITE_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     #If WIN64 Then
         DllNames = "sqlite3.dll"
@@ -317,7 +451,7 @@ Private Sub ztcLoadMultiple_VerifiesLoadParamArray()
 
 Arrange:
     Dim DllPath As String
-    DllPath = zfxGetDefaultDllPath
+    DllPath = LITE_RPREFIX & CStr(ARCH)
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath)
 Act:

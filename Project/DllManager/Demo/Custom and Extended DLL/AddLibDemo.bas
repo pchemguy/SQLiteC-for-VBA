@@ -3,7 +3,7 @@ Attribute VB_Name = "AddLibDemo"
 Option Explicit
 Option Private Module
 
-#If VBA7 Then
+#If WIN64 Then
 Private Declare PtrSafe Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
 #Else
 Private Declare Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
@@ -19,12 +19,10 @@ Private this As TAddLibDemo
 Private Sub GetSum()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
-    #If VBA7 Then
-        '''' TODO
-        '''' DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\AddLib\x64"
-        DllPath = vbNullString
+    #If WIN64 Then
+        DllPath = "Library\" & ThisWorkbook.VBProject.Name & "\Demo - DLL - STDCALL and Adapter\AddLib\x64"
     #Else
-        DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\AddLib\x32"
+        DllPath = "Library\" & ThisWorkbook.VBProject.Name & "\Demo - DLL - STDCALL and Adapter\AddLib\x32"
     #End If
     LoadDlls DllPath
     
@@ -46,5 +44,3 @@ Private Sub LoadDlls(ByVal DllPath As String)
     '@Ignore FunctionReturnValueDiscarded
     DllMan.LoadMultiple DllNames
 End Sub
-
-
