@@ -12,6 +12,15 @@ Attribute VB_Description = "Provides instantiated SQLiteC library objects"
 '@ModuleDescription "Provides instantiated SQLiteC library objects"
 '@PredeclaredId
 '@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
+''''
+'''' Normally, dbm object is destructed before every request for new Connection
+'''' object. dbm's destructor initiates reset of its descendants. However, the
+'''' backup API test opens the source and destination databases on separate
+'''' connections. When the source database is in-memory, it is destructed by the
+'''' cleanup process initiated by requesting a second connection object for the
+'''' destination database. In such a case, set .ReuseDBM to true to prevent
+'''' cleanup. This attribute is automatically reset by the GetDBM routine.
+''''
 Option Explicit
 
 Private Const LITE_LIB As String = "SQLiteCAdo"
@@ -22,6 +31,7 @@ Private Type TFixObjC
     DllMan As DllManager
     dbm As SQLiteC
     LibDir As String
+    ReuseDBM As Boolean
 End Type
 Private this As TFixObjC
 
@@ -30,16 +40,8 @@ Private Sub Class_Initialize()
     this.LibDir = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX
 End Sub
 
-'''' In general, tests reuse the dbm object, which is set the first time it is
-'''' needed. However, some tests verify the state of the dbm object straight
-'''' after Init is completed, or value of properties which are only changed once
-'''' after dbm.Init. These test require a fresh dbm, so this routine must be
-'''' called first to reset the saved dbm object.
-Friend Sub Cleanup()
-    If Not this.dbm Is Nothing Then
-        this.dbm.SkipCleanUp = False
-        Set this.dbm = Nothing
-    End If
+Public Sub ReuseDBM()
+    this.ReuseDBM = True
 End Sub
 
 Public Property Get DefaultDbPathName() As String
@@ -55,21 +57,19 @@ Public Function GetDBM() As SQLiteC
 Attribute GetDBM.VB_Description = "Loads SQLite dll and returns DbManager (SQLiteC) object."
     Dim DllPath As String
     DllPath = LITE_RPREFIX & "dll\" & ARCH
-    Dim dbm As SQLiteC
     '''' Using default library names hardcoded in the SQLiteC constructor.
-    If this.dbm Is Nothing Then
-        Set dbm = SQLiteC(DllPath)
-        If dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
-            "FixObjC", "Failed to create an SQLiteC instance."
-        '''' Keep references to prevent undesired object destruction
-        Set this.dbm = dbm
-        Set this.DllMan = dbm.DllMan
+    If Not this.ReuseDBM Then
+        Set this.dbm = Nothing
     Else
-        Set dbm = this.dbm
-        Logger.Logg "FixObjC/GetDBM: Using previous DBM manager.", , DEBUGLEVEL_INFO
-        dbm.Cleanup
+        this.ReuseDBM = False
     End If
-    Set GetDBM = dbm
+    
+    If this.dbm Is Nothing Then
+        Set this.dbm = SQLiteC(DllPath)
+        If this.dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+            "FixObjC", "Failed to create an SQLiteC instance."
+    End If
+    Set GetDBM = this.dbm
 End Function
 
 '@Description "Given database path, obtains a DbManager reference and returns a connection (SQLiteCConnection) object."

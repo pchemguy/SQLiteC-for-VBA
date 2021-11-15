@@ -54,6 +54,23 @@ End Sub
 '===================================================='
 
 
+'@TestMethod("Environment")
+Private Sub ztcSQLite3ODBCDriverCheck_VerifiesSQLiteODBCDriver()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+Assert:
+    Assert.IsTrue LiteMan.SQLite3ODBCDriverCheck(), "SQLite3ODBC driver not found."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
 '@TestMethod("Path Resolution")
 Private Sub ztcCreate_ValidatesNewRelativeDatabasePath()
     On Error GoTo TestFail
@@ -87,7 +104,7 @@ Act:
     Actual = dbq.MainDB
 Assert:
     Assert.AreEqual Expected, Actual, "New db (relative) path mismatch"
-Cleanup:
+CleanUp:
     Set dbq = Nothing
     Set dbm = Nothing
     fso.DeleteFolder Prefix

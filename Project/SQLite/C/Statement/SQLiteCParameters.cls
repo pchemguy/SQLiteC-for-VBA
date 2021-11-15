@@ -26,11 +26,19 @@ Private Declare PtrSafe Function sqlite3_bind_parameter_count Lib "SQLite3" (ByV
 Private Declare PtrSafe Function sqlite3_bind_parameter_name Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long) As LongPtr
 Private Declare PtrSafe Function sqlite3_bind_parameter_index Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamName As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_bind_null Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long) As Long
-Private Declare PtrSafe Function sqlite3_bind_blob Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal pValue As LongPtr, ByVal nBytes As Long, ByVal pfDelete As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_bind_blob Lib "SQLite3" ( _
+    ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal pValue As LongPtr, ByVal nBytes As Long, ByVal pfDelete As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_bind_double Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As Double) As Long
 Private Declare PtrSafe Function sqlite3_bind_int Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As Long) As Long
-Private Declare PtrSafe Function sqlite3_bind_int64 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As LongLong) As Long
-Private Declare PtrSafe Function sqlite3_bind_text16 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal pswValue As LongPtr, ByVal nBytes As Long, ByVal pfDelete As LongPtr) As Long
+#If WIN64 Then
+    Private Declare PtrSafe Function sqlite3_bind_int64 Lib "SQLite3" ( _
+        ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As LongLong) As Long
+#Else
+    Private Declare PtrSafe Function sqlite3_bind_int64 Lib "SQLite3" ( _
+        ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As Currency) As Long '''' NOT TESTED (VBA7-x32)
+#End If
+Private Declare PtrSafe Function sqlite3_bind_text16 Lib "SQLite3" ( _
+    ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal pswValue As LongPtr, ByVal nBytes As Long, ByVal pfDelete As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_clear_bindings Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 #Else
 ' 1-based indices
@@ -38,11 +46,13 @@ Private Declare Function sqlite3_bind_parameter_count Lib "SQLite3" (ByVal hStmt
 Private Declare Function sqlite3_bind_parameter_name Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long) As Long
 Private Declare Function sqlite3_bind_parameter_index Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamName As Long) As Long
 Private Declare Function sqlite3_bind_null Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long) As Long
-Private Declare Function sqlite3_bind_blob Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal pValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
+Private Declare Function sqlite3_bind_blob Lib "SQLite3" ( _
+    ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal pValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
 Private Declare Function sqlite3_bind_double Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal Value As Double) As Long
 Private Declare Function sqlite3_bind_int Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal Value As Long) As Long
-Private Declare Function sqlite3_bind_int64 Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal Value As Currency) As Long '
-Private Declare Function sqlite3_bind_text16 Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal pswValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
+Private Declare Function sqlite3_bind_int64 Lib "SQLite3" (ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal Value As Currency) As Long
+Private Declare Function sqlite3_bind_text16 Lib "SQLite3" ( _
+    ByVal hStmt As Long, ByVal ParamIndex As Long, ByVal pswValue As Long, ByVal nBytes As Long, ByVal pfDelete As Long) As Long
 Private Declare Function sqlite3_clear_bindings Lib "SQLite3" (ByVal hStmt As Long) As Long
 #End If
 
@@ -66,11 +76,7 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Set this.DbStmt = DbStmt
 End Sub
 
-Private Sub Class_Terminate()
-    Cleanup
-End Sub
-
-Friend Sub Cleanup()
+Friend Sub CleanUp()
     BindClear
     Set this.DbStmt = Nothing
 End Sub

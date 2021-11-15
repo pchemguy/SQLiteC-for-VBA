@@ -139,7 +139,7 @@ Act:
     Set dbqCI = dbq
     Dim Actual As String
     Actual = dbq.MainDB
-Cleanup:
+CleanUp:
     dbqCI.AdoConnection.Close
     Set dbq = Nothing
 Assert:

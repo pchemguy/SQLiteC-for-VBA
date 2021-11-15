@@ -115,15 +115,12 @@ Private Function ConnectionString(ByVal Database As String, _
                          ) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
     this.MainDB = Database
-
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
-
     Dim Options As String
     Options = "SyncPragma=NORMAL;FKSupport=True;"
     If Not AllowNonExistent Then _
         Options = Options & "NoCreat=True;"
-        
     this.ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & Options
     ConnectionString = this.ConnectionString
 End Function
@@ -204,6 +201,22 @@ End Property
 Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.ConnectionString
 End Property
+
+Private Function ILiteADO_OpenDb() As Long
+    Err.Clear
+    On Error Resume Next
+    If this.AdoConnection.State = adStateClosed Then this.AdoConnection.Open
+    On Error GoTo 0
+    ILiteADO_OpenDb = Err.Number
+End Function
+
+Private Function ILiteADO_CloseDb() As Long
+    Err.Clear
+    On Error Resume Next
+    If this.AdoConnection.State <> adStateClosed Then this.AdoConnection.Close
+    On Error GoTo 0
+    ILiteADO_CloseDb = Err.Number
+End Function
 
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _

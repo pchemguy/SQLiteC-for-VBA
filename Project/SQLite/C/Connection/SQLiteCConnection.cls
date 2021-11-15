@@ -13,16 +13,6 @@ Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
-
-''''======================================================================''''
-'''' Connection
-'''' https://www.sqlite.org/c3ref/open.html
-'''' https://www.sqlite.org/c3ref/close.html
-'''' https://www.sqlite.org/vfs.html
-'''' https://www.sqlite.org/c3ref/changes.html
-'''' https://www.sqlite.org/c3ref/total_changes.html
-''''======================================================================''''
-
 Option Explicit
 
 #If VBA7 Then
@@ -42,6 +32,11 @@ Private Declare PtrSafe Function sqlite3_exec Lib "SQLite3" (ByVal hDb As LongPt
 '''' Database connection change counts
 Private Declare PtrSafe Function sqlite3_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As LongPtr) As Long
+'''' Error information
+Private Declare PtrSafe Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As LongPtr) As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteResultCodes) As LongPtr ' PtrUtf8String
+Private Declare PtrSafe Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
+Private Declare PtrSafe Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As LongPtr) As Long
 #Else
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
@@ -59,6 +54,11 @@ Private Declare Function sqlite3_exec Lib "SQLite3" (ByVal hDb As Long, ByVal zS
 '''' Database connection change counts
 Private Declare Function sqlite3_changes Lib "SQLite3" (ByVal hDb As Long) As Long
 Private Declare Function sqlite3_total_changes Lib "SQLite3" (ByVal hDb As Long) As Long
+'''' Error information
+Private Declare Function sqlite3_errmsg Lib "SQLite3" (ByVal hDb As Long) As Long ' PtrUtf8String
+Private Declare Function sqlite3_errstr Lib "SQLite3" (ByVal rc As SQLiteResultCodes) As Long ' PtrUtf8String
+Private Declare Function sqlite3_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
+Private Declare Function sqlite3_extended_errcode Lib "SQLite3" (ByVal hDb As Long) As Long
 #End If
 
 Public Enum SQLiteOpenFlags
@@ -112,7 +112,7 @@ Private Type TSQLiteCConnection
         DbHandle As Long
     #End If
     Statements As Scripting.Dictionary
-    ErrorInfo As SQLiteCErr
+    ErrInfo As SQLiteCErr
 End Type
 Private this As TSQLiteCConnection
 
@@ -137,28 +137,27 @@ Friend Sub Init(ByVal DbPathName As String, _
         "SQLiteCConnection/Init", PathCheck.ErrDescription
     FilePathName = PathCheck.DatabasePathName
     this.DbPathName = FilePathName
-    Set this.ErrorInfo = SQLiteCErr(Me)
     Set this.Statements = New Scripting.Dictionary
     this.Statements.CompareMode = TextCompare
 End Sub
 
-Private Sub Class_Terminate()
-    Cleanup
-End Sub
-
-Friend Sub Cleanup()
-    Dim DbStmt As SQLiteCStatement
-    Dim StmtName As Variant
-    For Each StmtName In this.Statements.Keys
-        Set DbStmt = this.Statements(StmtName)
-        DbStmt.Cleanup
-        this.Statements.Remove StmtName
-    Next StmtName
+Friend Sub CleanUp()
+    With this
+        Dim DbStmt As SQLiteCStatement
+        Dim StmtName As Variant
+        For Each StmtName In .Statements.Keys
+            Set DbStmt = .Statements(StmtName)
+            DbStmt.CleanUp
+        Next StmtName
+        Set DbStmt = Nothing
+        .Statements.RemoveAll
+        Set .Statements = Nothing
+        Set .Statements = New Scripting.Dictionary
+        .Statements.CompareMode = TextCompare
+    End With
     Dim ResultCode As SQLiteResultCodes
     ResultCode = CloseDb
     Debug.Assert ResultCode = SQLITE_OK
-    If Not this.ErrorInfo Is Nothing Then this.ErrorInfo.Cleanup
-    Set this.ErrorInfo = Nothing
 End Sub
 
 #If VBA7 Then
@@ -173,17 +172,43 @@ Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
 
-Public Property Get ErrorInfo() As SQLiteCErr
-    Set ErrorInfo = this.ErrorInfo
+Public Property Get ErrInfo() As SQLiteCErr
+    ErrInfo = this.ErrInfo
 End Property
 
-Public Function ErrInfoRetrieve() As SQLiteResultCodes
-    With this.ErrorInfo
-        .GetErr
-        .PrintErr
-        ErrInfoRetrieve = .ErrorCodeEx
+'''' Reference: https://www.sqlite.org/c3ref/errcode.html
+''''
+Public Sub GetErr()
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/GetErr"
+    With this.ErrInfo
+        .ErrorCode = sqlite3_errcode(this.DbHandle)
+        .ErrorCodeName = SQLiteCRC.CodeToName(.ErrorCode)
+        .ErrorCodeEx = sqlite3_extended_errcode(this.DbHandle)
+        .ErrorCodeExName = SQLiteCRC.CodeToName(.ErrorCodeEx)
+        .ErrorName = .ErrorCodeExName
+        .ErrorMessage = UTFlib.StrFromUTF8Ptr(sqlite3_errmsg(this.DbHandle))
+        .ErrorString = UTFlib.StrFromUTF8Ptr(sqlite3_errstr(.ErrorCode))
     End With
+End Sub
+
+Public Sub PrintErr()
+    With this.ErrInfo
+        Logger.Logg "========== Error Details ========== " & vbNewLine & _
+                    "ErrCode:          " & CStr(.ErrorCode) & vbNewLine & _
+                    "ErrCode Extended: " & CStr(.ErrorCodeEx) & vbNewLine & _
+                    "Error Name:       " & .ErrorName & vbNewLine & _
+                    "ErrStr:           " & .ErrorString & vbNewLine & _
+                    "ErrMsg:           " & .ErrorMessage & vbNewLine _
+                    , , DEBUGLEVEL_ERROR
+    End With
+End Sub
+
+Public Function ErrInfoRetrieve() As SQLiteResultCodes
+    GetErr
+    PrintErr
+    ErrInfoRetrieve = this.ErrInfo.ErrorCodeEx
 End Function
+
 
 '''' Reference: https://www.sqlite.org/c3ref/libversion.html
 ''''
@@ -303,6 +328,7 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
 End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/open.html
+'''' Reference: https://www.sqlite.org/vfs.html
 ''''
 '@Description "Generates SQLite DBO instance."
 Public Function OpenDb( _
@@ -527,9 +553,9 @@ Public Function DbIsLocked() As Variant
         If Commit = SQLITE_OK Then
             DbIsLocked = False
         Else
-            DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
+            DbIsLocked = CVErr(this.ErrInfo.ErrorCode)
         End If
     Else
-        DbIsLocked = CVErr(this.ErrorInfo.ErrorCode)
+        DbIsLocked = CVErr(this.ErrInfo.ErrorCode)
     End If
 End Function

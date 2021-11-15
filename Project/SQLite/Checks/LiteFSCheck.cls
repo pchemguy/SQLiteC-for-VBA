@@ -225,14 +225,18 @@ End Function
 
 '''' Args:
 ''''   DbPathName (string):
-''''     Target database file pathname
+''''     String describing the target database:
+''''       * relative or absolute file pathname
+''''       * ':memory:' - anonymous in-memory database
+''''       * ':temp:'/':tmp:' - file db in the Temp folder with random name
+''''       * ':blank:' - anonymous file-based db
 ''''
 ''''   AllowNonExistent (variant, optional, Empty):
 ''''     Controls additional path preprocessing and creatability
-''''       - Empty        - new db file and path resolution are disabled
-''''       - vbNullString - new db file only is enabled
-''''       - True/False   - new db file is based on the value
-''''                                    and path resolution is enabled
+''''       * Empty                  - db file must exist, no path resolution
+''''       * Not (Empty or Boolean) - new db file is ok, no path resolution
+''''       * True/False             - new db file is based on the value
+''''                                  and path resolution is enabled
 ''''
 '''' File access tests and basic integrity validation via FS/OS functions.
 '@Description "Runs SQLite database access and basic integrity checks via OS."
@@ -245,9 +249,9 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
     FilePathName = LCase$(DbPathName)
     '''' Check for special names
     Select Case FilePathName
-        Case ":memory:"
+        Case ":memory:", ":mem:"
             this.IsSpecial = True
-            ExistsAccesibleValid = FilePathName
+            ExistsAccesibleValid = ":memory:"
             Exit Function
         Case ":temp:", ":tmp:"
             this.IsSpecial = True

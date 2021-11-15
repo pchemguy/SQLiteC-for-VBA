@@ -72,19 +72,12 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Set this.DbExec = SQLiteCExecSQL(Me)
 End Sub
 
-Private Sub Class_Terminate()
-    Cleanup
-End Sub
-
-Friend Sub Cleanup()
+Friend Sub CleanUp()
     With this
         '@Ignore FunctionReturnValueDiscarded
         If .StmtHandle <> 0 Then Finalize
-        If Not .DbPara Is Nothing Then .DbPara.Cleanup
-        If Not .DbExec Is Nothing Then .DbExec.Cleanup
-        If Not .DbConn Is Nothing Then
-            If Not .DbConn.ErrorInfo Is Nothing Then .DbConn.ErrorInfo.Cleanup
-        End If
+        If Not .DbPara Is Nothing Then .DbPara.CleanUp
+        If Not .DbExec Is Nothing Then .DbExec.CleanUp
         Set .DbPara = Nothing
         Set .DbExec = Nothing
         Set .DbConn = Nothing
@@ -459,7 +452,7 @@ Attribute GetPagedRowSet.VB_Description = "Executes SQL statement returning a se
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
         GetPagedRowSet = this.DbExec.GetPagedRowSet(UseDeclaredTypes)
-        If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+        If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Else
         GetPagedRowSet = ResultCode
     End If
@@ -473,7 +466,7 @@ Public Function GetRowSet2D(ByVal SQLQuery As String, _
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
         GetRowSet2D = this.DbExec.GetRowSet2D(UseDeclaredTypes)
-        If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+        If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Else
         GetRowSet2D = ResultCode
     End If
@@ -492,7 +485,7 @@ Public Function GetRecordset(ByVal SQLQuery As String, _
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = this.DbExec.GetFabRecordset(UseDeclaredTypes)
     dbr.SQLQueryParamsSet QueryParameters
-    If this.DbConn.ErrorInfo.ErrorCode = SQLITE_DONE Then Reset
+    If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Set GetRecordset = dbr
 End Function
 
@@ -563,6 +556,14 @@ End Property
 Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.DbConn.DbPathName
 End Property
+
+Private Function ILiteADO_OpenDb() As Long
+    ILiteADO_OpenDb = this.DbConn.OpenDb
+End Function
+
+Private Function ILiteADO_CloseDb() As Long
+    ILiteADO_CloseDb = this.DbConn.CloseDb
+End Function
 
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _

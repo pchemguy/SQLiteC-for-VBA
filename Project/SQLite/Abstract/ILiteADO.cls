@@ -13,13 +13,27 @@ Attribute VB_Exposed = True
 Option Explicit
 
 
-'''' Absolute file pathname to the main database.
+'@Description "Absolute file pathname to the main database."
 Public Property Get MainDB() As String
+Attribute MainDB.VB_Description = "Absolute file pathname to the main database."
 End Property
 
-'''' Connection string used by the implementing package.
+'@Description "Connection string used by the implementing package."
 Public Property Get ConnectionString() As String
+Attribute ConnectionString.VB_Description = "Connection string used by the implementing package."
 End Property
+
+'''' Returns 0 on success and non-zero on failure."
+'@Description "Opens database connection"
+Public Function OpenDb() As Long
+Attribute OpenDb.VB_Description = "Opens database connection"
+End Function
+
+'''' Returns 0 on success and non-zero on failure."
+'@Description "Closes database connection"
+Public Function CloseDb() As Long
+Attribute CloseDb.VB_Description = "Closes database connection"
+End Function
 
 '''' A variant error value may be returned in case of an issue
 Public Function GetScalar(ByVal SQLQuery As String, _
@@ -30,9 +44,10 @@ Public Function GetAdoRecordset(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty) As ADODB.Recordset
 End Function
 
-'''' Returns RecordsAffected count
+'@Description "Returns RecordsAffected count"
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty) As Long
+Attribute ExecuteNonQuery.VB_Description = "Returns RecordsAffected count"
 End Function
 
 '@Description "Begins SQLite transaction."

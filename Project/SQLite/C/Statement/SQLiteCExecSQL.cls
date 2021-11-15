@@ -38,7 +38,11 @@ Private Declare PtrSafe Function sqlite3_table_column_metadata Lib "SQLite3" ( _
 Private Declare PtrSafe Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrData
 Private Declare PtrSafe Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_double Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Double
-Private Declare PtrSafe Function sqlite3_column_int64 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongLong
+#If WIN64 Then
+    Private Declare PtrSafe Function sqlite3_column_int64 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongLong
+#Else
+    Private Declare PtrSafe Function sqlite3_column_int64 Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Currency
+#End If
 Private Declare PtrSafe Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrString
 #Else
 Private Declare Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long) As Long
@@ -107,12 +111,7 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 
-Private Sub Class_Terminate()
-    Cleanup
-End Sub
-
-
-Public Sub Cleanup()
+Public Sub CleanUp()
     Set this.DbStmt = Nothing
 End Sub
 
@@ -291,8 +290,7 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
             Else
                 '''' SQLITE_RANGE is expected for a calculated column, such as "count(*)"
                 '''' Only return an error, if this is not the case; otherwise, continue.
-                dbc.ErrorInfo.GetErr
-                If dbc.ErrorInfo.ErrorCode <> SQLITE_RANGE Then GoTo META_ERROR:
+                If dbc.ErrInfoRetrieve <> SQLITE_RANGE Then GoTo META_ERROR:
             End If
 
             '''' For queries against PRAGMA functions, table_column_metadata
@@ -330,8 +328,7 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Exit Function
     
 META_ERROR:
-    dbc.ErrorInfo.GetErr
-    ResultCode = dbc.ErrorInfo.ErrorCode
+    ResultCode = dbc.ErrInfoRetrieve
     If ResultCode = SQLITE_OK Then
         ResultCode = SQLITE_ERROR
         If DatabaseNamePtr = 0 Then Debug.Print "ERROR:" & vbLf & "SQLite " & _

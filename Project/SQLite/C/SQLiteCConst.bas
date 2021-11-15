@@ -41,6 +41,27 @@ Public Enum SQLiteTypeAffinity
     SQLITE_AFF_NONE = &H40       ' /* '@': */
 End Enum
 
+Public Enum SQLiteCTextEncoding
+    SQLITE_ENCODING_UTF8 = 1&
+    SQLITE_ENCODING_UTF16LE = 2&
+    SQLITE_ENCODING_UTF16BE = 3&
+End Enum
+
+Public Enum SQLiteCFileFormat
+    SQLITE_FORMAT_LEGACY = 1&
+    SQLITE_FORMAT_WAL = 2&
+End Enum
+
+Public Type SQLiteCErr
+    ErrorCode As SQLiteResultCodes
+    ErrorCodeName As String
+    ErrorCodeEx As SQLiteResultCodes
+    ErrorCodeExName As String
+    ErrorName As String             ' Alias to ErrorCodeExName
+    ErrorMessage As String
+    ErrorString As String
+End Type
+
 Public Type SQLiteCColumnMeta
     Name As String
     '''' .ColumnIndex must be set by the caller; set .Initialized = -1 flag to confirm
@@ -63,17 +84,6 @@ Public Type SQLiteCColumnMeta
     AdoSize As Long
     RowId As Boolean
 End Type
-
-Public Enum SQLiteCTextEncoding
-    SQLITE_ENCODING_UTF8 = 1&
-    SQLITE_ENCODING_UTF16LE = 2&
-    SQLITE_ENCODING_UTF16BE = 3&
-End Enum
-
-Public Enum SQLiteCFileFormat
-    SQLITE_FORMAT_LEGACY = 1&
-    SQLITE_FORMAT_WAL = 2&
-End Enum
 
 '''' https://sqlite.org/fileformat.html
 Public Type SQLiteCHeaderData
@@ -129,3 +139,5 @@ Public Type SQLiteCHeaderPacked
     VersionValidFor(0 To 3) As Byte         '''' Bytes 92-95
     SQLiteVersion(0 To 3) As Byte           '''' Bytes 96-99
 End Type
+
+

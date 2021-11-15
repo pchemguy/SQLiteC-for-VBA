@@ -46,10 +46,10 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
 End Sub
 
 Private Sub Class_Terminate()
-    Cleanup
+    CleanUp
 End Sub
 
-Friend Sub Cleanup()
+Friend Sub CleanUp()
     Set this.DbExec = Nothing
 End Sub
 

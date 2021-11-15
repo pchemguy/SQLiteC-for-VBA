@@ -62,7 +62,6 @@ Act:
 Assert:
     Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
-    Assert.IsNotNothing dbc.ErrorInfo, "ErrorInfo must be set."
 
 CleanExit:
     Exit Sub
@@ -140,7 +139,7 @@ Act:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected OpenDb error"
 Assert:
     Assert.AreEqual dbc.DbPathName, dbc.AttachedDbPathName, "AttachedDbPathName mismatch."
-Cleanup:
+CleanUp:
     ResultCode = dbc.CloseDb
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected CloseDb error"
 
@@ -223,4 +222,46 @@ CleanExit:
     Exit Sub
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Factory")
+Private Sub ztcCreate_VerifiesErrInfo()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+    
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCReg
+    Dim ErrInfo As SQLiteCErr
+    ErrInfo = dbc.ErrInfo
+Act:
+Assert:
+    With ErrInfo
+        Assert.AreEqual SQLITE_OK, .ErrorCode, "ErrorCode mismatch"
+        Assert.AreEqual SQLITE_OK, .ErrorCodeEx, "ErrorCodeEx mismatch"
+        Assert.AreEqual vbNullString, .ErrorName, "ErrorName mismatch"
+        Assert.AreEqual vbNullString, .ErrorCodeName, "ErrorCodeName mismatch"
+        Assert.AreEqual vbNullString, .ErrorCodeExName, "ErrorCodeExName mismatch"
+        Assert.AreEqual vbNullString, .ErrorMessage, "ErrorMessage mismatch"
+        Assert.AreEqual vbNullString, .ErrorString, "ErrorString mismatch"
+    End With
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Factory")
+Private Sub ztcGetErr_ThrowsOnClosedConnection()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCReg
+    dbc.ErrInfoRetrieve
+    
+    Guard.AssertExpectedError Assert, ConnectionNotOpenedErr
 End Sub
