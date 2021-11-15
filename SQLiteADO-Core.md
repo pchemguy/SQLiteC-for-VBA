@@ -21,12 +21,12 @@ The LiteMan class is the top-level API class. This predeclared class generates i
 
 <p align="center"><b>Table 1. Sample immediate pane commands</b></p>
 
-| |                 Command                   |                Output                   | |
-|-|-------------------------------------------|-----------------------------------------|-|
-| | `?LiteMan.SQLite3ODBCDriverCheck()`       | **True**, if the ODBC driver is found.  | |
-| | `?LiteMan(":mem:").ExecADO.GetScalar("")` | SQLite version number, e.g. **3.32.3**  | |
-| | `?LiteMan(":tmp:").ExecADO.MainDB`        | Path to the new db in the Temp folder   | |
-| |                                           |                                         | |
+|                 Command                   |                Output                  |
+|-------------------------------------------|----------------------------------------|
+| `?LiteMan.SQLite3ODBCDriverCheck()`       | **True**, if the ODBC driver is found. |
+| `?LiteMan(":mem:").ExecADO.GetScalar("")` | SQLite version number, e.g. **3.32.3** |
+| `?LiteMan(":tmp:").ExecADO.MainDB`        | Path to the new db in the Temp folder  |
+|                                           |                                        |
 
 ### LiteADO
 
