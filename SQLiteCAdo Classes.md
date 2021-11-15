@@ -23,7 +23,7 @@ I planned to integrate this package with the [SecureADODB][] library and impleme
 * handle parameterized queries,
 * handle ADODB errors.
 
-I still consider integration with SecureADODB in the future, so for now, this subpackage will remain a working prototype. In its present state, its classes can be grouped into several sets based on their functionality, including database connectivity (the core), validation/integrity, and metadata.
+I still consider integration with SecureADODB in the future, so for now, this subpackage will remain a working prototype. In its present state, its classes can be grouped into several sets based on their functionality, including *database connectivity (the core), validation/integrity, and metadata*.
 
 ### SQLiteC subpackage
 
