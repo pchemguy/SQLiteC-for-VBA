@@ -7,23 +7,25 @@ permalink: /class-hierarchy
 
 ### SQLiteADO subpackage
 
-I started the SQLiteADO package shown in [Fig. 1](#SQLiteADO) as a small VBA-SQLite project, which included
+I conceived this SQLite-VBA project as [SQLiteDB][] while integrating the [SecureADODB][] library into my demo Excel/VBA-based application [ContactEditor][]. I chose SQLite as the primary backend and [DB Browser for SQLite][] as my primary GUI administration tool. Soon I realized, however, that due to the nature of SQLite, Excel used the copy of SQLite embedded into the SQLiteODBC driver, limiting the usefulness of DB Browser for SQLite. At the same time, due to the modular architecture of SQLite, many features are only available if enabled during compilation. Therefore, it is prudent to probe available functionality, and executing queries via the same ADODB-SQLiteODBC path appeared the most straightforward way of obtaining relevant information. For this reason, I started developing a set of routines generating introspection SQL queries. Another feature I wanted to incorporate into this library was an ADO connection string helper; later, I added database cloning and integrity-related functionality.
 
-* introspection features,
-* SQLIteODBC connection string related routines, and
-* database integrity/clone functionality.
+I planned to integrate SQLiteDB with my fork of [SecureADODB][SecureADODB PG] and use it as an intermediary between the application and SecureADODB. On the other hand, online integrity features, for example, required an active database connection. To avoid cyclic dependency between the two libraries, I added to SQLiteDB a few feature-limited ADODB wrappers to satisfy its needs. Eventually, I realized that it was time for refactoring the code base, yielding the SQLiteADO package illustrated in [Fig. 1](#SQLiteADO).
 
 <a name="SQLiteADO"></a>  
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteADO.svg" alt="SQLiteADO" width="100%" /></div>
 <p align="center"><b>Fig. 1. SQLiteADO class diagram</b></p>  
 
-I planned to integrate this package with the [SecureADODB][] library and implemented the core functionality as a single VBA class with a few supporting SQL generating classes. To avoid cyclic dependency with SecureADODB, I included only very basic ADODB wrappers, which is why the present version of this package is feature-limited. Currently, SQLiteADO does not
- 
-* process events from the ADODB objects,
-* handle parameterized queries,
-* handle ADODB errors.
+While I significantly refactored the code and added some features, the package is still primarily focused on
 
-I still consider integration with SecureADODB in the future, so for now, this subpackage will remain a working prototype. In its present state, its classes can be grouped into several sets based on their functionality, including *database connectivity (the core), validation/integrity, and metadata*.
+* database connectivity (ADO/SQLiteODBC connection string helpers and limited ADODB wrappers),
+* validation/integrity, and
+* metadata (SQL-based SQLite introspection).
+
+Currently, the ADODB wrapper module of SQLiteADO does not handle
+
+* events from the ADODB objects,
+* parameterized queries,
+* ADODB errors.
 
 ### SQLiteC subpackage
 
@@ -33,10 +35,14 @@ When I realized that some limitations of the SQLiteODBC driver are difficult, if
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteC.svg" alt="SQLiteC" width="100%" /></div>
 <p align="center"><b>Fig. 2. SQLiteC class diagram</b></p>  
 
-While developing the two packages, SQLiteADO (formerly SQLiteDB) and SQLiteC, I realized that it would be instructive to combine the two packages and define an interface class unifying and formalizing their high-level APIs. Thus, the two packages formed the *SQLite C/ADO with Introspection for VBA* library.
+While developing the two packages, SQLiteADO and SQLiteC, I realized that it would be instructive to combine the two packages and define an interface class unifying and formalizing their high-level APIs. Thus, the two packages formed the *SQLite C/ADO with Introspection for VBA* library.
 
 
 <!-- References -->
 
+[ContactEditor]: https://pchemguy.github.io/ContactEditor/
 [SecureADODB]: https://rubberduckvba.wordpress.com/2020/04/22/secure-adodb/
+[DB Browser for SQLite]: https://sqlitebrowser.org/
+[SQLiteDB]: https://pchemguy.github.io/SQLiteDB-VBA-Library/
+[SecureADODB PG]: https://pchemguy.github.io/SecureADODB-Fork/
 [SQLiteForExcel]: https://github.com/govert/SQLiteForExcel
