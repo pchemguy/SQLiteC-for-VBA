@@ -98,13 +98,15 @@ Private Sub ztcGetSQLiteConnectionString_ValidatesDefaultString()
     TestCounter = TestCounter + 1
 
 Arrange:
+    Dim PROJuNAME As String
+    PROJuNAME = ThisWorkbook.VBProject.Name
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & _
-                VerifyOrGetDefaultPath(vbNullString, Array("db", "sqlite")) & _
+                VerifyOrGetDefaultPath(PROJuNAME, Array("db", "sqlite")) & _
                ";SyncPragma=NORMAL;FKSupport=True;"
 Act:
     Dim Actual As String
-    Actual = ADOlib.GetSQLiteConnectionString(vbNullString)("ADO")
+    Actual = ADOlib.GetSQLiteConnectionString("sqlite:" & PROJuNAME)("ADO")
 Assert:
     Assert.AreEqual Expected, Actual, "Default SQLite ConnectionString mismatch"
 

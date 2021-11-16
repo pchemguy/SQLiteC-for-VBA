@@ -23,18 +23,6 @@ Public Property Get ConnectionString() As String
 Attribute ConnectionString.VB_Description = "Connection string used by the implementing package."
 End Property
 
-'''' Returns 0 on success and non-zero on failure."
-'@Description "Opens database connection"
-Public Function OpenDb() As Long
-Attribute OpenDb.VB_Description = "Opens database connection"
-End Function
-
-'''' Returns 0 on success and non-zero on failure."
-'@Description "Closes database connection"
-Public Function CloseDb() As Long
-Attribute CloseDb.VB_Description = "Closes database connection"
-End Function
-
 '''' A variant error value may be returned in case of an issue
 Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
@@ -74,3 +62,13 @@ End Sub
 Public Sub Rollback(Optional ByVal SavePointName As String = vbNullString)
 Attribute Rollback.VB_Description = "Rollbacks savepoints from the transaction stack up to the first point with matching name or the entire transaction."
 End Sub
+
+'''' Returns 0 on success and non-zero on failure."
+'@Description "Opens database connection"
+Public Function OpenDb() As Long
+End Function
+
+'''' Returns 0 on success and non-zero on failure."
+'@Description "Closes database connection"
+Public Function CloseDb() As Long
+End Function

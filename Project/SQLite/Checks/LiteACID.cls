@@ -43,8 +43,6 @@ Private Const SQLITE_NOTADB_CODE As Long = 26
 
 Private Type TLiteACID
     ExecADO As ILiteADO
-    MetaADO As LiteMetaADO
-    MetaSQL As LiteMetaSQL
     ErrNumber As Long
     ErrSource As String
     ErrDescription As String
@@ -70,9 +68,6 @@ Friend Sub Init(ByVal ExecADO As ILiteADO)
     
     With this
         Set .ExecADO = ExecADO
-        '@Ignore IndexedDefaultMemberAccess
-        Set .MetaADO = LiteMetaADO(ExecADO)
-        Set .MetaSQL = .MetaADO.MetaSQL
     End With
 End Sub
 
@@ -113,15 +108,15 @@ End Property
 '''' 3) Run foreign key check and verify that nothing is returned.
 ''''
 '''' Examples:
-''''   >>> ?LiteACID(LiteADO("SQLiteDBVBA.db")).IntegrityADODB
-''''   -- Integrity check passed for: '<Path>\SQLiteDBVBA.db'
+''''   >>> ?LiteACID(LiteADO(LiteFSCheck("SQLiteCAdo.db", False).DatabasePathName)).IntegrityADODB
+''''   -- Integrity check passed for: '<Path>\SQLiteCAdo.db'
 ''''   True
 ''''
-''''   >>> ?LiteACID(LiteADO("ICfailFKCfail.db")).IntegrityADODB
+''''   >>> ?LiteACID(LiteADO(LiteFSCheck("ICfailFKCfail.db", False).DatabasePathName)).IntegrityADODB
 ''''   Error:
 ''''       message: Integrity check failed
 ''''
-''''   >>> ?LiteACID(LiteADO("ICokFKCfail.db")).IntegrityADODB
+''''   >>> ?LiteACID(LiteADO(LiteFSCheck("ICokFKCfail.db", False).DatabasePathName)).IntegrityADODB
 ''''   Error:
 ''''       message: Foreign key check failed
 ''''
@@ -136,15 +131,13 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     
     Dim ExecADO As ILiteADO
     Set ExecADO = this.ExecADO
-    Dim MetaSQL As LiteMetaSQL
-    Set MetaSQL = this.MetaSQL
 
     '''' 1) Verify that existing file is a database and only one db is atttached
     '''' Expected error: OLE_DB_ODBC_Err due to damaged database file.
     '''' Database file damage may not be detected until the first query.
     On Error GoTo INTEGRITY_ERROR
     Dim AttachedDbCount As Long
-    AttachedDbCount = ExecADO.GetAdoRecordset(MetaSQL.Databases).RecordCount
+    AttachedDbCount = ExecADO.GetAdoRecordset(LiteMetaSQL.Databases).RecordCount
     On Error GoTo 0
     
     If AttachedDbCount <> 1 Then
@@ -155,7 +148,7 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     '''' 2) "PRAGMA integrity_check"
     On Error GoTo INTEGRITY_ERROR
     Dim AdoRecordset As ADODB.Recordset
-    Set AdoRecordset = ExecADO.GetAdoRecordset(MetaSQL.CheckIntegrity)
+    Set AdoRecordset = ExecADO.GetAdoRecordset(LiteMetaSQL.CheckIntegrity)
     On Error GoTo 0
     '@Ignore ImplicitDefaultMemberAccess, IndexedDefaultMemberAccess
     If Not AdoRecordset.Fields("integrity_check") = "ok" Then
@@ -164,7 +157,7 @@ Attribute IntegrityADODB.VB_Description = "Runs SQLite database integrity checks
     
     '''' 3) "PRAGMA foreign_key_check"
     On Error GoTo INTEGRITY_ERROR
-    Set AdoRecordset = ExecADO.GetAdoRecordset(MetaSQL.CheckFKs)
+    Set AdoRecordset = ExecADO.GetAdoRecordset(LiteMetaSQL.CheckFKs)
     On Error GoTo 0
     If Not AdoRecordset.RecordCount = 0 Then
         Err.Raise ErrNo.ConsistencyCheckErr, "LiteACID", "Foreign key check failed"

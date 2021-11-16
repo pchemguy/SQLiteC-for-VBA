@@ -22,3 +22,14 @@ Private Sub CreateTmpDb()
 Attribute CreateTmpDb.VB_Description = "Prints pathname of the created temp database."
     Debug.Print LiteMan(":tmp:").ExecADO.MainDB
 End Sub
+
+'@Description "Clones default database and returns DB manager bound the new clone."
+Private Sub CloneDb()
+    Dim SourceDb As String
+    SourceDb = FixObjAdo.DefaultDbName
+    Dim DestinationDb As String
+    DestinationDb = "Dest.db"
+    Dim dbm As LiteMan
+    Set dbm = LiteMan.CloneDb(DestinationDb, SourceDb)
+    Debug.Print dbm.ExecADO.MainDB
+End Sub

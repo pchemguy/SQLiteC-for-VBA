@@ -435,7 +435,7 @@ Arrange:
                      "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine
 Act:
-    Set PathCheck = LiteFSCheck(FilePathName, vbNullString)
+    Set PathCheck = LiteFSCheck(FilePathName, Null)
 Assert:
     With PathCheck
         Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
@@ -466,7 +466,7 @@ Arrange:
                      "Source: " & FilePathName
     ErrStack = "ExistsAccesibleValid" & vbNewLine
 Act:
-    Set PathCheck = LiteFSCheck(FilePathName, vbNullString)
+    Set PathCheck = LiteFSCheck(FilePathName, Null)
 Assert:
     With PathCheck
         Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
@@ -484,7 +484,7 @@ End Sub
 
 
 '@TestMethod("Path resolution")
-Private Sub ztcCreate_ResolvesBlankNoCreatePath()
+Private Sub ztcCreate_FailsResolvingBlankNoCreatePath()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
     
@@ -495,8 +495,7 @@ Arrange:
 Act:
     Set PathCheck = LiteFSCheck(FilePathName, False)
 Assert:
-    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
-    Assert.AreEqual Expected, PathCheck.DatabasePathName, "Resolved path mismatch"
+    Assert.AreEqual ErrNo.FileNotFoundErr, PathCheck.ErrNumber, "Unexpected error occured"
 
 CleanExit:
     Exit Sub

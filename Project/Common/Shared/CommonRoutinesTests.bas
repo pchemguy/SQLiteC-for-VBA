@@ -283,43 +283,12 @@ Private Sub ztcVerifyOrGetDefaultPath_ValidatesValidPathName()
 
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(Expected, Array("db", "sqlite"))
 Assert:
     Assert.AreEqual Expected, Actual, "CheckPath failed with valid pathname"
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("PathCheck")
-Private Sub ztcVerifyOrGetDefaultPath_ValidatesEmptyFilePathName()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-    Dim PATHuSEP As String
-    PATHuSEP = Application.PathSeparator
-    Dim PROJuNAME As String
-    PROJuNAME = ThisWorkbook.VBProject.Name
-    Dim Expected As String
-    Expected = ThisWorkbook.Path & _
-               PATHuSEP & PROJuNAME & "." & "db"
-Act:
-    Dim Actual As String
-    Actual = VerifyOrGetDefaultPath(vbNullString, Array("db", "sqlite"))
-    '''' Depending on search order, either Thisworkbook.Path or
-    '''' its Library\<PROJuNAME> subfolder is searched first.
-    '''' Ignore this matter for the purpose of this test.
-    Actual = Replace(Actual, "Library" & PATHuSEP & PROJuNAME & PATHuSEP, vbNullString)
-Assert:
-    Assert.AreEqual Expected, Actual, "CheckPath failed with empty file pathname." _
-                                    & "Expected: < " & Expected & " > "
-
 CleanExit:
     Exit Sub
 TestFail:
@@ -334,7 +303,7 @@ Private Sub ztcVerifyOrGetDefaultPath_ValidatesFileName()
 
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(ThisWorkbook.Name, vbNullString)
@@ -354,15 +323,35 @@ Private Sub ztcVerifyOrGetDefaultPath_ValidatesRelativePath()
     TestCounter = TestCounter + 1
 
 Arrange:
-    Dim DotPathSep As String
-    DotPathSep = "." & Application.PathSeparator
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
-    Actual = VerifyOrGetDefaultPath(DotPathSep & ThisWorkbook.Name, vbNullString)
+    Actual = VerifyOrGetDefaultPath(".\" & ThisWorkbook.Name, vbNullString)
 Assert:
     Assert.AreEqual Expected, Actual, "CheckPath failed with relative path"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ValidatesResolvingLibPath()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim Expected As String
+    Expected = ThisWorkbook.Path & "\Library\" & ThisWorkbook.VBProject.Name _
+               & "\" & ThisWorkbook.VBProject.Name & ".db"
+Act:
+    Dim Actual As String
+    Actual = VerifyOrGetDefaultPath(ThisWorkbook.VBProject.Name, Array("sqlite", "db"))
+Assert:
+    Assert.AreEqual Expected, Actual, "CheckPath failed to resolve lib path"
 
 CleanExit:
     Exit Sub
@@ -397,6 +386,36 @@ Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfRootedPathSupplied()
     TestCounter = TestCounter + 1
     Dim FilePathName As String
     FilePathName = VerifyOrGetDefaultPath("\ABC\DEF", vbNullString)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnEmptyPathName()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath(vbNullString, "db", False)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnNonExistingFile()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath("Blabla", Array("sqlite", "db"), False)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnWrongPath()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath("..\" & ThisWorkbook.Name, , False)
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
 End Sub
 

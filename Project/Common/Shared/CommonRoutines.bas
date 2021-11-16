@@ -1,12 +1,11 @@
 Attribute VB_Name = "CommonRoutines"
 '@Folder "Common.Shared"
-'@IgnoreModule MoveFieldCloserToUsage, IndexedDefaultMemberAccess
+'@IgnoreModule MoveFieldCloserToUsage, IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
 Private lastID As Double
 
 
-'@EntryPoint
 Public Function GetTimeStampMs() As String
     '''' On Windows, the Timer resolution is subsecond, the fractional part (the four characters at the end
     '''' given the format) is concatenated with DateTime. It appears that the Windows' high precision time
@@ -19,7 +18,6 @@ End Function
 '''' four fractional places in Timer value into the whole part before trancation.
 '''' Long on a 32bit machine does not provide sufficient number of digits,
 '''' so returning double. Alternatively, a Currency type could be used.
-'@EntryPoint
 Public Function GenerateSerialID() As Double
     Dim newID As Double
     Dim secTillLastMidnight As Double
@@ -40,7 +38,6 @@ Public Function GenerateGUID() As String
 End Function
 
 
-'@EntryPoint
 Public Function RandomLong() As Long
     RandomLong = Val("&H" & Left$(GenerateGUID, 8))
 End Function
@@ -81,7 +78,6 @@ Attribute UnfoldParamArray.VB_Description = "Unfolds a ParamArray argument when 
 End Function
 
 
-'@EntryPoint
 Public Function GetVarType(ByRef Variable As Variant) As String
     Dim NDim As String
     NDim = IIf(IsArray(Variable), "/Array", vbNullString)
@@ -148,7 +144,7 @@ End Function
 ''''    construct an array of possible file names:
 ''''      - FilePathName
 ''''          skip if len=0, or prefix is not relative
-''''      - ThisWorkbook.VBProject.Name & Ext (Ext comes from the second argument
+''''      - FilePathName & Ext (Ext comes from the second argument)
 '''' 4) loop through all possible path/filename combinations until a valid
 ''''    pathname is found or all options are exhausted
 ''''
@@ -161,7 +157,7 @@ End Function
 ''''
 ''''   AllowNonExistent (boolean, optional, False):
 ''''     If set to True, FilePathName may point to a non-existent file.
-''''     If FilePathName does not contain path separator, prefix ThisWorkbook.Path
+''''     Check with ThisWorkbook.Path prefix
 ''''     If FilePathName is blank, raise an error
 ''''
 '''' Returns:
@@ -277,11 +273,11 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     End If
     If VarType(DefaultExts) = vbString Then
         If Len(DefaultExts) > 0 Then
-            FileNames(FileNameIndex) = PROJuNAME & "." & DefaultExts
+            FileNames(FileNameIndex) = FilePathName & "." & DefaultExts
         End If
     ElseIf VarType(DefaultExts) >= vbArray Then
         For ExtIndex = LBound(DefaultExts, 1) To UBound(DefaultExts, 1)
-            FileNames(FileNameIndex) = PROJuNAME & "." & DefaultExts(ExtIndex)
+            FileNames(FileNameIndex) = FilePathName & "." & DefaultExts(ExtIndex)
             FileNameIndex = FileNameIndex + 1
         Next ExtIndex
     End If
@@ -380,7 +376,6 @@ End Function
 ''''   NoTopHeader (boolean):
 ''''     If true, do not format the first row as header
 ''''
-'@Ignore ProcedureNotUsed
 '@Description "Places a 2D array with top header on a worksheet"
 Public Sub Array2Range(ByVal DataArray As Variant, _
                        ByVal TopLeftCell As Excel.Range, _

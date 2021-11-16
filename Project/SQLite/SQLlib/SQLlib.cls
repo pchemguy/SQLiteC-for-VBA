@@ -262,22 +262,6 @@ Attribute SubQuery.VB_Description = "Formats a SELECT query as a subquery suitab
 End Function
 
 
-'''' TODO: Switch to LiteMetaSQLEngine
-'@Description "Generates query returning SQLite version"
-Public Property Get SQLiteVersion() As String
-Attribute SQLiteVersion.VB_Description = "Generates query returning SQLite version"
-    SQLiteVersion = "SELECT sqlite_version() AS version"
-End Property
-
-
-'''' TODO: Switch to LiteMetaSQLEngine
-'@Description "Generates query returning available SQLite collations"
-Public Property Get SQLiteCollations() As String
-Attribute SQLiteCollations.VB_Description = "Generates query returning available SQLite collations"
-    SQLiteCollations = "SELECT * FROM pragma_collation_list AS collations ORDER BY name"
-End Property
-
-
 '''' Generates parametrized UPDATE statement for a single record
 ''''
 '''' Generates a fully parametrized UPDATE query for a single record using
@@ -477,3 +461,17 @@ Attribute CopyTableData.VB_Description = "Generates a query cloning table data."
         "SELECT * FROM [" & SourceDatabase & "].[" & SourceTable & "]"
     CopyTableData = InsertClause & SelectClause
 End Function
+
+
+''''' TODO: Switch to LiteMetaSQLEngine
+''@Description "Generates query returning SQLite version"
+'Public Property Get SQLiteVersion() As String
+'    SQLiteVersion = "SELECT sqlite_version() AS version"
+'End Property
+'
+'
+''''' TODO: Switch to LiteMetaSQLEngine
+''@Description "Generates query returning available SQLite collations"
+'Public Property Get SQLiteCollations() As String
+'    SQLiteCollations = "SELECT * FROM pragma_collation_list AS collations ORDER BY name"
+'End Property

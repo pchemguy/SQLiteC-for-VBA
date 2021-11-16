@@ -36,7 +36,7 @@ Attribute VB_Description = "Provides access and integrity check functionality"
 Option Explicit
 
 Private Type TLiteFSCheck
-    DbPathName As String '''' Absolute file pathname to the main database.
+    DbPathName As String '''' Absolute/relative file pathname to the main database.
     '''' Set IsSpecial to True if in-memory, anonymous, or temp database is
     '''' requested (i.e. ":xxx:"). Do not set NoCreate option for a special
     '''' database even if AllowNonExistent is False (explicit or default).
@@ -49,9 +49,28 @@ End Type
 Private this As TLiteFSCheck
 
 
+''''
 '''' Args:
 ''''   Database (string):
-''''     Absolute path name to the database.
+''''     Absolute or relative database file pathname or a special name
+''''       (":mem:, ":memory:", ":temp:", ":tmp:", ":blank:").
+''''
+''''   AllowNonExistent (variant, optional, Empty):
+''''     Controls additional path preprocessing and creatability
+''''       * Empty                  - db file must exist, no path resolution
+''''       * Not (Empty or Boolean) - new db file is ok, no path resolution
+''''       * True/False             - new db file is based on the value
+''''                                  and path resolution is enabled
+''''
+'''' Unless full valid path is provided, AllowNonExistent must be set to
+'''' false. Otherwise, a blank new file maybe created unintentionally and
+'''' the whole procedure will fail, because uninitialized file will be
+'''' rejected if a new file is not explicitly rejected.
+''''
+'''' Examples:
+''''   >>> ?LiteFSCheck(ThisWorkbook.VBProject.Name, False).DatabasePathName
+''''   <File pathname to the default database>
+''''
 '@DefaultMember
 Public Function Create(ByVal DbPathName As String, _
               Optional ByVal AllowNonExistent As Variant = Empty) As LiteFSCheck
