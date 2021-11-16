@@ -44,6 +44,8 @@ should produce output
     -- Integrity check passed for: <full pathname>
     True
 
+LiteMan and LiteACID have several overlapping methods related to the journal mode feature. This minor defect should be fixed in the future.
+
 <!-- References -->
 
 [pragma_quick_check]: https://www.sqlite.org/pragma.html#pragma_quick_check
