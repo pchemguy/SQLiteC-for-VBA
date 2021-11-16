@@ -15,7 +15,7 @@ I planned to integrate SQLiteDB with my fork of [SecureADODB][SecureADODB PG] an
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteADO.svg" alt="SQLiteADO" width="100%" /></div>
 <p align="center"><b>Fig. 1. SQLiteADO class diagram</b></p>  
 
-While I significantly refactored the code and added some features, the package is still primarily focused on
+While I significantly refactored the code and added some features, the package is still focused on
 
 * database connectivity (ADO/SQLiteODBC connection string helpers and limited ADODB wrappers),
 * validation/integrity, and
