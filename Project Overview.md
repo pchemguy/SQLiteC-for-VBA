@@ -25,6 +25,16 @@ This project uses the RDVBA's unit testing framework as the primary means for te
 
 I run tests under x32/VBA6 (Excel XP/2002 SP3) and x64/VBA7 (Excel 2016) environments and might also include a small set of tests that will run without RDVBA. The project, therefore, should be compatible with both x32/VBA6 and x64/VBA7. The primary source of compatibility concerns is the declarations of API routines, and it boils down to three keywords: *PtrSafe*, *LongPtr*, and *LongLong*. To achieve portability, I use conditional compilation coupled primarily with the VBA7 constant. I have only a couple of instances of *LongLong*, and I added the WIN64 test within the VBA7 block for those cases, and I defined it as Currency within the VBA6 code. While not tested, this arrangement should make the code compatible with x32/VBA7, but it may not work under x64/VBA6.
 
+### Required library references
+
+* Microsoft ActiveX Data Objects 6.1 Library
+* Microsoft Scripting Runtime 1.0
+* Microsoft Visual Basic for Application Extensibility 5.3 (including approved programmatic access to the VBA project)
+* Microsoft VBScript Regular Expressions 5.5
+* Windows Script Host Object Model 1.0
+
+While SQLiteCAdo does not access the VBA project, the third item is necessary for the [RDVBA Project Utils][] library (Common/Project Utils).
+
 ### VBA project structure
 
 I assumed the following convention for structuring my project, as seen from the Code Explorer. First of all, in the root of the virtual directory structure, I have the *Common* directory for reusable components, such as *RDVBA Project Utils*. For example, I usually have these components placed in subfolders under *Common*:
@@ -59,6 +69,7 @@ I prepare diagrams starting from the [yWorks yEd][] graph editor. I save origina
 [RDVBA Project Utils]: https://pchemguy.github.io/RDVBA-Project-Utils/
 [SQLiteDB VBA]: https://pchemguy.github.io/SQLiteDB-VBA-Library/
 [CPearson Array]: http://www.cpearson.com/Excel/VBAArrays.htm
+[RDVBA Project Utils]: https://pchemguy.github.io/RDVBA-Project-Utils/
 [yWorks yEd]: https://www.yworks.com/products/yed
 [TableGenerator]: https://www.tablesgenerator.com/
 [Grammarly]: https://www.grammarly.com/
