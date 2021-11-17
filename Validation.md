@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Validation and integrity
-nav_order: 5
+nav_order: 6
 permalink: /integrity
 ---
 

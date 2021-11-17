@@ -1,7 +1,7 @@
 ---
 layout: default
 title: SQLiteADO core
-nav_order: 4
+nav_order: 5
 permalink: /sqliteado-core
 ---
 
@@ -19,7 +19,7 @@ From the calling code's perspective, the LiteMan class is the top-level API obje
 
 <p align="center"><b>Table 1. Sample immediate pane commands</b></p>
 
-| Command                                   | Output                                 |  
+|                 Command                   |                Output                  |  
 |-------------------------------------------|----------------------------------------|  
 | `?LiteMan.SQLite3ODBCDriverCheck()`       | **True**, if the ODBC driver is found. |  
 | `?LiteMan(":mem:").ExecADO.GetScalar("")` | SQLite version number, e.g. **3.32.3** |  
