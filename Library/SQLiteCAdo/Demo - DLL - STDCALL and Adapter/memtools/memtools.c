@@ -21,4 +21,27 @@ MEMTOOLSAPI void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, siz
       memcpy(Destination, Source, Length);
       break;
   }
+  return;
+}
+
+
+MEMTOOLSAPI void MEMTOOLSCALL DummySub0Args() {
+  return;
+}
+
+
+MEMTOOLSAPI void MEMTOOLSCALL DummySub3Args(void* Destination, const void* Source, size_t Length) {
+  return;
+}
+
+
+MEMTOOLSAPI int MEMTOOLSCALL DummyFnc0Args() {
+  volatile int Result = 10241024;
+  return Result;
+}
+
+
+MEMTOOLSAPI int MEMTOOLSCALL DummyFnc3Args(void* Destination, const void* Source, size_t Length) {
+  volatile int Result = 10241024;
+  return Result;
 }
