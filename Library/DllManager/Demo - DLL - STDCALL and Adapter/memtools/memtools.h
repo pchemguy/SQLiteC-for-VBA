@@ -36,12 +36,12 @@
 
 /* Make sure functions are exported with C linkage under C++ compilers. */
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Declare our function using the above definitions. */
 MEMTOOLSAPI void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, size_t Length);
+MEMTOOLSAPI  int MEMTOOLSCALL PerfGauge(unsigned int ForCount);
 
 MEMTOOLSAPI void MEMTOOLSCALL DummySub0Args();
 MEMTOOLSAPI void MEMTOOLSCALL DummySub3Args(void*, const void*, size_t);
@@ -49,7 +49,7 @@ MEMTOOLSAPI  int MEMTOOLSCALL DummyFnc0Args();
 MEMTOOLSAPI  int MEMTOOLSCALL DummyFnc3Args(void*, const void*, size_t);
 
 #ifdef __cplusplus
-} // __cplusplus defined.
+} // extern "C"
 #endif
 
 #endif /* MEMTOOLS_H */

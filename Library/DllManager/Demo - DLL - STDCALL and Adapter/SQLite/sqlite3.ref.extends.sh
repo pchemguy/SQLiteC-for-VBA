@@ -25,6 +25,7 @@ readonly BASEDIR
 readonly DBDIR="sqlite"
 readonly AMALNAME="sqlite3.c"
 readonly LIBNAME="sqlite3.dll"
+readonly LIBNAMEDEMO="sqlite3demo.dll"
 readonly BUILDDIR=${DBDIR}/build
 CFLAGS_EXTRAS=""
 LIBS=""
@@ -265,7 +266,7 @@ copy_dependencies() {
     cp "${SRCBINDIR}/${dependency}" "${BASEDIR}/${BUILDBINDIR}" \
       || ( echo "Cannot copy ${dependency}" && exit 109 )
   done
-  cp "${BASEDIR}/${BUILDDIR}/${LIBNAME}" "${BASEDIR}/${BUILDBINDIR}" \
+  cp "${BASEDIR}/${BUILDDIR}/${LIBNAME}" "${BASEDIR}/${BUILDBINDIR}/${LIBNAMEDEMO}" \
     || ( echo "Cannot copy ${LIBNAME}" && exit 110 )
   
   return 0
