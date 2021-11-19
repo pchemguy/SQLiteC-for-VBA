@@ -64,33 +64,3 @@ MEMTOOLSAPI int MEMTOOLSCALL DummyFnc3Args(void* Destination, const void* Source
   volatile int Result = 10241024;
   return Result;
 }
-
-
-/*
-// Volatile loop counter should be used here to prevent optimization.
-MEMTOOLSAPI int MEMTOOLSCALL PerfGauge(unsigned int ForCount, char BitCount) {
-  struct timeb start, end;
-
-  unsigned long long ForCount64;
-  ForCount64 = (unsigned long long)ForCount;
-  
-  ftime(&start);
-  if (BitCount == 64) {
-    for (volatile unsigned long long i=0; i < ForCount64; i++) {
-      ;
-    }
-  } else {
-    for (volatile unsigned int i=0; i < ForCount; i++) {
-      ;
-    }
-  }
-  ftime(&end);
-
-  const int MSEC_IN_SEC = 1000;
-  int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
-
-  return diff;
-}
-*/
