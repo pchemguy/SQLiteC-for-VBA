@@ -224,7 +224,7 @@ Attribute Finalize.VB_Description = "Destructs SQLite PSO."
     ResultCode = sqlite3_finalize(this.StmtHandle)
     If ResultCode = SQLITE_OK Then
         this.StmtHandle = 0
-        Debug.Print "Statement is finalized"
+        Logger.Logg "Statement is finalized", , DEBUGLEVEL_INFO
     Else
         ResultCode = this.DbConn.ErrInfoRetrieve
     End If
@@ -281,7 +281,7 @@ Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements
         If FinStmt Then
             ResultCode = sqlite3_finalize(hStmt)
             If ResultCode = SQLITE_OK Then
-                Debug.Print "Statement is finalized"
+                Logger.Logg "Statement is finalized", , DEBUGLEVEL_INFO
             Else
                 ResultCode = DbConn.ErrInfoRetrieve
             End If

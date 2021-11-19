@@ -66,9 +66,11 @@ End Sub
 '''' Returns 0 on success and non-zero on failure."
 '@Description "Opens database connection"
 Public Function OpenDb() As Long
+Attribute OpenDb.VB_Description = "Opens database connection"
 End Function
 
 '''' Returns 0 on success and non-zero on failure."
 '@Description "Closes database connection"
 Public Function CloseDb() As Long
+Attribute CloseDb.VB_Description = "Closes database connection"
 End Function
