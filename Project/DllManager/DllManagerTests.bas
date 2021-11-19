@@ -9,10 +9,10 @@ Option Private Module
 Private Const MODULE_NAME As String = "DllManagerTests"
 Private TestCounter As Long
 
-Private Const LITE_LIB As String = "DllManager"
+Private Const LIB_NAME As String = "DllManager"
 Private Const PATH_SEP As String = "\"
-Private Const LITE_RPREFIX As String = _
-    "Library" & PATH_SEP & LITE_LIB & PATH_SEP & "dll" & PATH_SEP
+Private Const LIB_RPREFIX As String = _
+    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP
 
 Public Const LoadingDllErr As Long = 48
 
@@ -78,7 +78,7 @@ End Function
 
 Private Function zfxGetDefaultManager() As DllManager
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     DllNames = zfxGetLibraryArray()
     Dim DllMan As DllManager
@@ -178,7 +178,7 @@ Private Sub ztcCreate_VerifiesNotSingleton()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     DllNames = zfxGetLibraryArray()
 Act:
@@ -212,7 +212,7 @@ Private Sub ztcCreate_VerifiesNotSingletonAfterSingleton()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     DllNames = zfxGetLibraryArray()
 Act:
@@ -239,7 +239,7 @@ Private Sub ztcCreate_VerifiesSingleton()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     DllNames = zfxGetLibraryArray()
 Act:
@@ -271,7 +271,7 @@ Private Sub ztcForgetSugleton_VerifiesForgetSingleton()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     DllNames = zfxGetLibraryArray()
 Act:
@@ -339,9 +339,9 @@ Private Sub ztcLoad_ThrowsOnBitnessMismatch()
     '''' Set mismatched path to test for error
     Dim DllPath As String
     If ARCH = "x32" Then
-        DllPath = LITE_RPREFIX & "x64"
+        DllPath = LIB_RPREFIX & "x64"
     Else
-        DllPath = LITE_RPREFIX & "x32"
+        DllPath = LIB_RPREFIX & "x32"
     End If
     Dim DllName As String
     DllName = "sqlite3.dll"
@@ -361,7 +361,7 @@ Private Sub ztcLoad_VerifiesLoad()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     #If WIN64 Then
         DllNames = "sqlite3.dll"
@@ -398,7 +398,7 @@ Private Sub ztcLoadMultiple_VerifiesLoadOne()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllNames As Variant
     #If WIN64 Then
         DllNames = "sqlite3.dll"
@@ -451,7 +451,7 @@ Private Sub ztcLoadMultiple_VerifiesLoadParamArray()
 
 Arrange:
     Dim DllPath As String
-    DllPath = LITE_RPREFIX & CStr(ARCH)
+    DllPath = LIB_RPREFIX & CStr(ARCH)
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath)
 Act:
@@ -605,3 +605,5 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+

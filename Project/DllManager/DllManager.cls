@@ -97,6 +97,15 @@ Public Property Get Dlls() As Scripting.Dictionary
 End Property
 
 
+Public Property Get Singleton() As DllManager
+    If Me Is DllManager Then
+        Set Singleton = this.Singleton
+    Else
+        Set Singleton = DllManager.Singleton
+    End If
+End Property
+
+
 Public Property Get DefaultPath() As String
     DefaultPath = this.DefaultPath
 End Property
@@ -237,6 +246,7 @@ Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
     Dim FileName As String
     FileName = fso.GetFileName(DllName)
     Dim Result As Long
+    If this.Dlls Is Nothing Then Exit Function
     If Not this.Dlls.Exists(FileName) Then
         LogMsg = "<" & DllName & "> not loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_WARN
@@ -311,4 +321,3 @@ Public Function GetDllPath(ByVal DllName As String) As String
                            "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
-

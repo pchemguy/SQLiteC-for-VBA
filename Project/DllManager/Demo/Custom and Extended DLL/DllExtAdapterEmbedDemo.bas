@@ -3,12 +3,18 @@ Attribute VB_Name = "DllExtAdapterEmbedDemo"
 Option Explicit
 Option Private Module
 
+Private Const LIB_NAME As String = "DllManager"
+Private Const PATH_SEP As String = "\"
+Private Const LIB_RPREFIX As String = _
+    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
+    "Demo - DLL - STDCALL and Adapter" & PATH_SEP
+
 #If WIN64 Then
-Private Declare PtrSafe Function demo_sqlite3_extension_adapter Lib "SQLite3" (ByVal Dummy As Long) As Long
-Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
+Private Declare PtrSafe Function demo_sqlite3_extension_adapter Lib "SQLite3demo" (ByVal Dummy As Long) As Long
+Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3demo" () As Long
 #Else
-Private Declare Function demo_sqlite3_extension_adapter Lib "SQLite3" (ByVal Dummy As Long) As Long
-Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
+Private Declare Function demo_sqlite3_extension_adapter Lib "SQLite3demo" (ByVal Dummy As Long) As Long
+Private Declare Function sqlite3_libversion_number Lib "SQLite3demo" () As Long
 #End If
 
 Private Type TDllExtAdapterEmbedDemo
@@ -23,10 +29,10 @@ Private Sub GetSQLiteVersion()
     Dim DllPath As String
     #If WIN64 Then
         '''' TODO
-        '''' DllPath = "Library\SQLiteCforVBA\Demo - DLL - STDCALL and Adapter\SQLite\x64"
+        '''' DllPath = thisworkbook.path & path_sep & LIB_RPREFIX & "SQLite\x64"
         DllPath = vbNullString
     #Else
-        DllPath = "Library\" & ThisWorkbook.VBProject.Name & "\Demo - DLL - STDCALL and Adapter\SQLite\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "SQLite\x32"
     #End If
     LoadDlls DllPath
     
@@ -40,12 +46,10 @@ End Sub
 
 Private Sub LoadDlls(ByVal DllPath As String)
     Dim DllMan As DllManager
-    Set DllMan = DllManager.Create(DllPath)
+    DllManager.ForgetSingleton
+    DllManager.Free
+    Dim DllName As String
+    DllName = "sqlite3demo.dll"
+    Set DllMan = DllManager.Create(DllPath, DllName, False)
     Set this.DllMan = DllMan
-    Dim DllNames As Variant
-    DllNames = Array( _
-        "sqlite3.dll" _
-    )
-    '@Ignore FunctionReturnValueDiscarded
-    DllMan.LoadMultiple DllNames
 End Sub

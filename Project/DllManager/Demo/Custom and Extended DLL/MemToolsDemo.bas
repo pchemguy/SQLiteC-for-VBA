@@ -4,6 +4,12 @@ Attribute VB_Name = "MemToolsDemo"
 Option Explicit
 Option Private Module
 
+Private Const LIB_NAME As String = "DllManager"
+Private Const PATH_SEP As String = "\"
+Private Const LIB_RPREFIX As String = _
+    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
+    "Demo - DLL - STDCALL and Adapter" & PATH_SEP
+
 ''''Copy <Long> By native assign   10,000,000 times in 51 ms
 ''''Copy <Long> From array native  10,000,000 times in 121 ms
 ''''Copy <Long> From array by sub  10,000,000 times in 641 ms
@@ -47,9 +53,9 @@ Private Sub TestCopyLong()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
     #If WIN64 Then
-        DllPath = "Library\" & ThisWorkbook.VBProject.Name & "\Demo - DLL - STDCALL and Adapter\memtools\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x64"
     #Else
-        DllPath = "Library\" & ThisWorkbook.VBProject.Name & "\Demo - DLL - STDCALL and Adapter\memtools\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x32"
     #End If
     LoadDlls DllPath
     
@@ -71,7 +77,7 @@ Private Sub TestCopyLong()
     For i = 1 To LOOPS
         x1 = x2
     Next i
-    Debug.Print "Copy <" & TypeName(x1) & "> By native " & Format$(LOOPS, "#,##0") _
+    Debug.Print "Copy <" & TypeName(x1) & "> By native  " & Format$(LOOPS, "#,##0") _
         & " times in " & Round((Timer - T) * 1000, 0) & " ms"
     
     Set this.DllMan = Nothing

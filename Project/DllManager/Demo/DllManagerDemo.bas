@@ -17,6 +17,11 @@ Private Const VBAV As Long = 7
 Private Const VBAV As Long = 6
 #End If
 
+Private Const LIB_NAME As String = "DllManager"
+Private Const PATH_SEP As String = "\"
+Private Const LIB_RPREFIX As String = _
+    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP
+
 #If VBA7 Then
 '''' System library
 Private Declare PtrSafe Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
@@ -53,7 +58,7 @@ Private Sub SQLiteLoadMultipleArray()
     Dim ProjectName As String
     ProjectName = ThisWorkbook.VBProject.Name
     Dim DllPath As String
-    DllPath = "Library\" & ProjectName & "\dll\" & ARCH
+    DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & ARCH
     Dim DllNames As Variant
     If ARCH = "x64" Then
         DllNames = "sqlite3.dll"
@@ -96,10 +101,10 @@ Private Sub SQLiteLoadMultipleArrayCompact()
     Dim DllPath As String
     Dim DllNames As Variant
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
         DllNames = "sqlite3.dll"
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
         DllNames = Array( _
             "icudt68.dll", _
             "icuuc68.dll", _
@@ -118,9 +123,9 @@ End Sub
 Private Sub SQLiteLoadMultipleParamArray()
     Dim DllPath As String
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
     #End If
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(DllPath)
@@ -142,10 +147,10 @@ Private Sub SQLiteLoad()
     Dim DllPath As String
     Dim DllNames As Variant
     #If WIN64 Then
-        DllPath = "Library\SQLiteCforVBA\dll\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
         DllNames = Array("sqlite3.dll")
     #Else
-        DllPath = "Library\SQLiteCforVBA\dll\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
         DllNames = Array( _
             "icudt68.dll", _
             "icuuc68.dll", _
