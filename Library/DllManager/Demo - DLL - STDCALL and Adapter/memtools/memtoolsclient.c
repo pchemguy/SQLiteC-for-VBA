@@ -40,11 +40,14 @@ void CopyMemGauge() {
 
 
 void DummySub0ArgsGauge() {
+  void (*volatile MEMTOOLSCALL pDummySub0Args)();
+  pDummySub0Args = DummySub0Args;
+
   struct timeb start, end;
 
   ftime(&start);
-  for (int i=0; i < 1e9; i++) {
-    DummySub0Args(); 
+  for (volatile int i=0; i < 1e9; i++) {
+    pDummySub0Args(); 
   }
   ftime(&end);
 
@@ -65,7 +68,7 @@ void DummySub3ArgsGauge() {
   struct timeb start, end;
 
   ftime(&start);
-  for (int i=0; i < 1e9; i++) {
+  for (volatile int i=0; i < 1e9; i++) {
     DummySub3Args(Dst, Src, SrcLen);
   }
   ftime(&end);
@@ -80,11 +83,11 @@ void DummySub3ArgsGauge() {
 
 
 void DummyFnc0ArgsGauge() {
-  int Result;
+  int Result __attribute__((unused));
   struct timeb start, end;
 
   ftime(&start);
-  for (int i=0; i < 1e9; i++) {
+  for (volatile int i=0; i < 1e9; i++) {
     Result = DummyFnc0Args(); 
   }
   ftime(&end);
@@ -103,11 +106,11 @@ void DummyFnc3ArgsGauge() {
   char Dst[255];
   size_t SrcLen = sizeof(Src);
 
-  int Result;
+  int Result __attribute__((unused));
   struct timeb start, end;
 
   ftime(&start);
-  for (int i=0; i < 1e9; i++) {
+  for (volatile int i=0; i < 1e9; i++) {
     Result = DummyFnc3Args(Dst, Src, SrcLen);
   }
   ftime(&end);

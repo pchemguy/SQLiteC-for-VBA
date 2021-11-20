@@ -3,127 +3,137 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 width="288px" height="72px" viewBox="0 0 288 72" enable-background="new 0 0 288 72" xml:space="preserve">
-<g>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" fill="#F79910" points="136.38,49.081 136.38,61.92 189.18,61.92 189.18,49.081 
-		136.38,49.081 	"/>
-	<text transform="matrix(1 0 0 1 52.0215 32.4038)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">Fo</tspan><tspan x="12.228" y="0" font-family="'Arial-BoldMT'" font-size="9.96">r</tspan></text>
-	<text transform="matrix(1 0 0 1 98.4668 32.4038)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.831" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan></text>
-	<text transform="matrix(1 0 0 1 139.3809 32.4038)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.831" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan><tspan x="24.36" y="0" font-family="'Arial-BoldMT'" font-size="9.96">/D</tspan><tspan x="34.321" y="0" font-family="'Arial-BoldMT'" font-size="9.96">L</tspan><tspan x="40.434" y="0" font-family="'Arial-BoldMT'" font-size="9.96">L</tspan></text>
-	<text transform="matrix(1 0 0 1 193.2642 32.4038)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.83" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan><tspan x="24.359" y="0" font-family="'Arial-BoldMT'" font-size="9.96">/</tspan><tspan x="27.127" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="33.73" y="0" font-family="'Arial-BoldMT'" font-size="9.96">BA</tspan></text>
-	<text transform="matrix(1 0 0 1 15.9043 45.4897)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">x3</tspan><tspan x="11.059" y="0" font-family="'Arial-BoldMT'" font-size="9.96">2</tspan></text>
-	<text transform="matrix(1 0 0 1 50.4668 45.4897)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.</tspan><tspan x="8.296" y="0" font-family="'ArialMT'" font-size="9.96">3</tspan><tspan x="13.826" y="0" font-family="'ArialMT'" font-size="9.96">6</tspan></text>
-	<text transform="matrix(1 0 0 1 100.9824 45.4897)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.</tspan><tspan x="8.296" y="0" font-family="'ArialMT'" font-size="9.96">3</tspan><tspan x="13.826" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan></text>
-	<text transform="matrix(1 0 0 1 155.8267 45.4897)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">7</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.4</tspan></text>
-	<text transform="matrix(1 0 0 1 207.4282 45.4897)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">53</tspan><tspan x="11.059" y="0" font-family="'ArialMT'" font-size="9.96">.6</tspan></text>
-	<text transform="matrix(1 0 0 1 246.186 45.4897)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">B</tspan><tspan x="13.795" y="0" font-family="'Arial-BoldMT'" font-size="9.96">A</tspan><tspan x="20.641" y="0" font-family="'Arial-BoldMT'" font-size="9.96">6</tspan></text>
-	<text transform="matrix(1 0 0 1 15.9043 58.3335)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">x6</tspan><tspan x="11.059" y="0" font-family="'Arial-BoldMT'" font-size="9.96">4</tspan></text>
-	<text transform="matrix(1 0 0 1 50.4668 58.3335)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.</tspan><tspan x="8.296" y="0" font-family="'ArialMT'" font-size="9.96">4</tspan><tspan x="13.826" y="0" font-family="'ArialMT'" font-size="9.96">6</tspan></text>
-	<text transform="matrix(1 0 0 1 100.9824 58.3335)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.</tspan><tspan x="8.296" y="0" font-family="'ArialMT'" font-size="9.96">3</tspan><tspan x="13.826" y="0" font-family="'ArialMT'" font-size="9.96">4</tspan></text>
-	<text transform="matrix(1 0 0 1 151.6235 58.3335)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">195</tspan><tspan x="16.588" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan></text>
-	<text transform="matrix(1 0 0 1 207.4282 58.3335)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">47</tspan><tspan x="11.059" y="0" font-family="'ArialMT'" font-size="9.96">.9</tspan></text>
-	<text transform="matrix(1 0 0 1 246.186 58.3335)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">B</tspan><tspan x="13.795" y="0" font-family="'Arial-BoldMT'" font-size="9.96">A</tspan><tspan x="20.641" y="0" font-family="'Arial-BoldMT'" font-size="9.96">7</tspan></text>
-	<g>
-		<defs>
-			<polygon id="SVGID_1_" points="136.38,10.081 244.26,10.081 244.26,22.92 136.38,22.92 136.38,10.081 			"/>
-		</defs>
-		<clipPath id="SVGID_2_">
-			<use xlink:href="#SVGID_1_"  overflow="visible"/>
-		</clipPath>
-		<g clip-path="url(#SVGID_2_)">
-			<text transform="matrix(1 0 0 1 179.9438 19.3257)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">BA</tspan></text>
-		</g>
-	</g>
-	<g>
-		<defs>
-			<polygon id="SVGID_3_" points="34.38,10.081 134.46,10.081 134.46,22.92 34.38,22.92 34.38,10.081 			"/>
-		</defs>
-		<clipPath id="SVGID_4_">
-			<use xlink:href="#SVGID_3_"  overflow="visible"/>
-		</clipPath>
-		<g clip-path="url(#SVGID_4_)">
-			<text transform="matrix(1 0 0 1 81.7871 19.3257)" font-family="'Arial-BoldMT'" font-size="9.96">C</text>
-		</g>
-	</g>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.02,7.68 10.02,8.64 12.9,8.64 12.9,7.68 10.02,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="11.94,9.6 11.94,10.56 12.9,10.56 12.9,9.6 11.94,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,9.6 133.98,10.56 134.94,10.56 134.94,9.6 133.98,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,7.68 12.9,8.64 133.98,8.64 133.98,7.68 12.9,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,9.6 12.9,10.56 133.98,10.56 133.98,9.6 12.9,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,7.68 133.98,8.64 136.86,8.64 136.86,7.68 133.98,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="135.9,9.6 135.9,10.56 136.86,10.56 136.86,9.6 135.9,9.6 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="34.86" y1="22.44" x2="133.98" y2="22.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="34.86,22.44 34.86,23.4 133.98,23.4 133.98,22.44 34.86,22.44 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="12.9" y1="35.521" x2="133.98" y2="35.521"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,35.521 12.9,36.48 133.98,36.48 133.98,35.521 12.9,35.521 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="12.9" y1="48.6" x2="133.98" y2="48.6"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,48.6 12.9,49.561 133.98,49.561 133.98,48.6 12.9,48.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.02,7.68 10.02,10.56 10.98,10.56 10.98,7.68 10.02,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="11.94,9.6 11.94,10.56 12.9,10.56 12.9,9.6 11.94,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="11.94,61.44 11.94,62.401 12.9,62.401 12.9,61.44 11.94,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.02,63.362 10.02,64.321 12.9,64.321 12.9,63.362 10.02,63.362 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,61.44 133.98,62.401 134.94,62.401 134.94,61.44 133.98,61.44 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,9.6 133.98,10.56 134.94,10.56 134.94,9.6 133.98,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="135.9,9.6 135.9,10.56 136.86,10.56 136.86,9.6 135.9,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,61.44 12.9,62.401 133.98,62.401 133.98,61.44 12.9,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.9,63.362 12.9,64.321 133.98,64.321 133.98,63.362 12.9,63.362 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="135.9,61.44 135.9,62.401 136.86,62.401 136.86,61.44 135.9,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,63.362 133.98,64.321 136.86,64.321 136.86,63.362 
-		133.98,63.362 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,9.6 275.1,10.56 276.061,10.56 276.061,9.6 275.1,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.02,7.68 277.02,10.56 277.981,10.56 277.981,7.68 277.02,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="11.94,61.44 11.94,62.401 12.9,62.401 12.9,61.44 11.94,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.02,61.44 10.02,64.321 10.98,64.321 10.98,61.44 10.02,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="135.9,61.44 135.9,62.401 136.86,62.401 136.86,61.44 135.9,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,61.44 133.98,62.401 134.94,62.401 134.94,61.44 133.98,61.44 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.02,61.44 277.02,64.321 277.981,64.321 277.981,61.44 277.02,61.44 
-			"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,61.44 275.1,62.401 276.061,62.401 276.061,61.44 275.1,61.44 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.02,10.56 10.02,61.44 10.98,61.44 10.98,10.56 10.02,10.56 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="11.94,10.56 11.94,61.44 12.9,61.44 12.9,10.56 11.94,10.56 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="33.9" y1="10.56" x2="33.9" y2="61.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="33.9,10.56 33.9,61.44 34.86,61.44 34.86,10.56 33.9,10.56 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="84.42" y1="23.4" x2="84.42" y2="61.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="84.42,23.4 84.42,61.44 85.38,61.44 85.38,23.4 84.42,23.4 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="133.98,10.56 133.98,61.44 134.94,61.44 134.94,10.56 133.98,10.56 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="135.9,10.56 135.9,61.44 136.86,61.44 136.86,10.56 135.9,10.56 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="188.581" y1="23.4" x2="188.581" y2="61.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="188.581,23.4 188.581,61.44 189.54,61.44 189.54,23.4 188.581,23.4 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="243.78" y1="10.56" x2="243.78" y2="61.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="243.78,10.56 243.78,61.44 244.741,61.44 244.741,10.56 243.78,10.56 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,10.56 275.1,61.44 276.061,61.44 276.061,10.56 275.1,10.56 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.02,10.56 277.02,61.44 277.981,61.44 277.981,10.56 277.02,10.56 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,9.6 275.1,10.56 276.061,10.56 276.061,9.6 275.1,9.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,7.68 275.1,8.64 277.981,8.64 277.981,7.68 275.1,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,7.68 136.86,8.64 275.1,8.64 275.1,7.68 136.86,7.68 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,9.6 136.86,10.56 275.1,10.56 275.1,9.6 136.86,9.6 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="136.86" y1="22.44" x2="244.741" y2="22.44"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,22.44 136.86,23.4 244.741,23.4 244.741,22.44 136.86,22.44 	"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="136.86" y1="35.521" x2="275.1" y2="35.521"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,35.521 136.86,36.48 275.1,36.48 275.1,35.521 136.86,35.521 	
-		"/>
-	
-		<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="136.86" y1="48.6" x2="275.1" y2="48.6"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,48.6 136.86,49.561 275.1,49.561 275.1,48.6 136.86,48.6 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,63.362 275.1,64.321 277.981,64.321 277.981,63.362 275.1,63.362 
-			"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.1,61.44 275.1,62.401 276.061,62.401 276.061,61.44 275.1,61.44 	
-		"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,61.44 136.86,62.401 275.1,62.401 275.1,61.44 136.86,61.44 	"/>
-	<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.86,63.362 136.86,64.321 275.1,64.321 275.1,63.362 136.86,63.362 	
-		"/>
-</g>
+<polyline fill-rule="evenodd" clip-rule="evenodd" fill="#99CC00" points="136.055,36.948 136.055,50.148 189.814,50.148 
+	189.814,36.948 136.055,36.948 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" fill="#FF9900" points="136.055,50.029 136.055,63.949 189.814,63.949 
+	189.814,50.029 136.055,50.029 "/>
+<text transform="matrix(1 0 0 1 52.6563 33.3589)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">Fo</tspan><tspan x="12.228" y="0" font-family="'Arial-BoldMT'" font-size="9.96">r</tspan></text>
+<text transform="matrix(1 0 0 1 99.1016 33.3589)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.831" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan></text>
+<text transform="matrix(1 0 0 1 140.0156 33.3589)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.831" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan><tspan x="24.36" y="0" font-family="'Arial-BoldMT'" font-size="9.96">/D</tspan><tspan x="34.32" y="0" font-family="'Arial-BoldMT'" font-size="9.96">L</tspan><tspan x="40.435" y="0" font-family="'Arial-BoldMT'" font-size="9.96">L</tspan></text>
+<text transform="matrix(1 0 0 1 193.8984 33.3589)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">S</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">ub</tspan><tspan x="18.831" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan><tspan x="24.36" y="0" font-family="'Arial-BoldMT'" font-size="9.96">/</tspan><tspan x="27.128" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="33.731" y="0" font-family="'Arial-BoldMT'" font-size="9.96">BA</tspan></text>
+<text transform="matrix(1 0 0 1 16.5391 46.4375)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">x3</tspan><tspan x="11.059" y="0" font-family="'Arial-BoldMT'" font-size="9.96">2</tspan></text>
+<text transform="matrix(1 0 0 1 53.8594 46.4375)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">2</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.1</tspan></text>
+<text transform="matrix(1 0 0 1 104.375 46.4375)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.6</tspan></text>
+<text transform="matrix(1 0 0 1 156.4609 46.4375)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">7</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.8</tspan></text>
+<text transform="matrix(1 0 0 1 212.2578 46.4375)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">5</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">6</tspan></text>
+<text transform="matrix(1 0 0 1 246.8203 46.4375)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">B</tspan><tspan x="13.796" y="0" font-family="'Arial-BoldMT'" font-size="9.96">A</tspan><tspan x="20.641" y="0" font-family="'Arial-BoldMT'" font-size="9.96">6</tspan></text>
+<text transform="matrix(1 0 0 1 16.5391 59.2734)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">x6</tspan><tspan x="11.059" y="0" font-family="'Arial-BoldMT'" font-size="9.96">4</tspan></text>
+<text transform="matrix(1 0 0 1 53.8594 59.2734)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">2</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.1</tspan></text>
+<text transform="matrix(1 0 0 1 104.375 59.2734)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">1</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">.9</tspan></text>
+<text transform="matrix(1 0 0 1 152.2578 59.2734)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">195</tspan><tspan x="16.588" y="0" font-family="'Arial-BoldMT'" font-size="9.96">0</tspan></text>
+<text transform="matrix(1 0 0 1 212.2578 59.2734)"><tspan x="0" y="0" font-family="'ArialMT'" font-size="9.96">4</tspan><tspan x="5.529" y="0" font-family="'ArialMT'" font-size="9.96">9</tspan></text>
+<text transform="matrix(1 0 0 1 246.8203 59.2734)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">B</tspan><tspan x="13.796" y="0" font-family="'Arial-BoldMT'" font-size="9.96">A</tspan><tspan x="20.641" y="0" font-family="'Arial-BoldMT'" font-size="9.96">7</tspan></text>
+<text transform="matrix(1 0 0 1 180.5781 20.2808)"><tspan x="0" y="0" font-family="'Arial-BoldMT'" font-size="9.96">V</tspan><tspan x="6.604" y="0" font-family="'Arial-BoldMT'" font-size="9.96">BA</tspan></text>
+<polygon fill-rule="evenodd" clip-rule="evenodd" fill="none" points="137.015,11.028 244.895,11.028 244.895,23.869 
+	137.015,23.869 137.015,11.028 "/>
+<text transform="matrix(1 0 0 1 82.4219 20.2808)" font-family="'Arial-BoldMT'" font-size="9.96">C</text>
+<polygon fill-rule="evenodd" clip-rule="evenodd" fill="none" points="35.015,11.028 135.095,11.028 135.095,23.869 35.015,23.869 
+	35.015,11.028 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.655,8.628 10.655,9.588 13.535,9.588 13.535,8.628 10.655,8.628 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.575,10.548 12.575,11.508 13.535,11.508 13.535,10.548 12.575,10.548 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,10.548 134.615,11.508 135.575,11.508 135.575,10.548 
+	134.615,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,8.628 13.535,9.588 134.615,9.588 134.615,8.628 13.535,8.628 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,10.548 13.535,11.508 134.615,11.508 134.615,10.548 
+	13.535,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,8.628 134.615,9.588 137.495,9.588 137.495,8.628 134.615,8.628 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.535,10.548 136.535,11.508 137.495,11.508 137.495,10.548 
+	136.535,10.548 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="35.495" y1="23.388" x2="134.615" y2="23.388"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="35.495,23.388 35.495,24.348 134.615,24.348 134.615,23.388 
+	35.495,23.388 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="13.535" y1="36.468" x2="134.615" y2="36.468"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,36.468 13.535,37.428 134.615,37.428 134.615,36.468 
+	13.535,36.468 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="13.535" y1="49.549" x2="134.615" y2="49.549"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,49.549 13.535,50.508 134.615,50.508 134.615,49.549 
+	13.535,49.549 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.655,8.628 10.655,11.508 11.615,11.508 11.615,8.628 10.655,8.628 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.575,10.548 12.575,11.508 13.535,11.508 13.535,10.548 12.575,10.548 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.575,62.389 12.575,63.348 13.535,63.348 13.535,62.389 12.575,62.389 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.655,64.309 10.655,65.268 13.535,65.268 13.535,64.309 10.655,64.309 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,62.389 134.615,63.348 135.575,63.348 135.575,62.389 
+	134.615,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,10.548 134.615,11.508 135.575,11.508 135.575,10.548 
+	134.615,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.535,10.548 136.535,11.508 137.495,11.508 137.495,10.548 
+	136.535,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,62.389 13.535,63.348 134.615,63.348 134.615,62.389 
+	13.535,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="13.535,64.309 13.535,65.268 134.615,65.268 134.615,64.309 
+	13.535,64.309 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.535,62.389 136.535,63.348 137.495,63.348 137.495,62.389 
+	136.535,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,64.309 134.615,65.268 137.495,65.268 137.495,64.309 
+	134.615,64.309 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,10.548 275.735,11.508 276.695,11.508 276.695,10.548 
+	275.735,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.655,8.628 277.655,11.508 278.615,11.508 278.615,8.628 
+	277.655,8.628 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.575,62.389 12.575,63.348 13.535,63.348 13.535,62.389 12.575,62.389 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.655,62.389 10.655,65.268 11.615,65.268 11.615,62.389 10.655,62.389 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.535,62.389 136.535,63.348 137.495,63.348 137.495,62.389 
+	136.535,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,62.389 134.615,63.348 135.575,63.348 135.575,62.389 
+	134.615,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.655,62.389 277.655,65.268 278.615,65.268 278.615,62.389 
+	277.655,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,62.389 275.735,63.348 276.695,63.348 276.695,62.389 
+	275.735,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="10.655,11.508 10.655,62.389 11.615,62.389 11.615,11.508 10.655,11.508 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="12.575,11.508 12.575,62.389 13.535,62.389 13.535,11.508 12.575,11.508 
+	"/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="34.535" y1="11.508" x2="34.535" y2="62.389"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="34.535,11.508 34.535,62.389 35.495,62.389 35.495,11.508 34.535,11.508 
+	"/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="85.055" y1="24.348" x2="85.055" y2="62.389"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="85.055,24.348 85.055,62.389 86.015,62.389 86.015,24.348 85.055,24.348 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="134.615,11.508 134.615,62.389 135.575,62.389 135.575,11.508 
+	134.615,11.508 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="136.535,11.508 136.535,62.389 137.495,62.389 137.495,11.508 
+	136.535,11.508 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="189.215" y1="24.348" x2="189.215" y2="62.389"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="189.215,24.348 189.215,62.389 190.175,62.389 190.175,24.348 
+	189.215,24.348 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="244.415" y1="11.508" x2="244.415" y2="62.389"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="244.415,11.508 244.415,62.389 245.375,62.389 245.375,11.508 
+	244.415,11.508 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,11.508 275.735,62.389 276.695,62.389 276.695,11.508 
+	275.735,11.508 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="277.655,11.508 277.655,62.389 278.615,62.389 278.615,11.508 
+	277.655,11.508 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,10.548 275.735,11.508 276.695,11.508 276.695,10.548 
+	275.735,10.548 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,8.628 275.735,9.588 278.615,9.588 278.615,8.628 275.735,8.628 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,8.628 137.495,9.588 275.735,9.588 275.735,8.628 137.495,8.628 
+	"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,10.548 137.495,11.508 275.735,11.508 275.735,10.548 
+	137.495,10.548 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="137.495" y1="23.388" x2="245.375" y2="23.388"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,23.388 137.495,24.348 245.375,24.348 245.375,23.388 
+	137.495,23.388 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="137.495" y1="36.468" x2="275.735" y2="36.468"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,36.468 137.495,37.428 275.735,37.428 275.735,36.468 
+	137.495,36.468 "/>
+<line fill="none" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-miterlimit="10" x1="137.495" y1="49.549" x2="275.735" y2="49.549"/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,49.549 137.495,50.508 275.735,50.508 275.735,49.549 
+	137.495,49.549 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,64.309 275.735,65.268 278.615,65.268 278.615,64.309 
+	275.735,64.309 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="275.735,62.389 275.735,63.348 276.695,63.348 276.695,62.389 
+	275.735,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,62.389 137.495,63.348 275.735,63.348 275.735,62.389 
+	137.495,62.389 "/>
+<polyline fill-rule="evenodd" clip-rule="evenodd" points="137.495,64.309 137.495,65.268 275.735,65.268 275.735,64.309 
+	137.495,64.309 "/>
 </svg>
