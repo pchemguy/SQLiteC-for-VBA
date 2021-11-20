@@ -24,41 +24,29 @@ MEMTOOLSAPI void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, siz
   return;
 }
 
-
 // Volatile loop counter should be used here to prevent optimization.
 MEMTOOLSAPI int MEMTOOLSCALL PerfGauge(unsigned int ForCount) {
   struct timeb start, end;
-
   ftime(&start);
   for (volatile unsigned int i=0; i < ForCount; i++) {
     ;
   }
   ftime(&end);
-
-  const int MSEC_IN_SEC = 1000;
-  int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
-
-  return diff;
+  return 1000 * (end.time - start.time) + (end.millitm - start.millitm);
 }
-
 
 MEMTOOLSAPI void MEMTOOLSCALL DummySub0Args() {
   return;
 }
 
-
 MEMTOOLSAPI void MEMTOOLSCALL DummySub3Args(void* Destination, const void* Source, size_t Length) {
   return;
 }
-
 
 MEMTOOLSAPI int MEMTOOLSCALL DummyFnc0Args() {
   volatile int Result = 10241024;
   return Result;
 }
-
 
 MEMTOOLSAPI int MEMTOOLSCALL DummyFnc3Args(void* Destination, const void* Source, size_t Length) {
   volatile int Result = 10241024;

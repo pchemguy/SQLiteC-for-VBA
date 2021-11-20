@@ -31,8 +31,7 @@ void CopyMemGauge() {
 
   const int MSEC_IN_SEC = 1000;
   int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
+  diff = MSEC_IN_SEC * (end.time - start.time) + (end.millitm - start.millitm);
 
   printf("\nCopyMemGauge - 1e8 times - %u milliseconds\n", diff);
   printf("\nFinal value: %u\n", dest);
@@ -53,8 +52,7 @@ void DummySub0ArgsGauge() {
 
   const int MSEC_IN_SEC = 1000;
   int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
+  diff = MSEC_IN_SEC * (end.time - start.time) + (end.millitm - start.millitm);
 
   printf("\nDummySub0Args - 1e9 times - %u milliseconds\n", diff);
 }
@@ -75,8 +73,7 @@ void DummySub3ArgsGauge() {
 
   const int MSEC_IN_SEC = 1000;
   int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
+  diff = MSEC_IN_SEC * (end.time - start.time) + (end.millitm - start.millitm);
 
   printf("\nDummySub3Args - 1e9 times - %u milliseconds\n", diff);
 }
@@ -94,8 +91,7 @@ void DummyFnc0ArgsGauge() {
 
   const int MSEC_IN_SEC = 1000;
   int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
+  diff = MSEC_IN_SEC * (end.time - start.time) + (end.millitm - start.millitm);
 
   printf("\nDummyFnc0Args - 1e9 times - %u milliseconds\n", diff);
 }
@@ -117,8 +113,7 @@ void DummyFnc3ArgsGauge() {
 
   const int MSEC_IN_SEC = 1000;
   int diff;
-  diff = MSEC_IN_SEC * (end.time - start.time)
-                     + (end.millitm - start.millitm);
+  diff = MSEC_IN_SEC * (end.time - start.time) + (end.millitm - start.millitm);
 
   printf("\nDummyFnc3Args - 1e9 times - %u milliseconds\n", diff);
 }
