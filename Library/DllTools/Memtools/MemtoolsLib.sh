@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# MSYS/MinGW build script
+#
 set -euo pipefail
 IFS=$'\n\t'
 
