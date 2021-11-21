@@ -25,7 +25,7 @@ Private Const LIB_RPREFIX As String = "Library\" & LIB_NAME & "\Memtools\"
 ''''Copy <Long> By API             10,000,000 times in 20.719 seconds
 ''''Copy <Long> By Ref             10,000,000 times in 3.867 seconds
 
-#If WIN64 Then
+#If Win64 Then
 Private Declare PtrSafe Sub CopyMem Lib "MemToolsLib" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As Long)
 #Else
 Private Declare Sub CopyMem Lib "MemToolsLib" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As Long)
@@ -50,7 +50,7 @@ Private this As TMemToolsLibDemo
 Private Sub TestCopyLong()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
     #Else
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"

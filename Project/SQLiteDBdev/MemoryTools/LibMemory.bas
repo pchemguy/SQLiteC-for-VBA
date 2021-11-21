@@ -79,13 +79,13 @@ Private Const MODULE_NAME As String = "LibMemory"
 #End If
 
 'The size in bytes of a memory address
-#If WIN64 Then
+#If Win64 Then
     Public Const PTR_SIZE As Long = 8
 #Else
     Public Const PTR_SIZE As Long = 4
 #End If
 
-#If WIN64 Then
+#If Win64 Then
     #If Mac Then
         Public Const vbLongLong As Long = 20 'Apparently missing for x64 on Mac
     #End If
@@ -121,7 +121,7 @@ End Sub
 'The only method in this module that uses CopyMemory!
 'Assures that InitRemoteMemory can link the Var Type for new structs
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Private Property Let MemIntAPI(ByVal memAddress As LongLong, ByVal newValue As Integer)
 #Else
 Private Property Let MemIntAPI(ByVal memAddress As Long, ByVal newValue As Integer)
@@ -142,7 +142,7 @@ End Property
 '*******************************************************************************
 'Read/Write a Byte from/to memory
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Property Get MemByte(ByVal memAddress As LongLong) As Byte
 #Else
 Public Property Get MemByte(ByVal memAddress As Long) As Byte
@@ -155,7 +155,7 @@ Public Property Get MemByte(ByVal memAddress As Long) As Byte
         m_remoteMemory.memValue = Empty
     #End If
 End Property
-#If WIN64 Then
+#If Win64 Then
 Public Property Let MemByte(ByVal memAddress As LongLong, ByVal newValue As Byte)
 #Else
 Public Property Let MemByte(ByVal memAddress As Long, ByVal newValue As Byte)
@@ -172,7 +172,7 @@ End Property
 '*******************************************************************************
 'Read/Write 2 Bytes (Integer) from/to memory
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Property Get MemInt(ByVal memAddress As LongLong) As Integer
 #Else
 Public Property Get MemInt(ByVal memAddress As Long) As Integer
@@ -186,7 +186,7 @@ Public Property Get MemInt(ByVal memAddress As Long) As Integer
     #End If
 End Property
 
-#If WIN64 Then
+#If Win64 Then
 Public Property Let MemInt(ByVal memAddress As LongLong, ByVal newValue As Integer)
 #Else
 Public Property Let MemInt(ByVal memAddress As Long, ByVal newValue As Integer)
@@ -203,7 +203,7 @@ End Property
 '*******************************************************************************
 'Read/Write 4 Bytes (Long) from/to memory
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Property Get MemLong(ByVal memAddress As LongLong) As Long
 #Else
 Public Property Get MemLong(ByVal memAddress As Long) As Long
@@ -216,7 +216,7 @@ Public Property Get MemLong(ByVal memAddress As Long) As Long
         m_remoteMemory.memValue = Empty
     #End If
 End Property
-#If WIN64 Then
+#If Win64 Then
 Public Property Let MemLong(ByVal memAddress As LongLong, ByVal newValue As Long)
 #Else
 Public Property Let MemLong(ByVal memAddress As Long, ByVal newValue As Long)
@@ -233,7 +233,7 @@ End Property
 '*******************************************************************************
 'Read/Write 8 Bytes (LongLong) from/to memory
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Property Get MemLongLong(ByVal memAddress As LongLong) As LongLong
     #If Mac Then
         CopyMemory MemLongLong, ByVal memAddress, 8
@@ -272,7 +272,7 @@ End Property
 '*******************************************************************************
 'Read/Write 4 Bytes (Long on x32) or 8 Bytes (LongLong on x64) from/to memory
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Property Get MemLongPtr(ByVal memAddress As LongLong) As LongLong
     MemLongPtr = MemLongLong(memAddress)
 End Property
@@ -291,7 +291,7 @@ End Property
 '*******************************************************************************
 'Dereference an object by it's pointer
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Function MemObject(ByVal memAddress As LongLong) As Object
 #Else
 Public Function MemObject(ByVal memAddress As Long) As Object
@@ -320,7 +320,7 @@ End Function
 '*******************************************************************************
 'Redirects the REMOTE_MEMORY.memValue Variant to the new memory address
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Private Sub LinkMem(ByRef rm As REMOTE_MEMORY, ByRef memAddr As LongLong, ByRef vt As VbVarType)
 #Else
 Private Sub LinkMem(ByRef rm As REMOTE_MEMORY, ByRef memAddr As Long, ByRef vt As VbVarType)
@@ -360,7 +360,7 @@ End Property
 '   crossed in normal pointer operations.
 'This same sentinel chunk fixes native PropertyBag as well which has troubles
 '   when internal storage crosses 2GB boundary.
-#If WIN64 Then
+#If Win64 Then
 Public Function UnsignedAdd(ByVal unsignedPtr As LongLong, ByVal signedOffset As LongLong) As LongLong
     UnsignedAdd = ((unsignedPtr Xor &H8000000000000000^) + signedOffset) Xor &H8000000000000000^
 End Function
@@ -380,7 +380,7 @@ End Function
 '   possible to find the correct address by reading memory in a loop but there
 '   would be no checking available
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Sub RedirectInstance(ByVal funcReturnPtr As LongLong _
                           , ByVal currentInstance As Object _
                           , ByVal targetInstance As Object)
@@ -390,7 +390,7 @@ Public Sub RedirectInstance(ByVal funcReturnPtr As Long _
                           , ByVal targetInstance As Object)
 #End If
     Const methodName As String = "RedirectInstance"
-    #If WIN64 Then
+    #If Win64 Then
         Dim originalPtr As LongLong
         Dim newPtr As LongLong
         Dim swapAddress As LongLong
@@ -414,7 +414,7 @@ Public Sub RedirectInstance(ByVal funcReturnPtr As Long _
     '
     'On x64 the shadow stack space is allocated next to the Function Return
     'On x32 the stack space has a fixed offset (found through testing)
-    #If WIN64 Then
+    #If Win64 Then
         Const memOffsetNonVariant As LongLong = PTR_SIZE
         Const memOffsetVariant As LongLong = PTR_SIZE * 3
     #Else
@@ -438,7 +438,7 @@ End Sub
 '*******************************************************************************
 'Finds the swap address (address of the instance pointer on the stack)
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Private Function FindSwapAddress(ByVal funcReturnPtr As LongLong _
                                , ByVal memOffset As LongLong _
                                , ByVal originalPtr As LongLong) As LongLong
@@ -499,7 +499,7 @@ End Function
 'Returns the memory address of a variable of array type
 'Returns error 5 for a non-array or an array wrapped in a Variant
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Function VarPtrArray(ByRef Arr As Variant) As LongLong
 #Else
 Public Function VarPtrArray(ByRef Arr As Variant) As Long
@@ -517,7 +517,7 @@ End Function
 'Returns the pointer to the underlying SAFEARRAY structure of a VB array
 'Returns error 5 for a non-array
 '*******************************************************************************
-#If WIN64 Then
+#If Win64 Then
 Public Function ArrPtr(ByRef Arr As Variant) As LongLong
 #Else
 Public Function ArrPtr(ByRef Arr As Variant) As Long

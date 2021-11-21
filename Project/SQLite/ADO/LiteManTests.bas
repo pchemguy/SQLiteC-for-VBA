@@ -107,7 +107,9 @@ Assert:
 CleanUp:
     Set dbq = Nothing
     Set dbm = Nothing
+    On Error Resume Next
     fso.DeleteFolder Prefix
+    On Error GoTo TestFail
 
 CleanExit:
     Exit Sub

@@ -166,7 +166,7 @@ Private Sub DemoMemLongSpeed()
 End Sub
 
 Private Sub DemoMemLongPtrSpeed()
-    #If WIN64 Then
+    #If Win64 Then
         Dim x1 As LongLong: x1 = 111111111111111^
         Dim x2 As LongLong: x2 = 111111111111112^
     #Else
@@ -200,7 +200,7 @@ Private Sub DemoMemObjectSpeed()
     Dim T As Double
     Dim D As DemoClass: Set D = New DemoClass
     Dim Obj As Object
-    #If WIN64 Then
+    #If Win64 Then
         Dim ptr As LongLong
     #Else
         Dim ptr As Long

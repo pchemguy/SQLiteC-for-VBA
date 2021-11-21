@@ -30,7 +30,7 @@ Private Declare PtrSafe Function sqlite3_bind_blob Lib "SQLite3" ( _
     ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal pValue As LongPtr, ByVal nBytes As Long, ByVal pfDelete As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_bind_double Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As Double) As Long
 Private Declare PtrSafe Function sqlite3_bind_int Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As Long) As Long
-#If WIN64 Then
+#If Win64 Then
     Private Declare PtrSafe Function sqlite3_bind_int64 Lib "SQLite3" ( _
         ByVal hStmt As LongPtr, ByVal ParamIndex As Long, ByVal Value As LongLong) As Long
 #Else

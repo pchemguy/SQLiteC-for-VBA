@@ -9,7 +9,7 @@ Private Const LIB_RPREFIX As String = _
     "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
     "Demo - DLL - STDCALL and Adapter" & PATH_SEP
 
-#If WIN64 Then
+#If Win64 Then
 Private Declare PtrSafe Function demo_sqlite3_extension_adapter Lib "SQLite3demo" (ByVal Dummy As Long) As Long
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3demo" () As Long
 #Else
@@ -27,7 +27,7 @@ Private this As TDllExtAdapterEmbedDemo
 Private Sub GetSQLiteVersion()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         '''' TODO
         '''' DllPath = thisworkbook.path & path_sep & LIB_RPREFIX & "SQLite\x64"
         DllPath = vbNullString

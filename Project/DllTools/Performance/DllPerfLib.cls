@@ -15,18 +15,16 @@ Attribute VB_Description = "Provides utilities for guaging performance of DLL ca
 '@IgnoreModule VariableNotUsed, ParameterNotUsed, EmptyMethod
 Option Explicit
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
-Private Const LIB_RPREFIX As String = _
-    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
-    "Demo - DLL - STDCALL and Adapter" & PATH_SEP
+Private Const LIB_RPREFIX As String = "Library\" & LIB_NAME & "\Memtools\"
 
 Public Enum TargetTypeEnum
     TARGET_DLL = 0&
     TARGET_VBA = 1&
 End Enum
 
-#If WIN64 Then
+#If Win64 Then
 Private Declare PtrSafe Sub DummySub0Args Lib "MemToolsLib" ()
 Private Declare PtrSafe Sub DummySub3Args Lib "MemToolsLib" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As Long)
 Private Declare PtrSafe Function DummyFnc0Args Lib "MemToolsLib" () As Long
@@ -86,7 +84,7 @@ End Sub
 
 Private Sub LoadDlls()
     Dim DllPath As String
-    DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\" & ARCH
+    DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & ARCH
     Dim DllName As String
     DllName = "MemToolsLib.dll"
     Set this.DllMan = DllManager.Create(DllPath, DllName, True)
@@ -247,5 +245,3 @@ Private Function DummyFnc3ArgsVBA(ByRef Destination As Byte, _
     Result = 10241024
     DummyFnc3ArgsVBA = Result
 End Function
-
-

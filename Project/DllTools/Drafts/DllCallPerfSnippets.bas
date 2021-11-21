@@ -11,7 +11,7 @@ Private Const LIB_RPREFIX As String = _
     "Demo - DLL - STDCALL and Adapter" & PATH_SEP
 Private Const CYCLE_COUNT As Long = 10 ^ 7
 
-#If WIN64 Then
+#If Win64 Then
 Private Declare PtrSafe Sub DummySub0Args Lib "MemToolsLib" ()
 Private Declare PtrSafe Sub DummySub3Args Lib "MemToolsLib" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As Long)
 Private Declare PtrSafe Function DummyFnc0Args Lib "MemToolsLib" () As Long
@@ -33,7 +33,7 @@ Private this As TDllCallPerformance
 
 Private Sub LoadDlls()
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x64"
     #Else
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x32"

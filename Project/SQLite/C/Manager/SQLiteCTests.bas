@@ -70,7 +70,7 @@ Private Sub ztcSQLite3Version_VerifiesVersionInfo()
 Arrange:
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x64"
         DllNames = "sqlite3.dll"
     #Else
@@ -111,7 +111,7 @@ Private Sub ztcSQLite3Version_VerifiesVersionInfoV2()
 
 Arrange:
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x64"
     #Else
         DllPath = LITE_RPREFIX & "dll\x32"
@@ -253,7 +253,7 @@ Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
     End If
     Dim DllPath As String
     Dim DllNames As Variant
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = LITE_RPREFIX & "dll\x32"
         DllNames = "sqlite3.dll"
     #Else

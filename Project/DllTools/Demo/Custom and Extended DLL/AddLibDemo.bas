@@ -8,7 +8,7 @@ Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
     "Library\" & LIB_NAME & "\Demo - DLL - STDCALL and Adapter\AddLib\"
 
-#If WIN64 Then
+#If Win64 Then
 Private Declare PtrSafe Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
 #Else
 Private Declare Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
@@ -24,7 +24,7 @@ Private this As TAddLibDemo
 Private Sub GetSum()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
-    #If WIN64 Then
+    #If Win64 Then
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
     #Else
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"

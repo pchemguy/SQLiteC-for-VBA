@@ -136,7 +136,7 @@ Assert:
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
     Assert.AreEqual "SELECT 1024.1024;", dbs.SQLQueryExpanded, "Real bound query mismatch."
     
-    #If WIN64 Then
+    #If Win64 Then
         ResultCode = dbs.DbParameters.BindDictOrArray(Array(1024102410241024^))
         Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
         Assert.AreEqual "SELECT 1024102410241024;", dbs.SQLQueryExpanded, "Currency bound query mismatch."
