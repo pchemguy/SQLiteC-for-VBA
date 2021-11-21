@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-'@Folder "DllManager.Demo.Custom and Extended DLL"
+'@Folder "DllTools.Demo.Custom and Extended DLL"
 Option Explicit
 
 Private SomeArray(0 To 10 ^ 4) As Long

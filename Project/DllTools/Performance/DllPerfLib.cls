@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Provides utilities for guaging performance of DLL calls via the memtools DLL."
-'@Folder "DllManager.Demo.Custom and Extended DLL.DLL Call Performance"
+'@Folder "DllTools.Performance"
 '@ModuleDescription "Provides utilities for guaging performance of DLL calls via the memtools DLL."
 '@PredeclaredId
 '@IgnoreModule ParameterCanBeByVal: Testing ByRef

@@ -1,5 +1,5 @@
 Attribute VB_Name = "DllManagerTests"
-'@Folder "DllManager"
+'@Folder "DllTools.Manager"
 '@TestModule
 '@IgnoreModule IndexedDefaultMemberAccess, UnhandledOnErrorResumeNext
 '@IgnoreModule LineLabelNotUsed, VariableNotUsed, AssignmentNotUsed
@@ -9,7 +9,7 @@ Option Private Module
 Private Const MODULE_NAME As String = "DllManagerTests"
 Private TestCounter As Long
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
     "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP

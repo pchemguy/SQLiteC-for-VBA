@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Loads/unloads dll libraries"
-'@Folder "DllManager"
+'@Folder "DllTools.Manager"
 '@ModuleDescription "Loads/unloads dll libraries"
 '@PredeclaredId
 '@Exposed
@@ -323,3 +323,4 @@ Public Function GetDllPath(ByVal DllName As String) As String
                            "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
+

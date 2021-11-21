@@ -1,14 +1,12 @@
 Attribute VB_Name = "MemToolsDemo"
-'@Folder "DllManager.Demo.Custom and Extended DLL"
+'@Folder "DllTools.Demo.Custom and Extended DLL"
 '@IgnoreModule: It follows https://github.com/cristianbuse/VBA-MemoryTools
 Option Explicit
 Option Private Module
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
-Private Const LIB_RPREFIX As String = _
-    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
-    "Demo - DLL - STDCALL and Adapter" & PATH_SEP
+Private Const LIB_RPREFIX As String = "Library\" & LIB_NAME & "\Memtools\"
 
 ''''Copy <Long> By native assign   10,000,000 times in 51 ms
 ''''Copy <Long> From array native  10,000,000 times in 121 ms
@@ -53,9 +51,9 @@ Private Sub TestCopyLong()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
     #If WIN64 Then
-        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
     #Else
-        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "memtools\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
     #End If
     LoadDlls DllPath
     
@@ -169,10 +167,8 @@ End Sub
 
 
 #If VBA7 Then
-'@Ignore ProcedureCanBeWrittenAsFunction: Testing max performance, ByRef return may do better, than explicit
 Public Sub CopyLong(ByVal LongAddress As LongPtr, ByRef Dest As Long)
 #Else
-'@Ignore ProcedureCanBeWrittenAsFunction: Testing max performance, ByRef return may do better, than explicit
 Public Sub CopyLong(ByVal LongAddress As Long, ByRef Dest As Long)
 #End If
     Dest = SomeArrayM(CLng(LongAddress - SomeArrayBaseM) \ SomeArrayElementSizeM)
@@ -181,11 +177,9 @@ End Sub
 
 Private Sub LoadDlls(ByVal DllPath As String)
     Dim DllMan As DllManager
-    '@Ignore IndexedDefaultMemberAccess
     Set DllMan = DllManager.Create(DllPath)
     Set this.DllMan = DllMan
     Dim DllName As Variant
     DllName = "MemToolsLib.dll"
-    '@Ignore FunctionReturnValueDiscarded
     DllMan.Load DllName
 End Sub

@@ -1,5 +1,5 @@
 Attribute VB_Name = "DllPerfRun"
-'@Folder "DllManager.Demo.Custom and Extended DLL.DLL Call Performance"
+'@Folder "DllTools.Performance"
 Option Explicit
 
 
@@ -134,4 +134,5 @@ Private Sub Runner()
         '''' ---------- Fnc3ArgsDLLVBA ---------- ''''
     End With
 End Sub
+
 

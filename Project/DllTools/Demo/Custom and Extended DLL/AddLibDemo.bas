@@ -1,13 +1,12 @@
 Attribute VB_Name = "AddLibDemo"
-'@Folder "DllManager.Demo.Custom and Extended DLL"
+'@Folder "DllTools.Demo.Custom and Extended DLL"
 Option Explicit
 Option Private Module
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
-    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
-    "Demo - DLL - STDCALL and Adapter" & PATH_SEP
+    "Library\" & LIB_NAME & "\Demo - DLL - STDCALL and Adapter\AddLib\"
 
 #If WIN64 Then
 Private Declare PtrSafe Function Add Lib "AddLib" (ByVal ValueA As Long, ByVal ValueB As Long) As Long
@@ -26,9 +25,9 @@ Private Sub GetSum()
     '''' Absolute or relative to ThisWorkbook.Path
     Dim DllPath As String
     #If WIN64 Then
-        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "AddLib\x64"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x64"
     #Else
-        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "AddLib\x32"
+        DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
     #End If
     LoadDlls DllPath
     

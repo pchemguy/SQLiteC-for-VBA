@@ -1,9 +1,9 @@
 Attribute VB_Name = "DllExtAdapterEmbedDemo"
-'@Folder "DllManager.Demo.Custom and Extended DLL"
+'@Folder "DllTools.Demo.Custom and Extended DLL"
 Option Explicit
 Option Private Module
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
     "Library" & PATH_SEP & LIB_NAME & PATH_SEP & _
@@ -53,3 +53,4 @@ Private Sub LoadDlls(ByVal DllPath As String)
     Set DllMan = DllManager.Create(DllPath, DllName, False)
     Set this.DllMan = DllMan
 End Sub
+

@@ -2,11 +2,11 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "PerfLogO3"
+Attribute VB_Name = "PerfLogO0"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-'@Folder "DllManager.Demo.Custom and Extended DLL.DLL Call Performance"
+'@Folder "DllTools.Performance"
 '@IgnoreModule UseMeaningfulName
 

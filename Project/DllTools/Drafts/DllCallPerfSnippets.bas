@@ -1,6 +1,6 @@
 Attribute VB_Name = "DllCallPerfSnippets"
-'@Folder "DllManager.Demo.Custom and Extended DLL.DLL Call Performance"
-'@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
+'@Folder "DllTools.Drafts"
+'@IgnoreModule
 Option Explicit
 Option Private Module
 
@@ -147,3 +147,4 @@ Private Sub DummyFnc3ArgsPerf()
     Debug.Print PROC_NAME & ":" & " - " & Format$(CYCLE_COUNT, "#,##0") _
         & " times in " & Delta & " ms"
 End Sub
+

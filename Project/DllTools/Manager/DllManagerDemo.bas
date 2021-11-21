@@ -1,5 +1,5 @@
 Attribute VB_Name = "DllManagerDemo"
-'@Folder "DllManager.Demo"
+'@Folder "DllTools.Manager"
 '@IgnoreModule ProcedureNotUsed, IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
 Option Explicit
 Option Private Module
@@ -17,10 +17,9 @@ Private Const VBAV As Long = 7
 Private Const VBAV As Long = 6
 #End If
 
-Private Const LIB_NAME As String = "DllManager"
+Private Const LIB_NAME As String = "DllTools"
 Private Const PATH_SEP As String = "\"
-Private Const LIB_RPREFIX As String = _
-    "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP
+Private Const LIB_RPREFIX As String = "Library" & "\" & LIB_NAME & "\dll\"
 
 #If VBA7 Then
 '''' System library
@@ -167,3 +166,5 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub
+
+
