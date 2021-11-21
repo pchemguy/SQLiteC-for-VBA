@@ -13,10 +13,6 @@ Attribute VB_Description = "Provides utilities for guaging performance of DLL ca
 '@PredeclaredId
 Option Explicit
 
-'''' ?DllPerfLib.Create().PerfGaugeGet
-'''' ?DllPerfLib.Create().Sub0ArgsDLLVBA(,TARGET_VBA)
-'''' ?DllPerfLib.Create().Sub0ArgsDLLVBA(,TARGET_DLL)
-
 Private Const LIB_NAME As String = "DllManager"
 Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
@@ -243,6 +239,8 @@ Public Function Fnc3ArgsDLLVBA(Optional ByVal DummyForCount As Long = -1, _
     End If
     Fnc3ArgsDLLVBA = TimeDiffMs
 End Function
+
+'''' ===== PERFORMANCE TEST STUBS ===== ''''
 
 Private Sub DummySub0ArgsVBA()
 End Sub
