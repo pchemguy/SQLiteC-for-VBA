@@ -12,7 +12,13 @@ I developed this class as a standalone component necessary for the SQLiteC packa
 
 **API**
 
-*DllManager.Create* factory takes one optional parameter, indicating the user's DLL location, and passes it to *DllManager.Init* constructor. Ultimately, the *DefaultPath* setter (Property Let) handles this parameter. The setter checks if the parameter holds a valid absolute or a relative (w.r.t. ThisWorkbook.Path) path. If this check succeeds, SetDllDirectory API sets the default DLL search path. *DllManager.ResetDllSearchPath* can be used to reset the DLL search path to its default value.
+The *DllManager.Create* factory takes three optional parameters, passed to the *DllManager.Init* constructor:
+
+*	*DefaultPath* (defaults to blank) - a string indicating the default DLL directory,
+*	*DllNames* (defaults to empty) - a string containing the DLL name to be loaded or a variant array of DLL names,
+*	*GetShared* (defaults to true) - a boolean indicating whether the factory should return the singleton instance.
+
+The *DefaultPath* setter (Property Let) handles *DefaultPath*. The setter checks if the parameter holds a valid absolute or a relative (w.r.t. ThisWorkbook.Path) path. If this check succeeds, SetDllDirectory API sets the default DLL search path. *DllManager.ResetDllSearchPath* can be used to reset the DLL search path to its default value. If the singleton object is ever requested, the predeclared DllManager will instantiate a new object on the first request, save its reference, and return it in response to successive requests. A new independent instance can still be requested at any time by setting the third parameter to false. *DllManager.ForgetSingleton* clears saved singleton reference (this method should be called on the predeclared instance).
 
 *DllManager.Load* loads individual libraries. It takes the target library name and, optionally, path. If the target library has not been loaded, it attempts to resolve the DLL location by checking the provided value and the DefaultPath attribute. If resolution succeeds, the LoadLibrary API is called. *DllManager.Free*, in turn, unloads the previously loaded library.
 
@@ -24,109 +30,8 @@ Finally, while *.Free/.FreeMultiple* can be called explicitly, *Class_Terminate*
 
 The *DllManagerDemo* example below illustrates how this class can be used and compares the usage patterns between system and user libraries. In this case, *WinSQLite3* system library is used as a reference (see *GetWinSQLite3VersionNumber*). A call to a custom compiled SQLite library placed in the project folder demos the additional code necessary to make such a call (see *GetSQLite3VersionNumber*). In both cases, *sqlite3_libversion_number* routine, returning the numeric library version, is declared and called.
 
-```vb
-'@Folder "DllManager"
-Option Explicit
-Option Private Module
 
-#If VBA7 Then
-'''' System library
-Private Declare PtrSafe Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
-'''' User library
-Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
-#Else
-'''' System library
-Private Declare Function winsqlite3_libversion_number Lib "WinSQLite3" Alias "sqlite3_libversion_number" () As Long
-'''' User library
-Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
-#End If
-
-
-Private Type TDllManagerDemo
-    DllMan As DllManager
-End Type
-Private this As TDllManagerDemo
-
-
-Private Sub GetWinSQLite3VersionNumber()
-    Debug.Print winsqlite3_libversion_number()
-End Sub
-
-
-Private Sub GetSQLite3VersionNumber()
-    '''' Absolute or relative to ThisWorkbook.Path
-    Dim DllPath As String
-    DllPath = "Library\SQLiteCforVBA\dll\x32"
-    
-    SQLiteLoadMultipleArray DllPath
-    Debug.Print sqlite3_libversion_number()
-    Set this.DllMan = Nothing
-End Sub
-
-
-Private Sub SQLiteLoadMultipleArray(ByVal DllPath As String)
-    Dim DllMan As DllManager
-    Set DllMan = DllManager(DllPath)
-    Set this.DllMan = DllMan
-    Dim DllNames As Variant
-    DllNames = Array( _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll" _
-    )
-    DllMan.LoadMultiple DllNames
-End Sub
-
-
-' ========================= '
-' Additional usage examples '
-' ========================= '
-Private Sub SQLiteLoadMultipleParamArray()
-    Dim RelativePath As String
-    RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    
-    Dim DllMan As DllManager
-    Set DllMan = DllManager(RelativePath)
-    
-    DllMan.LoadMultiple _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll"
-End Sub
-
-
-Private Sub SQLiteLoad()
-    Dim RelativePath As String
-    RelativePath = "Library\SQLiteCforVBA\dll\x32"
-    
-    Dim DllMan As DllManager
-    Set DllMan = DllManager(RelativePath)
-    Dim DllNames As Variant
-    
-    DllNames = Array( _
-        "icudt68.dll", _
-        "icuuc68.dll", _
-        "icuin68.dll", _
-        "icuio68.dll", _
-        "icutu68.dll", _
-        "sqlite3.dll" _
-    )
-    
-    Dim DllNameIndex As Long
-    For DllNameIndex = LBound(DllNames) To UBound(DllNames)
-        Dim DllName As String
-        DllName = DllNames(DllNameIndex)
-        DllMan.Load DllName, RelativePath
-    Next DllNameIndex
-End Sub
-```
-
+<!-- References -->
 
 [DLL API]: https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-functions
 [SQLite VBA]: https://pchemguy.github.io/SQLite-ICU-MinGW/stdcall

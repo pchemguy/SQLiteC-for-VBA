@@ -37,14 +37,14 @@ There are a few other resources related to DLL development, which I added to my 
 <!-- References -->
 
 [Transmission Zero]: https://www.transmissionzero.co.uk/computing/advanced-mingw-dll-topics/
-[AddLib]: https://github.com/pchemguy/SQLiteC-for-VBA/tree/develop/Library/SQLiteCforVBA/Demo%20-%20DLL%20-%20STDCALL%20and%20Adapter/AddLib
+[AddLib]: https://github.com/pchemguy/SQLiteC-for-VBA/tree/develop/Library/DllTools/Demo%20-%20DLL%20-%20STDCALL%20and%20Adapter/AddLib
 [MinGW]: https://pchemguy.github.io/SQLite-ICU-MinGW/devenv
 [SQLite ICU MinGW]: https://pchemguy.github.io/SQLite-ICU-MinGW/
 [SQLite ICU MinGW - Proxy]: https://github.com/pchemguy/SQLite-ICU-MinGW/blob/master/MinGW/Proxy/sqlite3.ref.sh
 [SQLiteODBC]: http://www.ch-werner.de/sqliteodbc/
 [SQLiteODBC PG]: https://pchemguy.github.io/SQLite-ICU-MinGW/odbc
 [SQLiteForExcel]: https://github.com/govert/SQLiteForExcel
-[Dll adapter]: https://github.com/pchemguy/SQLiteC-for-VBA/tree/develop/Library/SQLiteCforVBA/Demo%20-%20DLL%20-%20STDCALL%20and%20Adapter/SQLite
+[Dll adapter]: https://github.com/pchemguy/SQLiteC-for-VBA/tree/develop/Library/DllTools/Demo%20-%20DLL%20-%20STDCALL%20and%20Adapter/SQLite
 [Dynamic-Link Libraries]: https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-libraries
 [C/C++ projects and build systems in Visual Studio]: https://docs.microsoft.com/en-us/cpp/build/projects-and-build-systems-cpp
 [DLL Tutorial]: https://www.tutorialspoint.com/dll/
