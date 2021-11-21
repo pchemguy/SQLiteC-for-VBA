@@ -64,6 +64,7 @@ Private Sub DemoHostFreezeWithBusyDb()
     dbAdo.AdoCommand.CommandTimeout = 1
     
     dbm.JournalModeSet "DELETE"
+    '@Ignore StopKeyword
     Stop '''' Lock Db. For example, open in GUI admin tool and start a transaction
     Dim Start As Single
     Start = Timer

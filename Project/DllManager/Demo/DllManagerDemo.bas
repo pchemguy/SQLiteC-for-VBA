@@ -55,8 +55,6 @@ End Sub
 
 Private Sub SQLiteLoadMultipleArray()
     '''' Absolute or relative to ThisWorkbook.Path
-    Dim ProjectName As String
-    ProjectName = ThisWorkbook.VBProject.Name
     Dim DllPath As String
     DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & ARCH
     Dim DllNames As Variant

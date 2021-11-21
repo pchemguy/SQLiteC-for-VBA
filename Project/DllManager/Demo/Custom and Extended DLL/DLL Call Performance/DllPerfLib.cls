@@ -11,6 +11,8 @@ Attribute VB_Description = "Provides utilities for guaging performance of DLL ca
 '@Folder "DllManager.Demo.Custom and Extended DLL.DLL Call Performance"
 '@ModuleDescription "Provides utilities for guaging performance of DLL calls via the memtools DLL."
 '@PredeclaredId
+'@IgnoreModule ParameterCanBeByVal: Testing ByRef
+'@IgnoreModule VariableNotUsed, ParameterNotUsed, EmptyMethod
 Option Explicit
 
 Private Const LIB_NAME As String = "DllManager"
@@ -77,22 +79,6 @@ End Sub
 Private Sub Class_Terminate()
     UnLoadDlls
 End Sub
-
-Public Property Get DummyForCount() As Long
-    DummyForCount = this.DummyForCount
-End Property
-
-Public Property Let DummyForCount(ByVal Value As Long)
-    this.DummyForCount = Value
-End Property
-
-Public Property Get GaugeForCount() As Long
-    GaugeForCount = this.GaugeForCount
-End Property
-
-Public Property Let GaugeForCount(ByVal Value As Long)
-    this.GaugeForCount = Value
-End Property
 
 Public Sub TogglePrint()
     this.PrintToImmediate = Not this.PrintToImmediate
@@ -261,3 +247,5 @@ Private Function DummyFnc3ArgsVBA(ByRef Destination As Byte, _
     Result = 10241024
     DummyFnc3ArgsVBA = Result
 End Function
+
+

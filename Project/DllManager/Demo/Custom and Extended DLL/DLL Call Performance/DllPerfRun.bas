@@ -3,6 +3,7 @@ Attribute VB_Name = "DllPerfRun"
 Option Explicit
 
 
+'@EntryPoint
 Private Sub Runner()
     Dim GaugeMax As Long
     GaugeMax = 10 ^ 9
@@ -133,3 +134,4 @@ Private Sub Runner()
         '''' ---------- Fnc3ArgsDLLVBA ---------- ''''
     End With
 End Sub
+

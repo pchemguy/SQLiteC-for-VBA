@@ -1,17 +1,21 @@
 Attribute VB_Name = "Performance"
 '@Folder "SQLite.Performance"
+'@IgnoreModule AssignmentNotUsed, VariableNotUsed, FunctionReturnValueDiscarded
+'@IgnoreModule IndexedDefaultMemberAccess, ImplicitDefaultMemberAccess
 Option Explicit
 
 Private Const CYCLE_COUNT As Long = 10 ^ 2
 Private ROW_COUNT As Long
 
 
+'@EntryPoint
 Private Sub RunGetScalar()
     ADODBPlainScalarSQLite
     SQLiteCScalarSQLite
 End Sub
 
 
+'@EntryPoint
 Private Sub RunGetRecordset()
     ROW_COUNT = 20
     ADODBPlain2DSQLite
@@ -232,3 +236,5 @@ Private Sub SQLiteC2DSQLite()
     Debug.Print "SQLiteC     GetRecordset: " & UBound(Result, 1) + 1 & " - " & Format$(CYCLE_COUNT, "#,##0") _
         & " times in " & Delta & " ms"
 End Sub
+
+

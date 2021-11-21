@@ -16,6 +16,8 @@ Attribute VB_Description = "Loads/unloads dll libraries"
 '@IgnoreModule SelfAssignedDeclaration: ok for FileSystemObject
 Option Explicit
 
+Private Const MODULE_NAME As String = "DllManager"
+
 #If VBA7 Then
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
     Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal hLibModule As LongPtr) As Long
@@ -78,7 +80,7 @@ Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
     Me.DefaultPath = DefaultPath
     If Not IsEmpty(DllNames) Then
         If Not LoadMultiple(DllNames) = LOAD_OK Then
-            Err.Raise LoadingDllErr, "DllManager/Constructor", "Failed to load Dlls"
+            Err.Raise LoadingDllErr, MODULE_NAME & "/Constructor", "Failed to load Dlls"
         End If
     End If
 End Sub
@@ -123,7 +125,7 @@ Public Property Let DefaultPath(ByVal Value As String)
         '''' Relative existing path is provided
         Path = fso.GetAbsolutePathName(ThisWorkbook.Path & "\" & Path)
     Else
-        Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
+        Err.Raise ErrNo.FileNotFoundErr, MODULE_NAME, _
                   "DefaultPath not found: <" & Value & ">"
     End If
     
@@ -191,7 +193,7 @@ Public Function Load(ByVal DllName As String, _
                 '''' Relative existing path is provided
                 Prefix = fso.BuildPath(ThisWorkbook.Path, Path)
             Else
-                Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
+                Err.Raise ErrNo.FileNotFoundErr, MODULE_NAME, _
                           "Path not found: <" & Path & ">"
             End If
         End If
@@ -204,7 +206,7 @@ Public Function Load(ByVal DllName As String, _
         ElseIf fso.FileExists(fso.BuildPath(this.DefaultPath, DllName)) Then
             FilePathName = fso.BuildPath(this.DefaultPath, DllName)
         Else
-            Err.Raise ErrNo.FileNotFoundErr, "DllManager", _
+            Err.Raise ErrNo.FileNotFoundErr, MODULE_NAME, _
                       "DllName not found: <" & DllName & ">"
         End If
         FilePathName = fso.GetAbsolutePathName(FilePathName)
@@ -231,7 +233,7 @@ Public Function Load(ByVal DllName As String, _
         If LastDllError = ERROR_BAD_EXE_FORMAT Then
             '''' TODO: Make PE Format analyzer class to check target architechture
             ''''       and imports (dependencies).
-            Err.Raise LoadingDllErr, "DllManager", "LoadLibrary error 193: <" _
+            Err.Raise LoadingDllErr, MODULE_NAME, "LoadLibrary error 193: <" _
                       & FilePathName & ">" & vbNewLine & _
                       "Check that DLL bitness matches that of Office."
         End If
@@ -317,7 +319,7 @@ Public Function GetDllPath(ByVal DllName As String) As String
     PathName = Space$(MAX_PATH + 1)
     Dim PathLength As Long
     PathLength = GetModuleFileName(this.Dlls(DllName), StrPtr(PathName), MAX_PATH)
-    If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, "DllManager", _
+    If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, MODULE_NAME, _
                            "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
