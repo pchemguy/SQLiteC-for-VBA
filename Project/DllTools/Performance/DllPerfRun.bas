@@ -4,6 +4,36 @@ Option Explicit
 
 
 '@EntryPoint
+'@Ignore UseMeaningfulName
+Private Sub RunnerSub0()
+    Dim DummyMax As Long
+    DummyMax = 10 ^ 7
+    
+    Dim PerfTool As DllPerfLib
+    Set PerfTool = DllPerfLib.Create(DummyMax)
+    
+    Dim TimeDiffMs As Long
+    Dim LoopIndex As Long
+    With PerfTool
+        .TogglePrint
+        
+        Dim AverageCountDLL As Long
+        AverageCountDLL = 2
+    
+        TimeDiffMs = 0
+        For LoopIndex = 1 To AverageCountDLL
+            TimeDiffMs = TimeDiffMs + .Sub0ArgsDLLVBA(, TARGET_DLL)
+        Next LoopIndex
+        If AverageCountDLL > 0 Then
+            TimeDiffMs = TimeDiffMs / AverageCountDLL
+            Debug.Print "Sub0ArgsDLLVBA/DLL" & ":" & " - " & Format$(DummyMax, "#,##0") & _
+                " times in " & TimeDiffMs & " ms"
+        End If
+    End With
+End Sub
+
+
+'@EntryPoint
 Private Sub Runner()
     Dim GaugeMax As Long
     GaugeMax = 10 ^ 9
@@ -134,5 +164,4 @@ Private Sub Runner()
         '''' ---------- Fnc3ArgsDLLVBA ---------- ''''
     End With
 End Sub
-
 

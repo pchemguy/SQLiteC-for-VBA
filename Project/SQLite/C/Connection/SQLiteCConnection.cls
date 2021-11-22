@@ -118,25 +118,16 @@ Private this As TSQLiteCConnection
 
 
 '@DefaultMember
-Public Function Create(ByVal DbPathName As String, _
-              Optional ByVal AllowNonExistent As Variant = Empty _
-              ) As SQLiteCConnection
+Public Function Create(ByVal DbPathName As String) As SQLiteCConnection
 Attribute Create.VB_UserMemId = 0
     Dim Instance As SQLiteCConnection
     Set Instance = New SQLiteCConnection
-    Instance.Init DbPathName, AllowNonExistent
+    Instance.Init DbPathName
     Set Create = Instance
 End Function
 
-Friend Sub Init(ByVal DbPathName As String, _
-       Optional ByVal AllowNonExistent As Variant = Empty)
-    Dim FilePathName As String
-    Dim PathCheck As LiteFSCheck
-    Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
-    Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, PathCheck.ErrNumber, _
-        "SQLiteCConnection/Init", PathCheck.ErrDescription
-    FilePathName = PathCheck.DatabasePathName
-    this.DbPathName = FilePathName
+Friend Sub Init(ByVal DbPathName As String)
+    this.DbPathName = DbPathName
     Set this.Statements = New Scripting.Dictionary
     this.Statements.CompareMode = TextCompare
 End Sub
@@ -171,6 +162,75 @@ End Property
 Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
+
+'''' Reference: https://www.sqlite.org/c3ref/open.html
+'''' Reference: https://www.sqlite.org/vfs.html
+''''
+'@Description "Generates SQLite DBO instance."
+Public Function OpenDb( _
+            Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
+            Optional ByVal vfsName As String = vbNullString _
+            ) As SQLiteResultCodes
+Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
+    If this.DbHandle > 0 Then
+        OpenDb = SQLITE_OK
+        Exit Function
+    End If
+    Dim ResultCode As SQLiteResultCodes
+    If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
+        ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
+    Else
+        #If VBA7 Then
+            Dim DbPathNamePtr As LongPtr
+            Dim vfsNamePtr As LongPtr
+        #Else
+            Dim DbPathNamePtr As Long
+            Dim vfsNamePtr As Long
+        #End If
+        Dim DbPathNameUTF8B() As Byte
+        DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
+        DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
+        If Len(vfsName) = 0 Then
+            vfsNamePtr = 0
+        Else
+            Dim vfsNameUTF8B() As Byte
+            vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
+            vfsNamePtr = VarPtr(vfsNameUTF8B(0))
+        End If
+        ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
+    End If
+    If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
+    Dim LogMsg As String
+    LogMsg = "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    OpenDb = ResultCode
+End Function
+
+'''' Reference: https://www.sqlite.org/c3ref/close.html
+''''
+'@Description "Destructs SQLite DBO instance."
+Public Function CloseDb() As SQLiteResultCodes
+Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
+    If this.DbHandle = 0 Then
+        CloseDb = SQLITE_OK
+        Exit Function
+    End If
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = Finalize
+    Debug.Assert ResultCode = SQLITE_OK
+    If this.DbHandle <> 0 Then
+        ResultCode = sqlite3_close(this.DbHandle)
+        If ResultCode = SQLITE_OK Then
+            this.DbHandle = 0
+        Else
+            ResultCode = ErrInfoRetrieve
+        End If
+    End If
+    Dim LogMsg As String
+    LogMsg = "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    CloseDb = ResultCode
+End Function
 
 Public Property Get ErrInfo() As SQLiteCErr
     ErrInfo = this.ErrInfo
@@ -208,7 +268,6 @@ Public Function ErrInfoRetrieve() As SQLiteResultCodes
     PrintErr
     ErrInfoRetrieve = this.ErrInfo.ErrorCodeEx
 End Function
-
 
 '''' Reference: https://www.sqlite.org/c3ref/libversion.html
 ''''
@@ -325,75 +384,6 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
     Next StmtName
     ResultCode = SQLiteCStatement.PreparedStatementsGet(Me, True)
     Finalize = ResultCode
-End Function
-
-'''' Reference: https://www.sqlite.org/c3ref/open.html
-'''' Reference: https://www.sqlite.org/vfs.html
-''''
-'@Description "Generates SQLite DBO instance."
-Public Function OpenDb( _
-            Optional ByVal Flags As SQLiteOpenFlags = SQLITE_OPEN_DEFAULT, _
-            Optional ByVal vfsName As String = vbNullString _
-            ) As SQLiteResultCodes
-Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
-    If this.DbHandle > 0 Then
-        OpenDb = SQLITE_OK
-        Exit Function
-    End If
-    Dim ResultCode As SQLiteResultCodes
-    If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
-        ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
-    Else
-        #If VBA7 Then
-            Dim DbPathNamePtr As LongPtr
-            Dim vfsNamePtr As LongPtr
-        #Else
-            Dim DbPathNamePtr As Long
-            Dim vfsNamePtr As Long
-        #End If
-        Dim DbPathNameUTF8B() As Byte
-        DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
-        DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
-        If Len(vfsName) = 0 Then
-            vfsNamePtr = 0
-        Else
-            Dim vfsNameUTF8B() As Byte
-            vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
-            vfsNamePtr = VarPtr(vfsNameUTF8B(0))
-        End If
-        ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
-    End If
-    If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
-    Dim LogMsg As String
-    LogMsg = "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
-    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
-    OpenDb = ResultCode
-End Function
-
-'''' Reference: https://www.sqlite.org/c3ref/close.html
-''''
-'@Description "Destructs SQLite DBO instance."
-Public Function CloseDb() As SQLiteResultCodes
-Attribute CloseDb.VB_Description = "Destructs SQLite DBO instance."
-    If this.DbHandle = 0 Then
-        CloseDb = SQLITE_OK
-        Exit Function
-    End If
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = Finalize
-    Debug.Assert ResultCode = SQLITE_OK
-    If this.DbHandle <> 0 Then
-        ResultCode = sqlite3_close(this.DbHandle)
-        If ResultCode = SQLITE_OK Then
-            this.DbHandle = 0
-        Else
-            ResultCode = ErrInfoRetrieve
-        End If
-    End If
-    Dim LogMsg As String
-    LogMsg = "Close db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
-    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
-    CloseDb = ResultCode
 End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/db_readonly.html

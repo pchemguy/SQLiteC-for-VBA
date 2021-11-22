@@ -780,7 +780,7 @@ Private Sub TxnBusy()
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
-    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcA = SQLiteCConnection(dbc.DbPathName)
 
     
     Dim ResultCode As SQLiteResultCodes
@@ -836,9 +836,9 @@ Private Sub DbIsLocked()
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
-    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcA = SQLiteCConnection(dbc.DbPathName)
     Dim dbcB As SQLiteCConnection
-    Set dbcB = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcB = SQLiteCConnection(dbc.DbPathName)
 
     Dim TxnStateCode As SQLiteTxnState
     Dim ResultCode As SQLiteResultCodes
@@ -1063,7 +1063,7 @@ End Sub
 
 Private Sub ReadDbHeader()
     Dim dbc As SQLiteCConnection
-    Set dbc = SQLiteCConnection("blank.db", False) '''' FixObjC.GetDBCTempInit
+    Set dbc = SQLiteCConnection("blank.db") '''' FixObjC.GetDBCTempInit
     Dim dbh As SQLiteCHeader
     Set dbh = SQLiteCHeader(dbc.DbPathName)
     dbh.LoadHeader
@@ -1077,7 +1077,8 @@ Private Sub GenDbHeader()
     Dim dbh As SQLiteCHeader
     Set dbh = SQLiteCHeader.Create(vbNullString)
     Dim HeaderBuffer() As Byte
-    HeaderBuffer = dbh.GenBlankDbHeader(UserVersion:=&H11223344, ApplicationId:=&HAABBCCDD)
+    HeaderBuffer = dbh.GenBlankDbHeader( _
+        UserVersion:=&H11223344, ApplicationId:=&HAABBCCDD)
     Dim PackedHeader As SQLiteCHeaderPacked
     PackedHeader = dbh.PackedHeaderFromBytes(HeaderBuffer)
     dbh.UnpackHeader PackedHeader
@@ -1088,7 +1089,7 @@ Private Function GetBlankDb()
     Dim DbPathName As String
     DbPathName = FixObjC.RandomTempFileName("-----" & ".db")
     Dim dbc As SQLiteCConnection
-    Set dbc = SQLiteCConnection(DbPathName, True)
+    Set dbc = SQLiteCConnection(DbPathName)
     With dbc
         .OpenDb
         .Vacuum

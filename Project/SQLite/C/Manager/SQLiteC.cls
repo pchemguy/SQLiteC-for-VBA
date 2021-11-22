@@ -145,18 +145,22 @@ Public Function CreateConnection(ByVal DbPathName As String, _
                         Optional ByVal AllowNonExistent As Variant = True _
                         ) As SQLiteCConnection
 Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
-    If this.Connections.Exists(DbPathName) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
-        "SQLiteC", "Connection pathname already exists!"
+    Dim PathCheck As LiteFSCheck
+    Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
+    Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, PathCheck.ErrNumber, _
+        "SQLiteCConnection/Init", PathCheck.ErrDescription
+    Dim FilePathName As String
+    FilePathName = PathCheck.DatabasePathName
+    If this.Connections.Exists(FilePathName) Then
+        Err.Raise ErrNo.KeyAlreadyExistsErr, "SQLiteC", _
+                  "Connection pathname already exists!"
+    End If
     Dim DbConn As SQLiteCConnection
-    Set DbConn = SQLiteCConnection(DbPathName, AllowNonExistent)
+    Set DbConn = SQLiteCConnection(FilePathName)
     If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
-    Dim DbConnId As String
-    DbConnId = DbConn.DbPathName
-    If this.Connections.Exists(DbConnId) Then Err.Raise ErrNo.KeyAlreadyExistsErr, _
-        "SQLiteC", "Connection pathname already exists!"
-    If IsNull(this.MainDB) Then this.MainDB = DbConnId
-    Set this.Connections(DbConnId) = DbConn
+    Set this.Connections(FilePathName) = DbConn
+    If IsNull(this.MainDB) Then this.MainDB = FilePathName
     Set CreateConnection = DbConn
 End Function
 

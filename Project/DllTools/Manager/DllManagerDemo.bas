@@ -166,5 +166,3 @@ Private Sub SQLiteLoad()
         DllMan.Load DllName, DllPath
     Next DllNameIndex
 End Sub
-
-

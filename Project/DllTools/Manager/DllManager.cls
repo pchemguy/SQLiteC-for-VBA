@@ -99,6 +99,9 @@ Public Property Get Dlls() As Scripting.Dictionary
 End Property
 
 
+'''' @ClassMethodStrict
+'''' This method should only be used on the default instance
+''''
 Public Property Get Singleton() As DllManager
     If Me Is DllManager Then
         Set Singleton = this.Singleton
@@ -143,8 +146,15 @@ Public Property Let DefaultPath(ByVal Value As String)
 End Property
 
 
+'''' @ClassMethodStrict
+'''' This method should only be used on the default instance
+''''
 Public Sub ForgetSingleton()
-    Set this.Singleton = Nothing
+    If Me Is DllManager Then
+        Set this.Singleton = Nothing
+    Else
+        DllManager.ForgetSingleton
+    End If
 End Sub
 
 
@@ -323,4 +333,3 @@ Public Function GetDllPath(ByVal DllName As String) As String
                            "Failed to obtain Dll path."
     GetDllPath = PathName
 End Function
-

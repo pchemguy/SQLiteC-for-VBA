@@ -309,7 +309,7 @@ Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
-    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcA = SQLiteCConnection(dbc.DbPathName)
     
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
@@ -341,7 +341,7 @@ Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCMemFuncWithData
     Dim dbcA As SQLiteCConnection
-    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcA = SQLiteCConnection(dbc.DbPathName)
     
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
@@ -428,7 +428,7 @@ Arrange:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCTmpFuncWithData
     Dim dbcA As SQLiteCConnection
-    Set dbcA = SQLiteCConnection(dbc.DbPathName, False)
+    Set dbcA = SQLiteCConnection(dbc.DbPathName)
     
     Assert.AreEqual SQLITE_OK, dbc.OpenDb, "Unexpected OpenDb error"
     Assert.AreEqual SQLITE_OK, dbcA.OpenDb, "Unexpected OpenDb error"
