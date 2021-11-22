@@ -35,7 +35,7 @@ The leftmost column of [Table 1](#VBADLLPerformance) contains the PerfGauge timi
 * compare the loop variable with the target,
 * perform a conditional jump.
 
-On a 2.2 GHz multi-core processor with dynamic frequency adjustment (Intel Core i7-8750H @2.2GHz), the number of 2.1 s for 10<sup>9</sup> repetitions, therefore, appears to be qualitatively reasonable. The second column shows the timing for calling DummySub0Args from the C-client (see DummySub0ArgsGauge routine). Explaining why the numbers in the second column are lower would require further investigation. However, I am more concerned about the results in the right half of the table.
+On a 2.2 GHz multi-core processor with dynamic frequency adjustment (Intel Core i7-8750H @2.2GHz), the number of 2.1 s for 10<sup>9</sup> repetitions, therefore, appears to be qualitatively reasonable. At the same time, with modern multi-core processors with non-sequential execution, relating even simple C-code to expected execution time is difficult, as illustrated by the second column showing lower timings for calling DummySub0Args from the C-client (see DummySub0ArgsGauge routine). Nevertheless, the C-client timings can still serve as a reference for the VBA timings in the right half of the table.
 
 #### VBA timings
 
