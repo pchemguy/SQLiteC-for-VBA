@@ -1,7 +1,7 @@
 ---
 layout: default
 title: SQLiteC
-nav_order: 20
+nav_order: 8
 has_children: true
 permalink: /sqlitec
 ---
