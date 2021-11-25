@@ -42,6 +42,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 
@@ -60,7 +61,7 @@ Act:
     Dim dbc As SQLiteCConnection
     Set dbc = FixObjC.GetDBCReg
 Assert:
-    Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
+    Assert.IsFalse dbc Is Nothing, "Default SQLiteCConnection is not set."
     Assert.AreEqual 0, dbc.DbHandle, "DbHandle must be 0"
 
 CleanExit:

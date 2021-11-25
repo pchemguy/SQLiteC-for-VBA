@@ -27,6 +27,7 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    FixObjC.CleanUp
 End Sub
 
 

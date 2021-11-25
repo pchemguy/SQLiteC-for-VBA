@@ -42,6 +42,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 
@@ -195,7 +196,7 @@ Assert:
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Anon parameter count mismatch."
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamAnonValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
@@ -234,7 +235,7 @@ Assert:
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Numbered parameter count mismatch."
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNoValues)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
@@ -274,7 +275,7 @@ Assert:
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named : parameter count mismatch."
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues(":"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
@@ -313,7 +314,7 @@ Assert:
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named $ parameter count mismatch."
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues("$"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
@@ -352,7 +353,7 @@ Assert:
     
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named @ parameter count mismatch."
     ResultCode = dbs.DbParameters.BindDictOrArray(FixSQLFunc.SelectFilteredParamNameValues("@"))
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected BindDictOrArray error."
@@ -392,7 +393,7 @@ Act:
 Assert:
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    Assert.IsNotNothing dbs.DbParameters, "DbParameters should be set"
+    Assert.IsFalse dbs.DbParameters Is Nothing, "DbParameters should be set"
     Assert.AreEqual 6, dbs.DbParameters.ParameterCount, "Named @ parameter count mismatch."
     Assert.AreEqual SQLQueryExpandedUnbound, dbs.SQLQueryExpanded, "Expanded unbound query mismatch."
     

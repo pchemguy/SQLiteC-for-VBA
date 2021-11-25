@@ -42,6 +42,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 
@@ -238,7 +239,7 @@ Act:
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:
-    Assert.IsNotNothing DbStmt, "DbStmt is not set."
+    Assert.IsFalse DbStmt Is Nothing, "DbStmt is not set."
     Assert.AreSame DbStmt, dbc.StmtDb(vbNullString), "Statement object mismatch"
     Assert.AreSame DbStmt, dbc.StmtDb, "Statement object mismatch (default name)"
 
@@ -274,7 +275,7 @@ Arrange:
     DbStmtName = vbNullString
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(DbStmtName)
-    Assert.IsNotNothing dbs, "Failed to create an SQLiteCStatement instance."
+    Assert.IsFalse dbs Is Nothing, "Failed to create an SQLiteCStatement instance."
     
     '@Ignore SelfAssignedDeclaration
     Dim fso As New Scripting.FileSystemObject

@@ -523,7 +523,6 @@ COLLECT_DB:
     GoSub DUMP_DB:
     Return
     
-    
 DUMP_DB:
     Dim DbPathName As String
     DbPathName = FixObjC.RandomTempFileName("-----" & CStr(DbAddressRemote) & ".db")

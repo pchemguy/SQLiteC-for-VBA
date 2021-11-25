@@ -16,6 +16,8 @@ Private Const LITE_LIB As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
 Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
 
+Private Const LoadingDllErr As Long = 48
+
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -50,6 +52,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 
@@ -150,7 +153,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM
 Assert:
-    Assert.IsNotNothing dbm, "Default manager is not set."
+    Assert.IsFalse dbm Is Nothing, "Default manager is not set."
 
 CleanExit:
     Exit Sub
@@ -204,7 +207,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM
 Assert:
-    Assert.IsNotNothing dbm.DllMan, "Dll manager is not set"
+    Assert.IsFalse dbm.DllMan Is Nothing, "Dll manager is not set"
 
 CleanExit:
     Exit Sub
@@ -230,7 +233,7 @@ Arrange:
     Dim dbm As SQLiteC
     Set dbm = FixObjC.GetDBM
 Assert:
-    Assert.IsNothing dbm.ConnDb(vbNullString), "Connection should be nothing"
+    Assert.IsTrue dbm.ConnDb(vbNullString) Is Nothing, "Connection should be nothing"
 
 CleanExit:
     Exit Sub
@@ -260,7 +263,6 @@ Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
         DllPath = LITE_RPREFIX & "dll\x64"
         DllNames = "sqlite3.dll"
     #End If
-    DllManager.ForgetSingleton
     Dim dbm As SQLiteC
     Set dbm = SQLiteC(DllPath, DllNames)
     Guard.AssertExpectedError Assert, LoadingDllErr
@@ -283,136 +285,136 @@ Private Sub ztcCreate_ThrowsOnInvalidDllPath()
 End Sub
 
 
-'''' Crashes Excel on exit when run with other tests. Works fine when run alone
-''@TestMethod("Connection")
-'Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
-'    On Error GoTo TestFail
-'    TestCounter = TestCounter + 1
-'    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-'        Debug.Print "TEST #: " & CStr(TestCounter)
-'        Stop
-'    End If
-'
-'Arrange:
-'    Dim dbc As SQLiteCConnection
-'    Set dbc = FixObjC.GetDBCReg
-'Assert:
-'    Assert.IsNotNothing dbc, "Default SQLiteCConnection is not set."
-'
-'CleanExit:
-'    Exit Sub
-'TestFail:
-'    If Not Assert Is Nothing Then
-'        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-'    Else
-'        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
-'    End If
-'End Sub
+''' Crashes Excel on exit when run with other tests. Works fine when run alone
+'@TestMethod("Connection")
+Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
+
+Arrange:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCReg
+Assert:
+    Assert.IsFalse dbc Is Nothing, "Default SQLiteCConnection is not set."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
 
 
-'''' Crashes Excel on exit when run with other tests. Works fine when run alone
-''@TestMethod("Connection")
-'Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
-'    On Error GoTo TestFail
-'    TestCounter = TestCounter + 1
-'    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-'        Debug.Print "TEST #: " & CStr(TestCounter)
-'        Stop
-'    End If
-'
-'Arrange:
-'    Dim dbm As SQLiteC
-'    Set dbm = FixObjC.GetDBM()
-'    Dim DbPathName As String
-'    DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
-'    Dim DbConn As SQLiteCConnection
-'    Set DbConn = dbm.CreateConnection(DbPathName)
-'Assert:
-'    Assert.IsNotNothing DbConn, "Default SQLiteCConnection is not set."
-'    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
-'    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
-'
-'CleanExit:
-'    Exit Sub
-'TestFail:
-'    If Not Assert Is Nothing Then
-'        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-'    Else
-'        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
-'    End If
-'End Sub
+''' Crashes Excel on exit when run with other tests. Works fine when run alone
+'@TestMethod("Connection")
+Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = FixObjC.GetDBM()
+    Dim DbPathName As String
+    DbPathName = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX & LITE_LIB & ".db"
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = dbm.CreateConnection(DbPathName)
+Assert:
+    Assert.IsFalse DbConn Is Nothing, "Default SQLiteCConnection is not set."
+    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
 
 
-'''' Crashes Excel on exit when run with other tests. Works fine when run alone
-''@TestMethod("Connection")
-'Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
-'    On Error GoTo TestFail
-'    TestCounter = TestCounter + 1
-'    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-'        Debug.Print "TEST #: " & CStr(TestCounter)
-'        Stop
-'    End If
-'
-'Arrange:
-'    '''' In general, tests may reuse the db manager. This test verifies the
-'    '''' state of the freshly instantiated SQLiteC object, so cleanup must
-'    '''' be executed before the test. (dbm.MainDbId is set the first time
-'    '''' the dbm.CreateConnection is called.)
-'    Dim dbm As SQLiteC
-'    Set dbm = FixObjC.GetDBM()
-'    Dim DbPathName As String
-'    DbPathName = ":memory:"
-'    Dim DbConn As SQLiteCConnection
-'    Set DbConn = dbm.CreateConnection(DbPathName)
-'Assert:
-'    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
-'    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
-'
-'CleanExit:
-'    Exit Sub
-'TestFail:
-'    If Not Assert Is Nothing Then
-'        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-'    Else
-'        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
-'    End If
-'End Sub
+''' Crashes Excel on exit when run with other tests. Works fine when run alone
+'@TestMethod("Connection")
+Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
+
+Arrange:
+    '''' In general, tests may reuse the db manager. This test verifies the
+    '''' state of the freshly instantiated SQLiteC object, so cleanup must
+    '''' be executed before the test. (dbm.MainDbId is set the first time
+    '''' the dbm.CreateConnection is called.)
+    Dim dbm As SQLiteC
+    Set dbm = FixObjC.GetDBM()
+    Dim DbPathName As String
+    DbPathName = ":memory:"
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = dbm.CreateConnection(DbPathName)
+Assert:
+    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
 
 
-'''' Crashes Excel on exit when run with other tests. Works fine when run alone
-''@TestMethod("Connection")
-'Private Sub ztcGetDbConn_VerifiesTempMainDb()
-'    On Error GoTo TestFail
-'    TestCounter = TestCounter + 1
-'    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-'        Debug.Print "TEST #: " & CStr(TestCounter)
-'        Stop
-'    End If
-'
-'Arrange:
-'    '''' In general, tests may reuse the db manager. This test verifies the
-'    '''' state of the freshly instantiated SQLiteC object, so cleanup must
-'    '''' be executed before the test. (dbm.MainDbId is set the first time
-'    '''' the dbm.CreateConnection is called.)
-'    Dim dbm As SQLiteC
-'    Set dbm = FixObjC.GetDBM()
-'    Dim DbPathName As String
-'    DbPathName = ":blank:"
-'    Dim DbConn As SQLiteCConnection
-'    Set DbConn = dbm.CreateConnection(DbPathName)
-'Assert:
-'    Assert.AreEqual vbNullString, dbm.MainDbId, "dbm.MainDbId mismatch"
-'    Assert.AreSame DbConn, dbm.ConnDb(vbNullString), "Connection reference mismatch"
-'
-'CleanExit:
-'    Exit Sub
-'TestFail:
-'    If Not Assert Is Nothing Then
-'        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-'    Else
-'        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
-'    End If
-'End Sub
+''' Crashes Excel on exit when run with other tests. Works fine when run alone
+'@TestMethod("Connection")
+Private Sub ztcGetDbConn_VerifiesTempMainDb()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
+        Debug.Print "TEST #: " & CStr(TestCounter)
+        Stop
+    End If
+
+Arrange:
+    '''' In general, tests may reuse the db manager. This test verifies the
+    '''' state of the freshly instantiated SQLiteC object, so cleanup must
+    '''' be executed before the test. (dbm.MainDbId is set the first time
+    '''' the dbm.CreateConnection is called.)
+    Dim dbm As SQLiteC
+    Set dbm = FixObjC.GetDBM()
+    Dim DbPathName As String
+    DbPathName = ":blank:"
+    Dim DbConn As SQLiteCConnection
+    Set DbConn = dbm.CreateConnection(DbPathName)
+Assert:
+    Assert.AreEqual vbNullString, dbm.MainDbId, "dbm.MainDbId mismatch"
+    Assert.AreSame DbConn, dbm.ConnDb(vbNullString), "Connection reference mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
 
 
 '@TestMethod("Backup")
@@ -427,10 +429,14 @@ Private Sub ztcDupDbOnlineFull_VerifiesDbCopyMemToTemp()
 Arrange:
     Dim dbcSrc As SQLiteCConnection
     Set dbcSrc = FixObjC.GetDBCMemITRBWithData
+    '''' By default, saved dbm object is destroyed before every new request.
+    '''' Destruction triggers cleanup cascade, resetting descendants.
+    '''' This backup test uses one connection as source and a separate
+    '''' connection as destination. This flag must be set to avoid damaging
+    '''' of the source.
     FixObjC.ReuseDBM
     Dim dbcDst As SQLiteCConnection
     Set dbcDst = FixObjC.GetDBCTmp
-
     Assert.AreEqual SQLITE_OK, dbcSrc.OpenDb, "Unexpected OpenDb error."
     Assert.AreEqual SQLITE_OK, dbcDst.OpenDb, "Unexpected OpenDb error."
 

@@ -293,7 +293,7 @@ Arrange:
 Act:
     Set KeyValMap = FixUtils.KeysValuesToDict(Array("Zero", "One"), Array(0, 1))
 Assert:
-    Assert.IsNotNothing KeyValMap, "KeyValMap is not set mismatch."
+    Assert.IsFalse KeyValMap Is Nothing, "KeyValMap is not set mismatch."
     Assert.AreEqual KeyValMap.CompareMode, TextCompare, "CompareMode mismatch."
     Assert.AreEqual 2, KeyValMap.Count, "Item count mismatch."
     Assert.IsTrue KeyValMap.Exists("Zero") And KeyValMap.Exists("One"), "Keys mismatch."
@@ -319,7 +319,7 @@ Act:
         Array("Long", "String", "Empty", "Null", "Object", "Array", "Error"), _
         Array(0&, "Text", Empty, Null, ThisWorkbook, Array(1), CVErr(1)))
 Assert:
-    Assert.IsNotNothing KeyValMap, "KeyValMap is not set mismatch."
+    Assert.IsFalse KeyValMap Is Nothing, "KeyValMap is not set mismatch."
     Assert.AreEqual KeyValMap.CompareMode, TextCompare, "CompareMode mismatch."
     Assert.AreEqual 7, KeyValMap.Count, "Item count mismatch."
     Assert.IsTrue KeyValMap.Exists("Long"), "'Long' key is missing."

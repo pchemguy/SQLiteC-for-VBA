@@ -32,11 +32,28 @@ Public Function GenerateSerialID() As Double
     'GetSerialID = Fix((CDbl(Date) * 100000# + CDbl(Timer) / 8.64))
 End Function
 
+Public Function GetEpoch() As Double
+    GetEpoch = CDbl(DateDiff("s", DateSerial(1970, 1, 1), Date)) + Timer
+End Function
+
+Public Function EpochToString(Optional ByVal Epoch As Double = -1) As String
+    Dim EpochValue As Double
+    Dim EpochRef As Date
+    EpochRef = DateSerial(1970, 1, 1)
+    If Epoch > 0 Then
+        EpochValue = Epoch
+    Else
+        EpochValue = CDbl(DateDiff("s", EpochRef, Date)) + Timer
+    End If
+    Dim DateVal As Date
+    DateVal = DateAdd("s", EpochValue, EpochRef)
+    EpochToString = Format(DateVal, "YYYY-MM-DD hh:mm:ss") & "." & _
+                    CStr(Round((EpochValue - Int(EpochValue)) * 1000))
+End Function
 
 Public Function GenerateGUID() As String
     GenerateGUID = Mid$(CreateObject("Scriptlet.TypeLib").GUID, 2, 36)
 End Function
-
 
 Public Function RandomLong() As Long
     RandomLong = Val("&H" & Left$(GenerateGUID, 8))

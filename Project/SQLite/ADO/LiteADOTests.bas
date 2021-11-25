@@ -240,11 +240,11 @@ Act:
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = dbq.GetAdoRecordset(vbNullString)
 Assert:
-    Assert.IsNotNothing dbqCI.AdoCommand, "AdoCommand is not set"
-    Assert.IsNotNothing dbqCI.AdoConnection, "AdoConnection is not set"
+    Assert.IsFalse dbqCI.AdoCommand Is Nothing, "AdoCommand is not set"
+    Assert.IsFalse dbqCI.AdoConnection Is Nothing, "AdoConnection is not set"
     Assert.AreEqual DefaultSQL, dbqCI.AdoCommand.CommandText, "SQL mismatch"
-    Assert.IsNotNothing AdoRecordset, "AdoRecordset is not set"
-    Assert.IsNothing AdoRecordset.ActiveConnection, "AdoRecordset is not disconnected"
+    Assert.IsFalse AdoRecordset Is Nothing, "AdoRecordset is not set"
+    Assert.IsTrue AdoRecordset.ActiveConnection Is Nothing, "AdoRecordset is not disconnected"
     Assert.AreEqual 1, AdoRecordset.RecordCount, "Expected record count mismatch"
 
 CleanExit:

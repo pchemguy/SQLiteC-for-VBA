@@ -1,0 +1,601 @@
+<!DOCTYPE html> <html xmlns=http://www.w3.org/1999/xhtml xml:lang=en-GB><!--
+ Page saved with SingleFile 
+ url: https://www.transmissionzero.co.uk/computing/advanced-mingw-dll-topics/ 
+ saved date: Mon Oct 04 2021 21:27:22 GMT+0300 (Moscow Standard Time)
+--><head class=sf-hidden><meta charset=utf-8>
+<!--[if lte IE 8]><script type="text/javascript" src="/common/script/html5.js"></script><![endif]-->
+<style>.sf-hidden{display:none!important}</style><link rel=canonical href=https://www.transmissionzero.co.uk/computing/advanced-mingw-dll-topics/><meta http-equiv=content-security-policy content="default-src 'none'; font-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self' data:; script-src 'unsafe-inline' data:;"></head>
+ <body data-new-gr-c-s-check-loaded=14.1031.0 data-gr-ext-installed class=vsc-initialized>
+ <header id=heading>
+ <hgroup>
+ <h1>Transmission Zero</h1>
+ <h2>Advanced MinGW DLL Topics</h2>
+ </hgroup>
+ </header>
+ <hr class="separator sf-hidden">
+ <nav id=navigation>
+ <ul>
+ <li><a href=https://www.transmissionzero.co.uk/>Home</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/radio/>Radio</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/audio/>Audio</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/computing/ class=current>Computing</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/software/>Software</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/gaming/>Gaming</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/food-drink/>Food &amp; Drink</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/contact/>Contact</a></li>
+ <li><a href=https://www.transmissionzero.co.uk/news/>News</a></li>
+ <li><a href=https://www.facebook.com/TransmissionZero>Facebook</a></li>
+ </ul>
+ </nav>
+ <hr class="separator sf-hidden">
+ <article id=content>
+ <section>
+ <h3>Introduction</h3>
+ <p>This article is a follow-on from my <a href=https://www.transmissionzero.co.uk/computing/building-dlls-with-mingw/ title="Transmission Zero: Building Windows DLLs with MinGW">Building Windows DLLs with MinGW article</a>, which gave an introduction into building DLLs with MinGW and using them within an executable. In this article I will cover some more advanced topics which weren’t appropriate for the introductory article:</p>
+ <ol>
+ <li>Displaying functions exported from a DLL.</li>
+ <li>The <code class=language-c>DllMain</code> function.</li>
+ <li>Using a module definition file.</li>
+ <li>Exporting undecorated stdcall functions.</li>
+ <li>Exporting C++ functions and variables from a DLL.</li>
+ <li>Creating <abbr title="Java Native Interface">JNI</abbr> DLLs.</li>
+ <li>P/Invoking MinGW DLLs in .NET</li>
+ <li>Setting the DLL base address.</li>
+ <li>Loading and unloading DLLs at runtime.</li>
+ </ol>
+ </section>
+ <section>
+ <h3>Displaying Functions Exported From A DLL</h3>
+ <p>If you’d like to view the functions exported by a DLL, you can use the GNU binutils <i>objdump</i> tool. This is useful if you want to see the exact symbols which are being exported from a DLL, including any name mangling. It is also useful if you have a third party DLL and would like to see exactly what it’s exporting. The following is an example of dumping the exports of the “AddLib.dll” from my previous article:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>objdump -p AddLib.dll</kbd></samp></pre>
+ <p>The output will contain something like the following:</p>
+ <pre xml:space=preserve><samp>There is an export table in .edata at 0x6da46000
+
+The Export Tables (interpreted .edata section contents)
+
+Export Flags                    0
+Time/Date stamp                 4da9a500
+Major/Minor                     0/0
+Name                            00006046 AddLib.dll
+Ordinal Base                    1
+Number in:
+        Export Address Table            00000003
+        [Name Pointer/Ordinal] Table    00000003
+Table Addresses
+        Export Address Table            00006028
+        Name Pointer Table              00006034
+        Ordinal Table                   00006040
+
+Export Address Table -- Ordinal Base 1
+        [   0] +base[   1] 1280 Export RVA
+        [   1] +base[   2] 2004 Export RVA
+        [   2] +base[   3] 2000 Export RVA
+
+[Ordinal/Name Pointer] Table
+        [   0] Add
+        [   1] bar
+        [   2] foo</samp></pre>
+ <p>You can see the function “Add” is being exported, along with the variables “foo” and “bar”. You don’t get any more information than this, for example the number of parameters and their types. In fact, you don’t even know if a name represents a function or variable. That’s because each name represents an address in memory, which could be a pointer to anything.</p>
+ <p>If you have the Microsoft Windows SDK, you can also use the <i>dumpbin</i> utility to display exported functions:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>dumpbin -exports AddLib.dll</kbd>
+Microsoft (R) COFF/PE Dumper Version 9.00.30729.01
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file AddLib.dll
+
+File Type: DLL
+
+  Section contains the following exports for AddLib.dll
+
+    00000000 characteristics
+    4DA9A500 time date stamp Sat Apr 16 15:17:36 2011
+        0.00 version
+           1 ordinal base
+           3 number of functions
+           3 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00001280 Add
+          2    1 00002004 bar
+          3    2 00002000 foo
+
+  Summary
+
+        1000 .CRT
+        1000 .bss
+        1000 .data
+        1000 .edata
+        1000 .eh_fram
+        1000 .idata
+        1000 .rdata
+        1000 .reloc
+        1000 .rsrc
+        1000 .text
+        1000 .tls</samp></pre>
+ <p>As you can see, it’s the same information about the exported functions, but presented in a different format.</p>
+ </section>
+ <section>
+ <h3>The DllMain Function</h3>
+ <p>DLLs can have an entry point named “DllMain”, which is called by the operating system when the DLL is loaded into or unloaded from memory, or when a thread is created or has exited. The format of the functions is as follows:</p>
+ <pre xml:space=preserve><code class=language-c>#include &lt;windows.h&gt;
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+  switch (fdwReason)
+  {
+    case DLL_PROCESS_ATTACH:
+      /* Code path executed when DLL is loaded into a process's address space. */
+      break;
+
+    case DLL_THREAD_ATTACH:
+      /* Code path executed when a new thread is created within the process. */
+      break;
+
+    case DLL_THREAD_DETACH:
+      /* Code path executed when a thread within the process has exited *cleanly*. */
+      break;
+
+    case DLL_PROCESS_DETACH:
+      /* Code path executed when DLL is unloaded from a process's address space. */
+      break;
+  }
+
+  return TRUE;
+}</code></pre>
+ <p>Note that the function signature should match exactly, as getting the function name or case incorrect will result in the function never being called, and getting the calling convention incorrect can corrupt the stack—no matter what calling convention your other functions are using, always mark the <code class=language-c>DllMain</code> function <code class=language-c>WINAPI</code>, which maps to stdcall on Win32. The return value is always required (as per the C standard), but is ignored for all messages except for “<code class=language-c>DLL_PROCESS_ATTACH</code>”. When handling the process attach message, you should return <code class=language-c>TRUE</code> if your initialisation was successful, or <code class=language-c>FALSE</code> if initialisation was unsuccessful. In the case that initialisation failed, the application will fail to start up and issue an error if the DLL is statically loaded, and in the case of dynamic loading, it will cause “<code class=language-c>LoadLibrary</code>” to return a NULL value, and the DLL will not be mapped into the address space of the process.</p>
+ <p>The DLL entry point should perform only basic initialisation procedures for your DLL. If you need to perform other tasks, this should be handled elsewhere with a function called from the user code. This is because there is no guarantee about the order in which DLLs are loaded, so if your entry point for “Foo.dll” calls a function in “Bar.dll”, it’s quite possible that Bar.dll has not yet been loaded into your process’s address space, and would result in a general protection fault. The only functions which are safe to call are those located in “kernel32.dll”, which is guaranteed to be loaded before your DLL is loaded. See the <a href=http://msdn.microsoft.com/en-us/library/ms682583.aspx title="MSDN: DllMain Entry Point">DllMain Entry Point MSDN article</a> for full details of how it works, and what you should and shouldn’t do in this function.</p>
+ </section>
+ <section>
+ <h3>Using A Module Definition File</h3>
+ <p>An alternative to using the “<code class=language-c>__declspec(dllexport)</code>” attribute on functions you want exported from a DLL, is to use a module definition file. This is simply a file which defines (among other things), the functions and variables you want exported from a DLL. An example for our “AddLib.dll” looks like the following:</p>
+ <pre xml:space=preserve><code class=language-moduledef>LIBRARY AddLib.dll
+EXPORTS
+  Add
+  foo
+  bar</code></pre>
+ <p>This specifies that we want function “Add” being exported from the DLL, along with variables “foo” and “bar”. Our C header file looks like the following:</p>
+ <pre xml:space=preserve><code class=language-c>/* Define calling convention in one place, for convenience. */
+#define ADDCALL __cdecl
+
+/* Make sure functions are exported with C linkage under C++ compilers. */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/* Declare our Add function using the above definitions. */
+int ADDCALL Add(int a, int b);
+
+/* Exported variables. */
+extern int foo;
+extern int bar;
+
+#ifdef __cplusplus
+} // __cplusplus defined.
+#endif</code></pre>
+ <p>You can see that we have not exported the function or the variables. However, we still need to specify the calling convention, and the variables still to be marked “<code class=language-c>extern</code>” to ensure they are linked correctly. The function body is implemented as follows:</p>
+ <pre xml:space=preserve><code class=language-c>#include "add.h"
+
+int ADDCALL Add(int a, int b)
+{
+  return (a + b);
+}
+
+/* Assign value to exported variables. */
+int foo = 7;
+int bar = 41;</code></pre>
+ <p>To use the module definition file, you just have to pass the filename during the link step:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -O3 -std=c99 -Wall -c add.c -o add.o</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o AddLib.dll add.o AddLib.def -shared -s -Wl,--subsystem,windows,--out-implib,libaddlib.a</kbd></samp></pre>
+ <p>One thing to be aware of, is that the header file above does not declare the functions “<code class=language-c>__declspec(dllimport)</code>” when they are being imported. Whilst this does still work, it results in a slight overhead when calling these functions, as the compiler is not able to make an optimisation that it would otherwise be able to make if it knew the function was coming from a DLL. You could add a conditionally defined “<code class=language-c>__declspec(dllimport)</code>” to the header file for the exported functions, but this adds another layer of complexity.</p>
+ </section>
+ <section>
+ <h3>Exporting Undecorated stdcall Functions</h3>
+ <p>If you are exporting functions from a DLL and you’re using the stdcall calling convention, you’ll find that MinGW decorates the functions exported from the DLL. For example if you have a function with the signature “<code class=language-c>int Add(int, int)</code>”, the exported name will be “<samp>Add@8</samp>”. The linker has added an ‘@’ sign after the function name, followed by the size of the function arguments in bytes. However, if you’re using Microsoft’s Visual C++ you’ll find that it additionally prefixes the name with an underscore, for example “<samp>_Add@8</samp>”. This may not seem to be a cause for concern, but consider the following scenario. You create an image handling library, and distribute it as source code only. Company A builds an application using your image library, and builds them using MSVC. It deploys the DLL to the “system32” folder of your system, and all works fine. Company B then builds an application using your image library, and builds them using MinGW. It also deploys the DLL to the “system32” folder, overwriting the version of the DLL that Company A deployed. Company B’s application works fine, but Company A’s application is now broken, because the MSVC and MinGW DLLs have differently named exports which are incompatible with each other. The solution is to export the functions without decorations.</p>
+ <p>To export functions without decorations, it’s simply necessary to pass “<kbd>--kill-at</kbd>” to the linker. You must also create an import library when modifying the names exported by a DLL, otherwise the link step will fail when building applications using your DLL. Unfortunately, passing “<kbd>--out-implib</kbd>” to the linker will result in an unusable import library, due to the way that the functions are exported. To create the import library, you will need to use <i>dlltool.exe</i> along with a module definition file which contains the <strong>decorated</strong> versions of all of the exported functions. If this all sounds like a real pain, the following is a much simpler (if slightly inelegant) way of doing this:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o AddLib.dll add.o -shared -s -Wl,--subsystem,windows,--output-def,AddLib.def</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o AddLib.dll add.o -shared -s -Wl,--subsystem,windows,--kill-at</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>dlltool --kill-at -d AddLib.def -D AddLib.dll -l libaddlib.a</kbd></samp></pre>
+ <p>The first step creates the DLL <em>with</em> decorated functions. Although this is not what we want, passing “<kbd>--output-def,AddLib.def</kbd>” to the linker generates a module definition file for us which contains decorated function names. The second step creates the DLL again, but this time we pass “<kbd>--kill-at</kbd>” to export the functions without decorations. Note that we can’t create the module definition file in this step, because it would contain undecorated function names. The third and final step creates the import library, based on the module definition file and the DLL name. A little more complicated, but worth it if you need consistency between compilers. In fact, the Win32 API functions are exported this way, without any decorations.</p>
+ </section>
+ <section>
+ <h3>Exporting C++ Functions &amp; Variables</h3>
+ <p>Exporting C++ functions and variables from a DLL is not particularly difficult, but there is one thing which can catch you out if you’re not aware. If you build a C++ DLL with one compiler, it probably won’t work with another compiler. In fact, C++ DLLs built with a certain version of a compiler may not be compatible with DLLs built with another version of the <em>same</em> compiler. This is because C++ is a complex language, and doesn’t have the well defined ABI which C has. For example, different compilers might have different ways of handling C++ exceptions, different ways of implementing virtual functions, or different memory layouts for <abbr title="Standard Template Libary">STL</abbr> classes. To avoid the issues which would result from this, C++ implementations are intentionally incompatible, and use different methods of name mangling for their functions.</p>
+ <p>Exporting global variables and global functions from a DLL is done the same way in C++ as it is done in C. The only difference from C, is that global variables can be instances of C++ objects, and the functions can be overloaded if needed. You can also export a C++ class, which will export all of its static and instance member functions which have implementations, whether they are public, protected, or private. The following is an example of a (very minimal) class representing a 2D point:</p>
+ <pre xml:space=preserve><code class=language-c++>#ifndef POINT_HPP
+#define POINT_HPP
+
+#ifdef POINT_EXPORTS
+  #define POINTAPI __declspec(dllexport)
+#else
+  #define POINTAPI __declspec(dllimport)
+#endif
+
+#include &lt;ostream&gt;
+
+using std::ostream;
+
+class POINTAPI Point
+{
+  public:
+    // Constructors.
+    Point();
+    Point(int x, int y);
+
+    // Getters and setters.
+    int getX() const;
+    int getY() const;
+    void setX(int x);
+    void setY(int y);
+
+    // Friend the overloaded operators, so they can access private Point data.
+    friend Point operator+(const Point&amp; lhs, const Point&amp; rhs);
+    friend ostream&amp; operator&lt;&lt;(ostream&amp; os, const Point&amp; pt);
+
+  private:
+    int x, y;
+};
+
+// Overloaded operators.
+POINTAPI Point operator+(const Point&amp; lhs, const Point&amp; rhs);
+POINTAPI ostream&amp; operator&lt;&lt;(ostream&amp; os, const Point&amp; pt);
+
+extern POINTAPI Point foo;
+extern POINTAPI Point bar;
+
+#endif</code></pre>
+ <p>The point class has been exported, which means that the two constructors, the getters, and the setters are exported. Additionally, the global function to add two points together, the global function to write the point to a stream, and two instances of points have been exported from the DLL. The following is the implementation of these functions:</p>
+ <pre xml:space=preserve><code class=language-c++>#include "point.hpp"
+
+Point::Point()
+  : x(0), y(0)
+{ }
+
+Point::Point(int x, int y)
+  : x(x), y(y)
+{ }
+
+int Point::getX() const { return this-&gt;x; }
+
+int Point::getY() const { return this-&gt;y; }
+
+void Point::setX(int x) { this-&gt;x = x; }
+
+void Point::setY(int y) { this-&gt;y = y; }
+
+Point operator+(const Point&amp; lhs, const Point&amp; rhs)
+{
+  return Point(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+
+ostream&amp; operator&lt;&lt;(ostream&amp; os, const Point&amp; pt)
+{
+  return os &lt;&lt; "(" &lt;&lt; pt.x &lt;&lt; ", " &lt;&lt; pt.y &lt;&lt; ")";
+}
+
+Point foo(9, 6);
+Point bar(3, 19);</code></pre>
+ <p>Typically such simple functions would be declared inline, but we haven’t done so here because it would defeat the purpose of housing the functions in a DLL. Building the DLL is much the same as building a C DLL, except that we are using the C++ compiler in this case:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>g++ -c -o point.o point.cpp -D POINT_EXPORTS</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>g++ -o point.dll point.o -s -shared -Wl,--subsystem,windows,--out-implib,libpoint.a</kbd>
+Creating library file: libpoint.a</samp></pre>
+ <p>Creating the import library is optional, as MinGW can alternatively use the DLL in the link step instead of the import library. If you perform an “<kbd>objdump -p</kbd>” on the DLL, you will notice that the functions have names such as “_ZN5Point4setXEi” and “_ZlsRSoRK5Point”. If it isn’t clear what these mangled functions refer to, you can use the “<i>c++filt</i>” tool to unmangle them. If you pass a function name on the command line, it will unmangle the name, and if you pass nothing on the command line, it will wait for names to be written to the standard input:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>c++filt -n _ZlsRSoRK5Point</kbd>
+operator&lt;&lt;(std::basic_ostream&lt;char, std::char_traits&lt;char&gt; &gt;&amp;, Point const&amp;)
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>c++filt -n</kbd>
+<kbd>_ZN5Point4setXEi</kbd>
+Point::setX(int)
+<kbd>_ZN5Point4setYEi</kbd>
+Point::setY(int)
+<kbd>_ZN5PointC1Eii</kbd>
+Point::Point(int, int)
+<kbd>_ZN5PointC1Ev</kbd>
+Point::Point()
+<kbd>_ZN5PointC2Eii</kbd>
+Point::Point(int, int)
+<kbd>_ZN5PointC2Ev</kbd>
+Point::Point()
+<kbd>_ZNK5Point4getXEv</kbd>
+Point::getX() const
+<kbd>_ZNK5Point4getYEv</kbd>
+Point::getY() const
+<kbd>_ZlsRSoRK5Point</kbd>
+operator&lt;&lt;(std::basic_ostream&lt;char, std::char_traits&lt;char&gt; &gt;&amp;, Point const&amp;)
+<kbd>_ZplRK5PointS1_</kbd>
+operator+(Point const&amp;, Point const&amp;)</samp></pre>
+ <p>Now that the DLL is created, you can write an application which makes use of the DLL. The following example makes use of all of the exported functions, and makes use of the overloaded addition operator along with the stream operator to add two points, and write them to the screen:</p>
+ <pre xml:space=preserve><code class=language-c++>#include &lt;iostream&gt;
+#include "point.hpp"
+
+using namespace std;
+
+int main(int argc, char** argv)
+{
+  Point a;
+  Point b(2, 7);
+  Point c;
+  
+  c.setX(85);
+  c.setY(24);
+  
+  cout &lt;&lt; "a = " &lt;&lt; a &lt;&lt; endl;
+  cout &lt;&lt; "b = " &lt;&lt; b &lt;&lt; endl;
+  cout &lt;&lt; "c = (" &lt;&lt; c.getX() &lt;&lt; ", " &lt;&lt; c.getY() &lt;&lt; ")\n";
+
+  cout &lt;&lt; "foo + bar = " &lt;&lt; foo &lt;&lt; " + " &lt;&lt; bar &lt;&lt; " = " &lt;&lt; (foo + bar) &lt;&lt; endl;
+
+  return 0;
+}</code></pre>
+ <p>The application can then be compiled, linked, and executed:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>g++ -c -o pointtest.o pointtest.cpp</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>g++ -o pointtest.exe -s pointtest.o -L. -lpoint</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>pointtest.exe</kbd>
+a = (0, 0)
+b = (2, 7)
+c = (85, 24)
+foo + bar = (9, 6) + (3, 19) = (12, 25)</samp></pre>
+ <p>In this case we have exported all of the members from a class, but you don’t have to export them all if you don’t want to. Instead, you can mark individual member functions as being exported. Again, it doesn’t matter whether they are static functions or instance member functions, and it doesn’t matter whether they are public, protected, or private. The only thing you cannot export is a pure virtual function, which by definition has no implementation, so there is nothing to export. Regular virtual functions can be exported, but it’s only necessary to export them if you need to call them for stack based variables which are not accessed through a pointer or reference—for variables which are accessed via a pointer or reference, the functions are instead looked up in the object’s vtable, so a DLL import is not used.</p>
+ <p>When deploying C++ DLLs, you need to be very careful to avoid breaking other applications by putting an incompatible DLL in another application’s path. It’s best to either place the DLL in the same directory as the application you are deploying, or if you need to put the DLL in a shared folder, give the DLL a name which is unique to the compiler and version. An example would be “point-mingw-4.5.2.dll", or “point-msvc-2010.dll”.</p>
+ </section>
+ <section>
+ <h3>Creating JNI DLLs</h3>
+ <p>Creating MinGW DLLs for use with the Java Native Interface is quite easy, except for one tiny gotcha. The JNI calling convention on Win32 is stdcall, and the <abbr title="Java Virtual Machine">JVM</abbr> expects the exported functions to either have undecorated names, or have names decorated in the format “<i>_[function name]@[size of arguments]</i>”. MinGW does not prefix the names with an underscore, so trying to call MinGW DLLs from Java might result in a stack trace like the following:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>java Hello</kbd>
+Exception in thread "main" java.lang.UnsatisfiedLinkError: Hello.add(II)I
+        at Hello.add(Native Method)
+        at Hello.main(Hello.java:5)</samp></pre>
+ <p>The solution is to ensure that the functions are exported with undecorated names. As we only require a DLL to be created in this case (no import library is needed), you can simply pass “<kbd>--kill-at</kbd>” to the linker and you’re done. Here is a quick example of using JNI with MinGW. Firstly, create the Java file with a native function declaration:</p>
+ <pre xml:space=preserve><code class=language-java>public class Hello
+{
+  public static void main(String[] args)
+  {
+    System.out.println("8 + 5 = " + Hello.add(8, 5));
+  }
+  
+  static
+  {
+    System.loadLibrary("Hello");
+  }
+  
+  public static native int add(int a, int b);
+}</code></pre>
+ <p>Remember to call “<code class=language-c>System.loadLibrary()</code>” for the DLL, as I have done in the static constructor above. You can then compile the Java source code and create the C / C++ header file:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>javac Hello.java</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>javah Hello</kbd></samp></pre>
+ <p>The second command will create a C / C++ header file which looks like the following:</p>
+ <pre xml:space=preserve><code class=language-c>/* DO NOT EDIT THIS FILE - it is machine generated */
+#include &lt;jni.h&gt;
+/* Header for class Hello */
+
+#ifndef _Included_Hello
+#define _Included_Hello
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*
+ * Class:     Hello
+ * Method:    add
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_Hello_add
+  (JNIEnv *, jclass, jint, jint);
+
+#ifdef __cplusplus
+}
+#endif
+#endif</code></pre>
+ <p>Next, create a C file which contains the body of this function:</p>
+ <pre xml:space=preserve><code class=language-c>#include "Hello.h"
+
+jint JNICALL Java_Hello_add(JNIEnv* env, jclass clazz, jint a, jint b)
+{
+  return (a + b);
+}</code></pre>
+ <p>Now you can compile the DLL, remembering to pass “<kbd>--kill-at</kbd>” to the linker, and run the application:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -c -o Hello.o Hello.c -I "c:\Program Files (x86)\Java\jdk\include\win32" ^
+                                   -I "c:\Program Files (x86)\Java\jdk\include"</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o Hello.dll -s -shared Hello.o -Wl,--subsystem,windows,--kill-at</kbd>
+
+z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>java Hello</kbd>
+8 + 5 = 13</samp></pre>
+ <p>Notice that I have passed two include paths to the compiler, as they contain headers which contain data types and function prototypes needed by JNI. You might need to adjust the paths to match those of your Java installation. Also be aware that like any Windows process, a 32&nbsp;bit JVM can only load 32&nbsp;bit DLLs, and a 64&nbsp;bit JVM can only load 64&nbsp;bit DLLs. If you try to load a 32&nbsp;bit DLL in a 64&nbsp;bit JVM, you’ll get an error such as “<samp>Can't load IA 32-bit .dll on a AMD 64-bit platform</samp>”.</p>
+ </section>
+ <section>
+ <h3>P/Invoking MinGW DLLs in .NET</h3>
+ <p>Calling functions from a MinGW DLL from .NET code is even easier than working with JNI. This is because in JNI the DLL has to be designed to work with JNI, and must follow certain rules. With P/Invoke, it doesn’t really matter how the DLL has been designed, as you can adjust the DLL import attribute in your .NET code to match the DLL.</p>
+ <p>To import a function from a DLL, you must declare the function as “<code class=language-c>extern</code>”, and mark it with the “<code class=language-c>DllImport</code>” attribute. Here is an example of importing a cdecl function:</p>
+ <pre xml:space=preserve><code class=language-csharp>using System;
+using System.Runtime.InteropServices;
+
+public class Hello
+{
+  public static void Main(string[] args)
+  {
+    Console.WriteLine("8 + 5 = {0}", Hello.Add(8, 5));
+  }
+  
+  [DllImport("AddLib.dll", CallingConvention = CallingConvention.Cdecl)]
+  extern public static int Add(int a, int b);
+}</code></pre>
+ <p>You can also import stdcall functions, by changing the DLL import attribute to specify “<code class=language-csharp>CallingConvention = CallingConvention.StdCall</code>”. The .NET <abbr title="Common Language Runtime">CLR</abbr> will attempt to import the function without decorations, and if you have not specified “<code class=language-csharp>ExactSpelling = true</code>”, it will also attempt to import the function decorated in the MSVC way, i.e. “<code class=language-c>_Add@8</code>”. If you have a stdcall function decorated in the MinGW way, i.e. “<code class=language-c>Add@8</code>”, it won’t work. However, you can still import the function by explicitly specifying the entry point:</p>
+ <pre xml:space=preserve><code class=language-csharp>using System;
+using System.Runtime.InteropServices;
+
+public class Hello
+{
+  public static void Main(string[] args)
+  {
+    Console.WriteLine("8 + 5 = {0}", Hello.Add(8, 5));
+  }
+  
+  [DllImport("AddLib.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Add@8", ExactSpelling = true)]
+  extern public static int Add(int a, int b);
+}</code></pre>
+ <p>Remember that 64&nbsp;bit Windows processes can only load 64&nbsp;bit DLLs, and 32&nbsp;bit Windows processes can only load 32&nbsp;bit DLLs. Therefore if your DLL is a 32&nbsp;bit DLL, and your end user is running the .NET application on a 64&nbsp;bit version of Windows, your application will fail with an error similar to the following:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>Hello.exe</kbd>
+
+Unhandled Exception: System.BadImageFormatException: An attempt was made to load a program with an incorrect format.
+(Exception from HRESULT: 0x8007000B)
+   at Hello.Add(Int32 a, Int32 b)
+   at Hello.Main(String[] args)</samp></pre>
+ <p>To work around this, you can specify the platform the application will run on by passing the “platform” linker option:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>csc /platform:x86 /out:Hello.exe Hello.cs</kbd>
+Microsoft (R) Visual C# 2005 Compiler version 8.00.50727.4927
+for Microsoft (R) Windows (R) 2005 Framework version 2.0.50727
+Copyright (C) Microsoft Corporation 2001-2005. All rights reserved.</samp></pre>
+ <p>The platform target option can also be set in Visual Studio, in the “build” section of the project’s properties. By setting this option, your application will run correctly on both 32&nbsp;bit versions of Windows and 64&nbsp;bit versions. The same can be done for 64&nbsp;bit DLLs, by specifying the platform as “x64”, but of course your application won’t run on 32&nbsp;bit version of Windows in that case.</p>
+ </section>
+ <section>
+ <h3>Using MinGW DLLs with VB6 and VBA</h3>
+ <p>It’s fairly straightforward to use MinGW DLLs with Visual Basic 6 and <abbr title="Visual Basic for Applications">VBA</abbr>. The only requirement is that the calling convention for exported functions is stdcall (cdecl and other calling conventions are not supported), and the functions are exported without decorations by using the “<kbd>--kill-at</kbd>” command line option:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o AddLib.dll add.o -shared -s -Wl,--subsystem,windows,--kill-at</kbd></samp></pre>
+ <p>The function needs to be declared in your code before you are able to call it:</p>
+ <pre xml:space=preserve><code lang=vb>Private Declare Function MyAddFunction Lib "AddLib.dll" Alias "Add" (ByVal a As Long, ByVal b As Long) As Long
+
+Sub Test()
+    Call MsgBox(MyAddFunction(4, 5))
+End Sub</code></pre>
+ <p>I have used the “<code lang=vb>Alias</code>” keyword here to import the function with a different name. I have done this just to demonstrate its use, and normally you would just leave this keyword out completely and use the name exported from the DLL. It does come in useful either if you would end up with name clashes in your code, or if you are calling a Windows API function which comes in Unicode and ANSI variants, and you don’t want to suffix the ‘A’ on every single function call (note that Visual Basic only supports ANSI strings, not Unicode).</p>
+ <p>If you are using VBA, you should additionally mark your function with the “<code lang=vb>PtrSafe</code>” keyword. This will ensure you are able to run the code on 64 bit versions of Microsoft Office. However, this is not backwards compatible with versions before Office 2010, so you will need to do it conditionally:</p>
+ <pre xml:space=preserve><code lang=vb>#If VBA7 Then
+    Private Declare PtrSafe Function MyAddFunction Lib "AddLib.dll" Alias "Add" (ByVal a As Long, ByVal b As Long) As Long
+#Else
+    Private Declare Function MyAddFunction Lib "AddLib.dll" Alias "Add" (ByVal a As Long, ByVal b As Long) As Long
+#End If
+
+Sub Test()
+    Call MsgBox(MyAddFunction(4, 5))
+End Sub</code></pre>
+ <p>It’s a bit of a pain, but well worth doing to ensure your code works across many versions of Office on different architectures.</p>
+ </section>
+ <section>
+ <h3>Setting The DLL Base Address</h3>
+ <p>The base address of a DLL is the preferred location within a process’s virtual address space where the DLL should be loaded. If two DLLs which are loaded by a process have the same base address, or if the regions of memory that the DLLs should be mapped into overlap, it is not possible load both DLLs at their preferred load address. Therefore, one of the DLLs needs to be relocated and loaded at a different memory address. This involves the loader patching hard coded memory addresses within the application’s address space, which can involve significant overhead. By default, the MinGW linker chooses a base address based on a hash of the DLL name, which seems to work very well. However, if you do experience issues with DLLs being unable to be loaded at their preferred address, you can specify the base address of a DLL manually with the “<kbd>--image-base</kbd>” linker option. For example, to set the base address to “0x10000000” you pass this option as follows:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>gcc -o AddLib.dll obj/add.o -shared -s ^
+                                   -Wl,--subsystem,windows,--out-implib,libaddlib.a,--image-base,0x10000000</kbd></samp></pre>
+ <p>You can verify the base address using “<kbd>objdump -p AddLib.dll</kbd>”, which should include the <samp>“ImageBase”</samp> in an output similar to the following:</p>
+ <pre xml:space=preserve><samp>AddLib.dll:     file format pei-i386
+
+Characteristics 0x230e
+        executable
+        line numbers stripped
+        symbols stripped
+        32 bit words
+        debugging information removed
+        DLL
+
+Time/Date               Tue Apr 19 16:32:45 2011
+Magic                   010b    (PE32)
+MajorLinkerVersion      2
+MinorLinkerVersion      21
+SizeOfCode              00000c00
+SizeOfInitializedData   00002200
+SizeOfUninitializedData 00000200
+AddressOfEntryPoint     000010c0
+BaseOfCode              00001000
+BaseOfData              00002000
+ImageBase               10000000
+SectionAlignment        00001000
+FileAlignment           00000200
+MajorOSystemVersion     4
+MinorOSystemVersion     0
+MajorImageVersion       1
+MinorImageVersion       0
+MajorSubsystemVersion   4
+MinorSubsystemVersion   0
+Win32Version            00000000
+SizeOfImage             0000c000
+SizeOfHeaders           00000400
+CheckSum                0000383c
+Subsystem               00000002        (Windows GUI)
+DllCharacteristics      00000000
+SizeOfStackReserve      00200000
+SizeOfStackCommit       00001000
+SizeOfHeapReserve       00100000
+SizeOfHeapCommit        00001000
+LoaderFlags             00000000
+NumberOfRvaAndSizes     00000010</samp></pre>
+ </section>
+ <section>
+ <h3>Loading / Unloading DLLs At Runtime</h3>
+ <p>Loading a DLL at runtime is useful when you have a plugin architecture where developers can extend the functionality of your application. You would likely provide some header files which define the data structures the application uses, some prototypes for supporting functions, and some prototypes for function(s) which the plugin must implement. To take a very simple example, you might require a developer to provide a DLL with a single exported function, with a signature “<code class=language-c>void __cdecl DoPlugin();</code>”. Your application then just needs to call the “DoPlugin” function exported by that DLL, in order to expose its functionality.</p>
+ <p>Of course, you don’t know the name of this DLL in advance, so you need to load the DLL at runtime. This is done using the “<code class=language-c>LoadLibrary</code>” Windows API function, located in “kernel32.dll”. Calling <code class=language-c>LoadLibrary</code> loads the DLL into the process’s address space (if it is not already present), and increments the usage count for this DLL. If the DLL is successfully loaded, the function returns an <code class=language-c>HMODULE</code> whose value is the address in memory where the DLL was loaded (ideally the DLL base address). Once the DLL is loaded into memory, you can call the “<code class=language-c>GetProcAddress</code>” function to get the address of the function you’d like to call. The following example attempts to load the “AddLib.dll” library from my previous article, and call the “Add” function which the DLL exports:</p>
+ <pre xml:space=preserve><code class=language-c>#include &lt;windows.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+/* Function signature of the function exported from the DLL. */
+typedef int (__cdecl *AddFunc)(int a, int b);
+
+int main(int argc, char** argv)
+{
+  HMODULE hAddLib;
+  AddFunc Add;
+
+  /* Attempt to load the DLL into the process's address space. */
+  if (! (hAddLib = LoadLibrary(TEXT("AddLib.dll"))))
+  {
+    fprintf(stderr, "Error loading \"AddLib.dll\".\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Print the address that the DLL was loaded at. */
+  printf("Library is loaded at address %p.\n", hAddLib);
+
+  /* Attempt to get the memory address of the "Add()" function. */
+  if (! (Add = (AddFunc) GetProcAddress(hAddLib, "Add")))
+  {
+    fprintf(stderr, "Error locating \"Add\" function.\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Print the address of the "Add()" function. */
+  printf("Add function is located at address %p.\n", Add);
+
+  /* Call the function and display the results. */
+  printf("7 + 41 = %d\n", Add(7, 41));
+
+  /* Unload the DLL. */
+  FreeLibrary(hAddLib);
+
+  return EXIT_SUCCESS;
+}</code></pre>
+ <p>There are a few things here which should be noted. Firstly, the “<code class=language-c>LoadLibrary</code>” and “<code class=language-c>GetProcAddress</code>” functions return a NULL pointer on failure, and you should always check for a failure in either of these function calls. Secondly, the “<code class=language-c>LoadLibrary</code>” function has both ANSI and Unicode versions, whereas “<code class=language-c>GetProcAddress</code>” always takes an ANSI string for the function name—don’t let this catch you out in Unicode builds. Thirdly, we are using a C “<code class=language-c>typedef</code>” to declare a function pointer type matching the signature of the function exported from the DLL. This signature should match exactly, including the calling convention, otherwise you can corrupt the stack when calling the function. Finally, the “<code class=language-c>FreeLibrary</code>” function should be called when you are finished using functions exported from the DLL. The “<code class=language-c>FreeLibrary</code>” function decrements the usage count of the DLL, and additionally unmaps the DLL from the process’s address space if the usage count reaches zero.</p>
+ <p>Running the application should result in an output such as the following:</p>
+ <pre xml:space=preserve><samp>z:\Users\mpayne\Documents\MinGWDLL&gt;<kbd>DynamicLoad.exe</kbd>
+Library is loaded at address 6DA40000.
+Add function is located at address 6DA41280.
+7 + 41 = 48</samp></pre>
+ <p>Of course in a real example you would not hard code the name of the DLL into the application. Instead, you would probably expose a user interface within the application which allows managing of plugins—exactly how this is done is left as an exercise for the reader.</p>
+ </section>
+ <aside class=related>
+ <h3>Related Pages</h3>
+ <ul class=related>
+ <li><a href=https://www.transmissionzero.co.uk/computing/building-dlls-with-mingw/>Building Windows DLLs with MinGW</a><br>How to build Windows DLLs which export C functions using the MinGW compiler.</li>
+ <li><a href=https://www.transmissionzero.co.uk/computing/win32-apps-with-mingw/>Building Win32 GUI Applications with MinGW</a><br>How to build a fully featured Windows GUI application using the MinGW compiler.</li>
+ <li><a href=https://www.transmissionzero.co.uk/computing/using-glut-with-mingw/>Using freeglut or GLUT with MinGW</a><br>How to build OpenGL applications for Windows using the freeglut or GLUT for Win32 libraries and the MinGW compiler.</li>
+ <li><a href=https://www.transmissionzero.co.uk/computing/>All other computing articles on this site</a></li>
+ </ul>
+ </aside>
+ <aside class=social>
+ <ul>
+ <li></li>
+ <li></li>
+ <li><a href=https://www.transmissionzero.co.uk/newsfeed.atom type=application/atom+xml title="Transmission Zero’s News Feed"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAAlwSFlzAAAN1wAADdcBQiibeAAAAAd0SU1FB9sMAw0TJthSU58AAARZSURBVEjHrZRbbFRFGMf/38yc7p5utxeXXigI9gLEhmJsKWKCIBDREJXogw8SqYn4phheiGCCRE1UfNInrxgTTfSJxESsBlOxD1RTSkRLA61Vygalrcu22+1ezsx8Ppz2bLdFo43zcC4z5/z+M//vQpgd/Z3VW92KyuPhsrJWIZULAs2tUXBZOKgwb5mN1plsavrCzI3kofaPx3uC387vX3GkrrnpFZk1lEtNQxBDSAJJglAEEgjeb/os/GcIAQgXqaTm+ODIkbYT8dfo3BOxHctbWr7hRBpWexCSlgQnQSDy7xAKiQnCtYHBbSoSW/aSzBvkZ+GlbbshwmHYyWswY5dB+an/BCdBMJ6HaNSFW1H1sgpHytq8qXSw8+gDz0JW1c8ayzDjI/CGz0APfgmevPIv4BbWY7CZgVtetlGREi7N87w4mARZ3QRZ3QRsfhJ66DS83reB6WuLbSEEcKsZxmMIKUsFGEWe29Q4WOdvkjACau0uuHs/hdPeCZKyCG41F8Gttv5vV452cEh7iwIqIpUoaeiAs24nVOMWQIWL9OzVXpjuFwCduSnceoy0kaDRFzs4zPofs0VGY3A27Ydq2QMIFYjw+ADyXzwHm55eBDceIyuUL+CSDoDRve+AlAObjMOMdMPGvwfZvC9avRbOrtdB0eWFk8T7kDl5ACani+BWM3KOAwEs2HlFPWT9BjgtuxF+8A24+05CtT4KUg6QGIL+/Cnw2E+BgFi5EWrT04vgbNhfB1Bky8KWQKUxOPccQskjH0BE64BcEvlTB2ETI8E3oU2doNjaIrjVvoA8eO+KY6GSeWk6FYcdGwDYQJQvB0gGQrR6K8zwadhUEma0D6rlIZBUABFEtBaZ/lMB3BoGhxXkwe0rjrmhwimQugoevwj7y9ewQ12gyDJQVaMvEoqCalrhXeyCnpwAZAjq1jv9ncZWIffzt9A3xmHnTlDqLLZofoUi/QdM91GY/vcKnte1Qm54DFZbZHo+hE3fCNbC7XsCOBsAPBeDBXDZsBXqjr0QNbcDBOi+EzCXuoo8ZxGBTqeRvfBVQWD9jgA+F4NCFs3CVVsnnPuPQ971DNTD7wOx9bAeI/fdW2Av41sVLodasx1WM7ID3YGArKyFWrbaF7Hzs2ieLbL5vqL2QLfthNUMPTkB71IBVrJuG9gwcpfPAdYG86q2GWw5mBIgFDUunrxa3BISo0GF5ofPFnZb0+hXbz4Pk/qzMH9LPazFbB0wlPVshoTjElmQINgf3gSUC4o1Qw+fQfb8yaCI9EQcNjPlH06FgoB6138DOaFZBceHkwBbO0MXD6zpaWhduUVS9m+74sIKncvz+QGds4UNgy1QWleBVH7ijJhJJg9PJTSD5P8GV2EHslJydnLqsHz3x5nRx1fZnCqt3OmUhIg9b8lwkECkrgKqNsRjv44+3/bR758Fnad/X83dbmXFq+FI2WYIhLCUYZHLTqfOziRSh9s/ud4LAH8B+fK5QyBz2oYAAAAASUVORK5CYII=" alt=[Syndication]></a></li>
+ </ul>
+ </aside>
+ <footer class=copyright><p><small>©2001–2018 Transmission Zero. All rights reserved. <a href=https://www.transmissionzero.co.uk/privacy/>Privacy &amp; Cookies</a>.</small></p></footer>
+ </article>
+ <div class=_tc_offscreeneded id=_tcx-jcdnx1gjwp></div>
+<grammarly-desktop-integration data-grammarly-shadow-root=true><template shadowmode=open><style xmlns=http://www.w3.org/1999/xhtml class=sf-hidden>div{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}div:before{content:attr(data-content)}</style><div xmlns=http://www.w3.org/1999/xhtml aria-label=grammarly-integration tabindex=-1 data-content='{"mode":"full","isActive":true,"isUserDisabled":false}'></div></template></grammarly-desktop-integration><script data-template-shadow-root>(()=>{document.currentScript.remove();processNode(document);function processNode(node){node.querySelectorAll("template[shadowmode]").forEach(element=>{let shadowRoot = element.parentElement.shadowRoot;if (!shadowRoot) {try {shadowRoot=element.parentElement.attachShadow({mode:element.getAttribute("shadowmode"),delegatesFocus:Boolean(element.getAttribute("delegatesfocus"))});shadowRoot.innerHTML=element.innerHTML;element.remove()} catch (error) {} if (shadowRoot) {processNode(shadowRoot)}}})}})()</script><script>document.currentScript.remove();!function(){"use strict";(t=>{const n="singlefile-infobar",e="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAgMAAADXB5lNAAABhmlDQ1BJQ0MgcHJvZmlsZQAAKJF9kj1Iw0AYht+mSkUrDnYQcchQnSyIijqWKhbBQmkrtOpgcukfNGlIUlwcBdeCgz+LVQcXZ10dXAVB8AfEydFJ0UVK/C4ptIjx4LiH9+59+e67A4RGhalm1wSgapaRisfEbG5VDLyiDwEAvZiVmKkn0osZeI6ve/j4ehfhWd7n/hz9St5kgE8kjjLdsIg3iGc2LZ3zPnGIlSSF+Jx43KACiR+5Lrv8xrnosMAzQ0YmNU8cIhaLHSx3MCsZKvE0cVhRNcoXsi4rnLc4q5Uaa9XJbxjMaytprtMcQRxLSCAJETJqKKMCCxFaNVJMpGg/5uEfdvxJcsnkKoORYwFVqJAcP/gb/O6tWZiadJOCMaD7xbY/RoHALtCs2/b3sW03TwD/M3Cltf3VBjD3SXq9rYWPgIFt4OK6rcl7wOUOMPSkS4bkSH6aQqEAvJ/RM+WAwVv6EGtu31r7OH0AMtSr5Rvg4BAYK1L2use9ezr79u+ZVv9+AFlNcp0UUpiqAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5AsHAB8H+DhhoQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAJUExURQAAAICHi4qKioTuJAkAAAABdFJOUwBA5thmAAAAAWJLR0QCZgt8ZAAAAJJJREFUOI3t070NRCEMA2CnYAOyDyPwpHj/Va7hJ3FzV7zy3ET5JIwoAF6Jk4wzAJAkzxAYG9YRTgB+24wBgKmfrGAKTcEfAY4KRlRoIeBTgKOCERVaCPgU4Khge2GqKOBTgKOCERVaAEC/4PNcnyoSWHpjqkhwKxbcig0Q6AorXYF/+A6eIYD1lVbwG/jdA6/kA2THRAURVubcAAAAAElFTkSuQmCC",o="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAgMAAADXB5lNAAABhmlDQ1BJQ0MgcHJvZmlsZQAAKJF9kj1Iw0AYht+mSkUrDnYQcchQnSyIijqWKhbBQmkrtOpgcukfNGlIUlwcBdeCgz+LVQcXZ10dXAVB8AfEydFJ0UVK/C4ptIjx4LiH9+59+e67A4RGhalm1wSgapaRisfEbG5VDLyiDwEAvZiVmKkn0osZeI6ve/j4ehfhWd7n/hz9St5kgE8kjjLdsIg3iGc2LZ3zPnGIlSSF+Jx43KACiR+5Lrv8xrnosMAzQ0YmNU8cIhaLHSx3MCsZKvE0cVhRNcoXsi4rnLc4q5Uaa9XJbxjMaytprtMcQRxLSCAJETJqKKMCCxFaNVJMpGg/5uEfdvxJcsnkKoORYwFVqJAcP/gb/O6tWZiadJOCMaD7xbY/RoHALtCs2/b3sW03TwD/M3Cltf3VBjD3SXq9rYWPgIFt4OK6rcl7wOUOMPSkS4bkSH6aQqEAvJ/RM+WAwVv6EGtu31r7OH0AMtSr5Rvg4BAYK1L2use9ezr79u+ZVv9+AFlNcp0UUpiqAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5AsHAB8VC4EQ6QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAJUExURQAAAICHi4qKioTuJAkAAAABdFJOUwBA5thmAAAAAWJLR0QCZgt8ZAAAAJtJREFUOI3NkrsBgCAMRLFwBPdxBArcfxXFkO8rbKWAAJfHJ9faf9vuYX/749T5NmShm3bEwbe2SxeuM4+2oxDL1cDoKtVUjRy+tH78Cv2CS+wIiQNC1AEhk4AQeUTMWUJMfUJMSEJMSEY8kIx4IONroaYAimNxsXp1PA7PxwfVL8QnowwoVC0lig07wDDVUjAdbAnjwtow/z/bDW7eI4M2KruJAAAAAElFTkSuQmCC",i="SingleFile",A="single-file-ui-element",r="\n\t.infobar {\n\t\tbackground-color: #737373;\n\t\tcolor: white;\n\t\tdisplay: flex;\n\t\tposition: fixed;\n\t\ttop: 16px;\n\t\tright: 16px;\n\t\theight: auto;\n\t\twidth: auto;\n\t\tmin-height: 24px;\n\t\tmin-width: 24px;\n\t\tbackground-position: center;\n\t\tbackground-repeat: no-repeat;\n\t\tz-index: 2147483647;\n\t\tmargin: 0 0 0 16px;\n\t\tbackground-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAABhmlDQ1BJQ0MgcHJvZmlsZQAAKJF9kj1Iw0AYht+mSkUrDnYQcchQnSyIijqWKhbBQmkrtOpgcukfNGlIUlwcBdeCgz+LVQcXZ10dXAVB8AfEydFJ0UVK/C4ptIjx4LiH9+59+e67A4RGhalm1wSgapaRisfEbG5VDLyiDwEAvZiVmKkn0osZeI6ve/j4ehfhWd7n/hz9St5kgE8kjjLdsIg3iGc2LZ3zPnGIlSSF+Jx43KACiR+5Lrv8xrnosMAzQ0YmNU8cIhaLHSx3MCsZKvE0cVhRNcoXsi4rnLc4q5Uaa9XJbxjMaytprtMcQRxLSCAJETJqKKMCCxFaNVJMpGg/5uEfdvxJcsnkKoORYwFVqJAcP/gb/O6tWZiadJOCMaD7xbY/RoHALtCs2/b3sW03TwD/M3Cltf3VBjD3SXq9rYWPgIFt4OK6rcl7wOUOMPSkS4bkSH6aQqEAvJ/RM+WAwVv6EGtu31r7OH0AMtSr5Rvg4BAYK1L2use9ezr79u+ZVv9+AFlNcp0UUpiqAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5AsHADIRLMaOHwAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAPUExURQAAAIqKioyNjY2OjvDw8L2y1DEAAAABdFJOUwBA5thmAAAAAWJLR0QB/wIt3gAAAGNJREFUSMdjYCAJsLi4OBCQx6/CBQwIGIDPCBcXAkYQUsACU+AwlBVQHg6Eg5pgZBGOboIJZugDFwRwoJECJCUOhJI1wZwzqmBUwagCuipgIqTABG9h7YIKaKGAURAFEF/6AQAO4HqSoDP8bgAAAABJRU5ErkJggg==);\n\t\tborder-radius: 16px;\n\t\tuser-select: none;\n\t\t-moz-user-select: none;\n\t\topacity: .7;\n\t\tcursor: pointer;\n\t\tpadding-left: 0;\n\t\tpadding-right: 0;\n\t\tpadding-top: 0;\n\t\tpadding-bottom: 0;\n\t\tborder: 2px solid #eee;\n\t\tbackground-size: 70% 70%;\n\t\ttransition: all 250ms;\n\t\tfont-size: 13px;\n\t}\n\t.infobar:hover {\n\t\topacity: 1;\n\t}\n\t.infobar-open {\n\t\topacity: 1;\n\t\tbackground-color: #f9f9f9;\n\t\tcursor: auto;\n\t\tcolor: #2d2d2d;\n\t\tpadding-top: 2px;\n\t\tpadding-bottom: 2px;\n\t\tborder: 2px solid #878787;\n\t\tbackground-image: none;\n\t\tborder-radius: 8px;\n\t\tuser-select: initial;\n\t\t-moz-user-select: initial;\n\t}\n\t.infobar-close-button {\n\t\tdisplay: none;\n\t\topacity: .7;\n\t\tpadding-top: 4px;\n\t\tpadding-left: 8px;\n\t\tpadding-right: 8px;\n\t\tcursor: pointer;\n\t\ttransition: opacity 250ms;\n\t\theight: 16px;\n\t}\n\t.infobar-close-button:hover {\n\t\topacity: 1;\n\t}\n\t.infobar-content {\n\t\tdisplay: none;\n\t\tfont-family: Arial;\n\t\tfont-size: 14px;\n\t\tline-height: 22px;\n\t\tword-break: break-word;\n\t\twhite-space: pre-wrap;\n\t\tposition: relative;\n\t\ttop: 1px;\n\t\ttext-align: left;\n\t}\n\t.infobar-link {\n\t\tdisplay: none;\n\t\tpadding-left: 8px;\n\t\tpadding-right: 8px;\n\t\tline-height: 11px;\n\t\tcursor: pointer;\n\t\tuser-select: none;\n\t\toutline: 0;\n\t}\n\t.infobar-link-icon {\n\t\tpadding-top: 4px;\n\t\tpadding-left: 2px;\n\t\tcursor: pointer;\n\t\topacity: .7;\n\t\ttransition: opacity 250ms;\n\t\theight: 16px;\n\t}\n\t.infobar-link-icon:hover {\n\t\topacity: 1;\n\t}\n\t.infobar-open .infobar-close-button, .infobar-open .infobar-content, .infobar-open .infobar-link {\n\t\tdisplay: inline-block;\n\t}";let a=!0;const c=t.browser;async function s(){const t=document.evaluate("//comment()",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);let s=t&&t.singleNodeValue;if(s&&((p=s).nodeType==Node.COMMENT_NODE&&p.textContent.includes(i))){const t=s.textContent.split("\n"),[,,i,p,...g]=t;if(i&&p){let t;t=c&&c.runtime&&c.runtime.sendMessage?await c.runtime.sendMessage({method:"tabs.getOptions",url:i}):{displayInfobar:!0},t.displayInfobar&&await async function(t,i,c){let s=document.querySelector(n);if(!s){if(t=t.split("url: ")[1],i=i.split("saved date: ")[1],c&&c.length>1){let t=c[0].split("info: ")[1].trim();for(let n=1;n<c.length-1;n++)t+="\n"+c[n].trim();c=t.trim()}else c=i;s=d(n,document.body),s.className=A;const p=await async function(t){if(t.attachShadow)return t.attachShadow({mode:"open"});{a=!1;const n=d("iframe",t);return n.style.setProperty("background-color","transparent","important"),n.style.setProperty("position","fixed","important"),n.style.setProperty("top",0,"important"),n.style.setProperty("right",0,"important"),n.style.setProperty("width","44px","important"),n.style.setProperty("height","48px","important"),n.style.setProperty("z-index",2147483647,"important"),new Promise((t=>{n.contentDocument.body.style.setProperty("margin",0),n.onload=()=>t(n.contentDocument.body)}))}}(s),g=document.createElement("style");g.textContent=r,p.appendChild(g);const u=document.createElement("div");u.classList.add("infobar"),p.appendChild(u);const h=document.createElement("img");h.classList.add("infobar-close-button"),u.appendChild(h),h.src=o,h.onclick=t=>{0===t.button&&s.remove()};const m=document.createElement("span");u.appendChild(m),m.classList.add("infobar-content"),m.textContent=c;const b=document.createElement("a");b.classList.add("infobar-link"),u.appendChild(b),b.target="_blank",b.rel="noopener noreferrer",b.title="Open source URL: "+t,b.href=t;const f=document.createElement("img");f.classList.add("infobar-link-icon"),b.appendChild(f),f.src=e,l(u),document.addEventListener("click",(t=>{if(0===t.button){let n=t.target;for(;n&&n!=s;)n=n.parentElement;n!=s&&l(u)}}))}}(i,p,g)}}var p}function l(t){if(t.classList.remove("infobar-open"),t.onclick=e=>{if(0===e.button)return function(t){a||document.querySelector(n).childNodes[0].contentWindow.getSelection().removeAllRanges();if(t.classList.add("infobar-open"),t.onclick=null,t.onmouseout=null,!a){const e=document.querySelector(n).childNodes[0];e.style.setProperty("width","100vw","important"),e.style.setProperty("height","100vh","important"),e.style.setProperty("width",t.getBoundingClientRect().width+33+"px","important"),e.style.setProperty("height",t.getBoundingClientRect().height+21+"px","important")}}(t),!1},!a){const t=document.querySelector(n).childNodes[0];t.style.setProperty("width","44px","important"),t.style.setProperty("height","48px","important")}}function d(t,n){const e=document.createElement(t);return n.appendChild(e),Array.from(getComputedStyle(e)).forEach((t=>e.style.setProperty(t,"initial","important"))),e}t.window==t.top&&("loading"==document.readyState?document.addEventListener("DOMContentLoaded",s,!1):s())})("object"==typeof globalThis?globalThis:window)}();</script>

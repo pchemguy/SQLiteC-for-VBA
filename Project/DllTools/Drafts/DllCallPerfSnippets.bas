@@ -40,11 +40,10 @@ Private Sub LoadDlls()
     #End If
     
     DllManager.Free
-    DllManager.ForgetSingleton
     Dim DllName As String
     DllName = "MemToolsLib.dll"
     Dim DllMan As DllManager
-    Set DllMan = DllManager.Create(DllPath, DllName, False)
+    Set DllMan = DllManager.Create(DllPath, DllName)
     Set this.DllMan = DllMan
 End Sub
 

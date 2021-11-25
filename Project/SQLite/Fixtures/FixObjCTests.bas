@@ -43,6 +43,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 

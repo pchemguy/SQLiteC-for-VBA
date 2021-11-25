@@ -44,35 +44,21 @@ Private Const LoadingDllErr As Long = 48
 Private Type TDllManager
     DefaultPath As String
     Dlls As Scripting.Dictionary '''' Dll file name to handle map
-    Singleton As DllManager      '''' Should only be used by the default instance
 End Type
 Private this As TDllManager
 
 
-'''' If GetShared is true, return singleton instance, otherwise return an independent instance
 Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
-                       Optional ByVal DllNames As Variant = Empty, _
-                       Optional ByVal GetShared As Boolean = True) As DllManager
+                       Optional ByVal DllNames As Variant = Empty) As DllManager
     Dim Instance As DllManager
-    If GetShared Then
-        If Not this.Singleton Is Nothing Then
-            Set Instance = this.Singleton
-        Else
-            Set Instance = New DllManager
-            Set this.Singleton = Instance
-        End If
-    Else
-        Set Instance = New DllManager
-    End If
-    Instance.Init DefaultPath, DllNames, GetShared
+    Set Instance = New DllManager
+    Instance.Init DefaultPath, DllNames
     Set Create = Instance
 End Function
 
 
-'@Ignore ParameterNotUsed: added to match signtaure with factory
 Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
-                Optional ByVal DllNames As Variant = Empty, _
-                Optional ByVal GetShared As Boolean = True)
+                Optional ByVal DllNames As Variant = Empty)
     If this.Dlls Is Nothing Then
         Set this.Dlls = New Scripting.Dictionary
         this.Dlls.CompareMode = TextCompare
@@ -96,18 +82,6 @@ End Sub
 
 Public Property Get Dlls() As Scripting.Dictionary
     Set Dlls = this.Dlls
-End Property
-
-
-'''' @ClassMethodStrict
-'''' This method should only be used on the default instance
-''''
-Public Property Get Singleton() As DllManager
-    If Me Is DllManager Then
-        Set Singleton = this.Singleton
-    Else
-        Set Singleton = DllManager.Singleton
-    End If
 End Property
 
 
@@ -144,18 +118,6 @@ Public Property Let DefaultPath(ByVal Value As String)
         Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
     End If
 End Property
-
-
-'''' @ClassMethodStrict
-'''' This method should only be used on the default instance
-''''
-Public Sub ForgetSingleton()
-    If Me Is DllManager Then
-        Set this.Singleton = Nothing
-    Else
-        DllManager.ForgetSingleton
-    End If
-End Sub
 
 
 '''' https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectorya#remarks

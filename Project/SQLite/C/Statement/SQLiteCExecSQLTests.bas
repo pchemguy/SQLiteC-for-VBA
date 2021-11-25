@@ -1,4 +1,4 @@
-Attribute VB_Name = "SQLiteCExecSQLTesting"
+Attribute VB_Name = "SQLiteCExecSQLTests"
 '@Folder "SQLite.C.Statement"
 '@TestModule
 '@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
@@ -42,6 +42,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 

@@ -77,6 +77,7 @@ Private Sub CleanUp()
     Set this.dbc = Nothing
     Set this.dbm = Nothing
     Set this.dbr = Nothing
+    FixObjC.CleanUp
 End Sub
 
 

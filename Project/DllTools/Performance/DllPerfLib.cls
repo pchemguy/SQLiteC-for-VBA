@@ -66,8 +66,7 @@ Friend Sub Init(Optional ByVal DummyForCount As Long = 10000000, _
         .GaugeForCount = GaugeForCount
         .PrintToImmediate = True
     End With
-    Set this.DllMan = DllManager.Singleton
-    If DllManager.Singleton Is Nothing Then LoadDlls
+    LoadDlls
 
     this.Src = "ABCDEFGHIJKLMNOPGRSTUVWXYZ"
     this.Dst = String(255, "_")
@@ -87,11 +86,10 @@ Private Sub LoadDlls()
     DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & ARCH
     Dim DllName As String
     DllName = "MemToolsLib.dll"
-    Set this.DllMan = DllManager.Create(DllPath, DllName, True)
+    Set this.DllMan = DllManager.Create(DllPath, DllName)
 End Sub
 
 Private Sub UnLoadDlls()
-    this.DllMan.ForgetSingleton
     this.DllMan.FreeMultiple
     Set this.DllMan = Nothing
 End Sub

@@ -59,7 +59,7 @@ Private Sub ztcExecuteNonQuery_VerifiesInsertPlainITRB()
 Arrange:
     Dim dbq As ILiteADO
     Set dbq = FixObjAdo.GetDbMemITRB
-    Assert.IsNotNothing dbq, "FixObjAdo.GetDBMMemITRB returned Nothing."
+    Assert.IsFalse dbq Is Nothing, "FixObjAdo.GetDBMMemITRB returned Nothing."
 Act:
     Dim SQLQuery As String
     SQLQuery = FixSQLITRB.InsertPlain()

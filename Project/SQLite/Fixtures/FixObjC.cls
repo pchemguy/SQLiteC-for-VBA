@@ -40,6 +40,11 @@ Private Sub Class_Initialize()
     this.LibDir = ThisWorkbook.Path & PATH_SEP & LITE_RPREFIX
 End Sub
 
+Friend Sub CleanUp()
+    Set this.dbm = Nothing
+    Set this.DllMan = Nothing
+End Sub
+
 Public Sub ReuseDBM()
     this.ReuseDBM = True
 End Sub

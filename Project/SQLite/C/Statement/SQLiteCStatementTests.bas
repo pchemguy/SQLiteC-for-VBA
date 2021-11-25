@@ -42,6 +42,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Logger.TimerLogClear MODULE_NAME, TestCounter
     Logger.PrintLog
+    FixObjC.CleanUp
 End Sub
 
 
@@ -62,10 +63,10 @@ Act:
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 Assert:
-    Assert.IsNotNothing dbs, "DbStmt is not set."
-    Assert.IsNotNothing dbs.DbConnection, "Connection object not set."
-    Assert.IsNotNothing dbs.DbExecutor, "Executor object not set."
-    Assert.IsNothing dbs.DbParameters, "Parameters object should not be set."
+    Assert.IsFalse dbs Is Nothing, "DbStmt is not set."
+    Assert.IsFalse dbs.DbConnection Is Nothing, "Connection object not set."
+    Assert.IsFalse dbs.DbExecutor Is Nothing, "Executor object not set."
+    Assert.IsTrue dbs.DbParameters Is Nothing, "Parameters object should not be set."
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     Assert.AreSame dbc, dbs.DbConnection, "Connection object mismatch."
 
@@ -118,7 +119,7 @@ Assert:
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
     Assert.AreNotEqual 0, dbs.StmtHandle, "StmtHandle should not be zero."
-    Assert.IsNotNothing dbs.DbParameters, "Parameters object should be set."
+    Assert.IsFalse dbs.DbParameters Is Nothing, "Parameters object should be set."
     Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
     Assert.AreEqual SQLQuery, dbs.SQLQueryExpanded, "Expanded query mismatch"
     
@@ -737,7 +738,7 @@ Act:
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
-    Assert.IsNotNothing dbr, "Unexpected error from FabRecordset."
+    Assert.IsFalse dbr Is Nothing, "Unexpected error from FabRecordset."
     Assert.AreEqual dbs.DbExecutor.RowCount, dbr.AdoRecordset.RecordCount, "Recordset.RecordCount mismatch"
     Assert.AreEqual dbs.DbExecutor.PageSize, dbr.AdoRecordset.PageSize, "Recordset.PageSize mismatch"
     Assert.AreEqual dbs.DbExecutor.PageSize, dbr.AdoRecordset.CacheSize, "Recordset.CacheSize mismatch"
@@ -784,7 +785,7 @@ Act:
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
-    Assert.IsNotNothing dbr, "Unexpected error from FabRecordset."
+    Assert.IsFalse dbr Is Nothing, "Unexpected error from FabRecordset."
     Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
     Assert.AreEqual 5, dbr.AdoRecordset.RecordCount, "Recordset.RecordCount mismatch"
     Assert.AreEqual 5, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
@@ -829,7 +830,7 @@ Act:
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = dbs.GetRecordset(SQLQuery)
 Assert:
-    Assert.IsNotNothing dbr, "Unexpected error from FabRecordset."
+    Assert.IsFalse dbr Is Nothing, "Unexpected error from FabRecordset."
     Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
     Assert.AreEqual 5, dbr.AdoRecordset.RecordCount, "Recordset.RecordCount mismatch"
     Assert.AreEqual 6, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
