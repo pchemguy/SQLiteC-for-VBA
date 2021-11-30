@@ -15,9 +15,9 @@ End Function
 
 
 '''' The number of seconds since the Epoch is multiplied by 10^4 to bring the first
-'''' four fractional places in Timer value into the whole part before trancation.
-'''' Long on a 32bit machine does not provide sufficient number of digits,
-'''' so returning double. Alternatively, a Currency type could be used.
+'''' four fractional places in Timer value into the whole part before truncation.
+'''' Long does not provide sufficient number of digits, so returning double.
+'''' Alternatively, a Currency type could be used.
 Public Function GenerateSerialID() As Double
     Dim newID As Double
     Dim secTillLastMidnight As Double

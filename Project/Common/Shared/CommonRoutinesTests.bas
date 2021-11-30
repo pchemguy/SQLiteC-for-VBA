@@ -1,7 +1,7 @@
 Attribute VB_Name = "CommonRoutinesTests"
 '@Folder "Common.Shared"
 '@TestModule
-'@IgnoreModule LineLabelNotUsed
+'@IgnoreModule LineLabelNotUsed, SelfAssignedDeclaration
 '@IgnoreModule UnhandledOnErrorResumeNext: Test routines validating expected errors do not need to resume error handling
 '@IgnoreModule FunctionReturnValueDiscarded: Test routines validating expected errors may not need the returned value
 '@IgnoreModule AssignmentNotUsed, VariableNotUsed: Ignore dummy assignments in tests
@@ -344,9 +344,15 @@ Private Sub ztcVerifyOrGetDefaultPath_ValidatesResolvingLibPath()
     TestCounter = TestCounter + 1
 
 Arrange:
+    Dim ParentDir As String
+    ParentDir = ThisWorkbook.Path & "\Library\" & ThisWorkbook.VBProject.Name
+    Dim fso As New Scripting.FileSystemObject
+    If Not fso.FolderExists(ParentDir) Then
+        Assert.Inconclusive "Library project folder does not exists. This is likely ok."
+        GoTo CleanExit:
+    End If
     Dim Expected As String
-    Expected = ThisWorkbook.Path & "\Library\" & ThisWorkbook.VBProject.Name _
-               & "\" & ThisWorkbook.VBProject.Name & ".db"
+    Expected = ParentDir & "\" & ThisWorkbook.VBProject.Name & ".db"
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(ThisWorkbook.VBProject.Name, Array("sqlite", "db"))

@@ -89,17 +89,17 @@ Const WAIT_TIMEOUT As Long = 1000
 
 
 Public Function ReadLines(ByVal FilePath As String) As Variant
-    Dim handle As Long
-    handle = FreeFile
-    Open FilePath For Input As handle
+    Dim Handle As Long
+    Handle = FreeFile
+    Open FilePath For Input As Handle
     
     Dim Buffer As String
-    Buffer = Input$(LOF(handle), handle)
+    Buffer = Input$(LOF(Handle), Handle)
     If Right$(Buffer, Len(vbNewLine)) = vbNewLine Then
         Buffer = Left$(Buffer, Len(Buffer) - Len(vbNewLine))
     End If
     ReadLines = Split(Buffer, vbNewLine)
-    Close handle
+    Close Handle
 End Function
 
 
@@ -124,18 +124,18 @@ Public Function SyncRun(ByVal Command As String, Optional ByVal redirectStdout A
     If PID <> 0 Then
         'Get a handle to the shelled process.
         #If VBA7 Then
-            Dim handle As LongPtr
-            handle = OpenProcess(SYNCHRONIZE, 0, PID)
+            Dim Handle As LongPtr
+            Handle = OpenProcess(SYNCHRONIZE, 0, PID)
         #Else
-            Dim handle As Long
-            handle = OpenProcess(SYNCHRONIZE, 0, PID)
+            Dim Handle As Long
+            Handle = OpenProcess(SYNCHRONIZE, 0, PID)
         #End If
         
         'If successful, wait for the application to end and close the handle.
-        If handle <> 0 Then
+        If Handle <> 0 Then
             Dim Result As Long
-            Result = WaitForSingleObject(handle, WAIT_TIMEOUT)
-            CloseHandle hObject:=handle
+            Result = WaitForSingleObject(Handle, WAIT_TIMEOUT)
+            CloseHandle hObject:=Handle
         End If
     End If
     If redirectStdout Then
