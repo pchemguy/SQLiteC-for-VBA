@@ -339,34 +339,6 @@ End Sub
 
 
 '@TestMethod("PathCheck")
-Private Sub ztcVerifyOrGetDefaultPath_ValidatesResolvingLibPath()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-    Dim ParentDir As String
-    ParentDir = ThisWorkbook.Path & "\Library\" & ThisWorkbook.VBProject.Name
-    Dim fso As New Scripting.FileSystemObject
-    If Not fso.FolderExists(ParentDir) Then
-        Assert.Inconclusive "Library project folder does not exists. This is likely ok."
-        GoTo CleanExit:
-    End If
-    Dim Expected As String
-    Expected = ParentDir & "\" & ThisWorkbook.VBProject.Name & ".db"
-Act:
-    Dim Actual As String
-    Actual = VerifyOrGetDefaultPath(ThisWorkbook.VBProject.Name, Array("sqlite", "db"))
-Assert:
-    Assert.AreEqual Expected, Actual, "CheckPath failed to resolve lib path"
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfFileNotFound()
     On Error Resume Next
     TestCounter = TestCounter + 1

@@ -59,10 +59,8 @@ End Function
 
 Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
                 Optional ByVal DllNames As Variant = Empty)
-    If this.Dlls Is Nothing Then
-        Set this.Dlls = New Scripting.Dictionary
-        this.Dlls.CompareMode = TextCompare
-    End If
+    Set this.Dlls = New Scripting.Dictionary
+    this.Dlls.CompareMode = TextCompare
     Me.DefaultPath = DefaultPath
     If Not IsEmpty(DllNames) Then
         If Not LoadMultiple(DllNames) = LOAD_OK Then

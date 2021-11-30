@@ -3,6 +3,13 @@ Attribute VB_Name = "CommonRoutines"
 '@IgnoreModule MoveFieldCloserToUsage, IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
+#If Win64 Then
+    Public Const ARCH As String = "x64"
+#Else
+    Public Const ARCH As String = "x32"
+    Public Const vbLongLong As Long = 20&
+#End If
+
 Private lastID As Double
 
 
