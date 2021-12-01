@@ -288,6 +288,58 @@ Attribute AttachedDbPathName.VB_Description = "Retrieves database path for Schem
         sqlite3_db_filename(this.DbHandle, VarPtr(SchemaUTF8(0))))
 End Function
 
+'''' Reference: https://www.sqlite.org/c3ref/db_readonly.html
+''''
+'@Description "Queries database access mode."
+Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
+                          ) As SQLiteDbAccess
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/AccessMode"
+    Dim SchemaUTF8() As Byte
+    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
+    AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
+End Function
+
+'''' Reference: https://www.sqlite.org/c3ref/changes.html
+'''' Reference: https://www.sqlite.org/c3ref/total_changes.html
+''''
+'@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
+Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/ChangesCount"
+    If Total Then
+        ChangesCount = sqlite3_total_changes(this.DbHandle)
+    Else
+        ChangesCount = sqlite3_changes(this.DbHandle)
+    End If
+End Function
+
+'''' This interface does not support parametrized queries as opposed to the
+'''' similar interface on the Statemnt object. This is because this interface
+'''' uses a "shortcut" API not supporting parameterized quiries.
+''''
+'''' This interface, however, supports execution of multi-statement SQL commands.
+'''' This difference is also due to the differences between the underlying APIs.
+''''
+'''' Reference: https://www.sqlite.org/c3ref/exec.html
+''''
+'@Description "Executes a plain-text non-query via a convenience shortcut."
+Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
+            Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
+    Guard.EmptyString SQLQuery
+    FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
+    If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
+    Dim SQLQueryUTF8() As Byte
+    SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = sqlite3_exec(this.DbHandle, VarPtr(SQLQueryUTF8(0)), 0, 0, 0)
+    If ResultCode <> SQLITE_OK Then
+        ResultCode = ErrInfoRetrieve
+        AffectedRows = -1
+    Else
+        If AffectedRows <> -1 Then AffectedRows = ChangesCount(True) - AffectedRows
+    End If
+    ExecuteNonQueryPlain = ResultCode
+End Function
+
 '@Description "Attaches database to the current connection."
 Public Function Attach(ByVal DbPathName As String, _
                       Optional ByVal SchemaAlias As String = vbNullString _
@@ -386,32 +438,6 @@ Attribute Finalize.VB_Description = "Finalizes all statement objects associated 
     Finalize = ResultCode
 End Function
 
-'''' Reference: https://www.sqlite.org/c3ref/db_readonly.html
-''''
-'@Description "Queries database access mode."
-Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
-                          ) As SQLiteDbAccess
-Attribute AccessMode.VB_Description = "Queries database access mode."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/AccessMode"
-    Dim SchemaUTF8() As Byte
-    SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
-    AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
-End Function
-
-'''' Reference: https://www.sqlite.org/c3ref/changes.html
-'''' Reference: https://www.sqlite.org/c3ref/total_changes.html
-''''
-'@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
-Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
-Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/ChangesCount"
-    If Total Then
-        ChangesCount = sqlite3_total_changes(this.DbHandle)
-    Else
-        ChangesCount = sqlite3_changes(this.DbHandle)
-    End If
-End Function
-
 '@Description "Sets SQLite journal mode."
 Public Function JournalModeSet(ByVal JournalModeCode As SQLiteJournalMode, _
                       Optional ByVal SchemaAlias As String = "main" _
@@ -429,35 +455,6 @@ Attribute JournalModeSet.VB_Description = "Sets SQLite journal mode."
     Dim SQLQuery As String
     SQLQuery = "PRAGMA " & DbSchemaPrefix & "journal_mode = '" & JournalMode & "'"
     JournalModeSet = ExecuteNonQueryPlain(SQLQuery)
-End Function
-
-'''' This interface does not support parametrized queries as opposed to the
-'''' similar interface on the Statemnt object. This is because this interface
-'''' uses a "shortcut" API not supporting parameterized quiries.
-''''
-'''' This interface, however, supports execution of multi-statement SQL commands.
-'''' This difference is also due to the differences between the underlying APIs.
-''''
-'''' Reference: https://www.sqlite.org/c3ref/exec.html
-''''
-'@Description "Executes a plain-text non-query via a convenience shortcut."
-Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
-            Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
-Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
-    Guard.EmptyString SQLQuery
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
-    If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
-    Dim SQLQueryUTF8() As Byte
-    SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_exec(this.DbHandle, VarPtr(SQLQueryUTF8(0)), 0, 0, 0)
-    If ResultCode <> SQLITE_OK Then
-        ResultCode = ErrInfoRetrieve
-        AffectedRows = -1
-    Else
-        If AffectedRows <> -1 Then AffectedRows = ChangesCount(True) - AffectedRows
-    End If
-    ExecuteNonQueryPlain = ResultCode
 End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/c_txn_none.html

@@ -109,18 +109,18 @@ Public Property Get AffectedRowsCount() As Long
 End Property
 
 Public Property Get Busy() As Boolean
-    If this.StmtHandle = 0 Then
-        Busy = False
-    Else
+    If this.StmtHandle <> 0 Then
         Busy = sqlite3_stmt_busy(this.StmtHandle)
+    Else
+        Busy = False
     End If
 End Property
 
 Public Property Get ReadOnly() As Boolean
-    If this.StmtHandle = 0 Then
-        ReadOnly = False
-    Else
+    If this.StmtHandle <> 0 Then
         ReadOnly = sqlite3_stmt_readonly(this.StmtHandle)
+    Else
+        ReadOnly = False
     End If
 End Property
 
@@ -137,9 +137,7 @@ End Property
 '''' https://sqlite.org/pragma.html#pragma_application_id
 Public Property Let ApplicationId(ByVal Value As Long)
     With this.DbConn
-        If .DbHandle = 0 Then
-            Exit Property
-        Else
+        If .DbHandle <> 0 Then
             .ExecuteNonQueryPlain "PRAGMA application_id=" & CStr(Value)
         End If
     End With
@@ -158,9 +156,7 @@ End Property
 '''' https://sqlite.org/pragma.html#pragma_user_version
 Public Property Let UserVersion(ByVal Value As Long)
     With this.DbConn
-        If .DbHandle = 0 Then
-            Exit Property
-        Else
+        If .DbHandle <> 0 Then
             .ExecuteNonQueryPlain "PRAGMA user_version=" & CStr(Value)
         End If
     End With

@@ -139,5 +139,3 @@ Public Type SQLiteCHeaderPacked
     VersionValidFor(0 To 3) As Byte         '''' Bytes 92-95
     SQLiteVersion(0 To 3) As Byte           '''' Bytes 96-99
 End Type
-
-

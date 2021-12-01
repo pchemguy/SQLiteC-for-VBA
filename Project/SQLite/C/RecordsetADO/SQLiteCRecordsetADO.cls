@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Constructs ADO Recordset"
 '@Folder "SQLite.C.RecordsetADO"
-'@ModuleDescription "Constructs ADO Recordset"
+'@ModuleDescription "Constructs ADO Recordset using table metadata."
 '@Exposed
 '@PredeclaredId
 Option Explicit
@@ -43,14 +43,6 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
         .SQLQueryExpanded = DbStmt.SQLQueryExpanded
         .FabRecordset.Source = DbStmt.SQLQueryExpanded
     End With
-End Sub
-
-Private Sub Class_Terminate()
-    CleanUp
-End Sub
-
-Friend Sub CleanUp()
-    Set this.DbExec = Nothing
 End Sub
 
 Public Property Get AdoRecordset() As ADODB.Recordset

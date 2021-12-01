@@ -112,24 +112,6 @@ Private Sub Class_Terminate()
     End With
 End Sub
 
-Public Sub CleanUp()
-    With this
-        If .Connections Is Nothing Then Exit Sub
-        Dim DbConn As SQLiteCConnection
-        Dim ConnName As Variant
-        For Each ConnName In .Connections.Keys
-            Set DbConn = .Connections(ConnName)
-            DbConn.CleanUp
-        Next ConnName
-        Set DbConn = Nothing
-        .Connections.RemoveAll
-        Set .Connections = Nothing
-        Set .Connections = New Scripting.Dictionary
-        .Connections.CompareMode = TextCompare
-        .MainDB = Null
-    End With
-End Sub
-
 Public Property Get MainDbId() As Variant
     MainDbId = this.MainDB
 End Property
