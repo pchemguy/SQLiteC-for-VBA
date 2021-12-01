@@ -26,6 +26,8 @@ From the calling code's perspective, the LiteMan class is the top-level API obje
 | `?LiteMan(":tmp:").ExecADO.MainDB`        | Path to the new db in the Temp folder  |  
 |                                           |                                        |  
 
+Ideally, LiteMan should be primarily responsible for setup and teardown. From this point of view, it is overloaded and is a good candidate for refactoring.
+
 ### LiteADO
 
 The top-level class of the package core is the LiteADO class, which is the only class that interacts with the ADODB library directly (note the green rectangles with ADODB objects in [Fig. 1](#SQLiteADO-Core) associated with LiteADO). It generates ILiteADO/LiteADO database objects and implements high-level methods for interacting with SQLite databases via the ADODB library and SQLiteODBC driver. The LiteADO's constructor instantiates a new ADODB.Command object and sets its ActiveConnection property to the connection string, thus, opening the database connection. Typically, it remains open for the lifetime of the ILiteADO/LiteADO object. The constructor also sets the default SQL query to the statement querying the SQLite version.
