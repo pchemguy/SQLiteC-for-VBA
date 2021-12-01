@@ -7,9 +7,11 @@ permalink: /project-status
 
 ### Performance considerations: SQLiteADO vs. SQLiteC and know issues
 
-A few general aspects of the SQLiteC subpackage design could be improved. The SQLiteCConnection class currently incorporates several groups of functions. While I used the ADODB.Connection class as a reference, I think SQLiteCConnection is the primary candidate for refactoring and splitting. While I made a few attempts to reduce the coupling of SQLiteCAdo classes, and SQLiteADO subpackage is largely decoupled, reducing the coupling of SQLiteC classes could be beneficial.
+A few general aspects of the SQLiteC subpackage design could be improved. The SQLiteCConnection class currently incorporates several groups of functions. While I used the ADODB.Connection class as a reference, SQLiteCConnection appears overloaded and should benefit from refactoring and splitting. The functionality incorporated into the SQLiteC class is more focused. However, the backup routine should probably be moved to SQLiteCConnection. The other manager, LiteMan, clearly needs to be refactored. While I made a few attempts to reduce the coupling of SQLiteCAdo classes, and SQLiteADO subpackage is largely decoupled, reducing the coupling of SQLiteC classes could be beneficial.
 
-The design of the SQLiteC package also incorporates several circular reference loops ([Fig. 2][SQLiteC classes]). I only realized this matter once I drafted the class diagram. VBA usually cannot properly manage objects with circular references automatically, and if not explicitly resolved, such a design will likely cause memory leaks. There are several approaches to address this potential issue. [Lazy Object / Weak Reference][Weak Reference] post on the RDVBA blog discusses the simulated weak references method (VBA does not provide native support for this feature). The current implementation of SQLiteC, however, pursues an alternative approach involving an explicit cleanup cascade. Since SQLiteC is at the top of the hierarchy and is not involved in circular references, VBA should handle its destruction correctly, and its Class_Terminate should be a suitable place to start this cascade. This cascade descends to the lowest affected level and sets parent references to nothing as it ascends back to the top. While this approach should solve the issue, I have not carefully verified its correctness, so this task should be added to the TODO list.
+The design of the SQLiteC package also incorporates several circular reference loops ([Fig. 2][SQLiteC classes]). I only realized this matter once I drafted the class diagram. This topic is discussed in more detail [here][ObjectStore], and the current implementation of the SQLiteC package resolves circular references via a CleanUp cascade.
+
+Although preliminary tests suggest the current SQLiteCAdo performance is reasonable, I have not evaluated it carefully nor optimized it. While there is room for improvement, it is too early to invest efforts into profiling before refactoring discussed above is performed.
 
 #### Locked database state handling
 
@@ -22,8 +24,8 @@ The third issue is related to the performance of DLL calls from VBA. It should a
 
 <!-- References -->
 
-[Weak Reference]: https://rubberduckvba.wordpress.com/2018/09/11/lazy-object-weak-reference/
 [SQLiteC classes]: /SQLite-C-API/class-hierarchy#SQLiteC
+[ObjectStore]: https://pchemguy.github.io/ObjectStore/
 [SecureADODB fork]: https://pchemguy.github.io/SecureADODB-Fork/
 [ContactEditor]: https://pchemguy.github.io/ContactEditor/
 [DB Browser for SQLite]: https://sqlitebrowser.org/
