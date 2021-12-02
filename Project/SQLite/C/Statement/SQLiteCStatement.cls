@@ -108,6 +108,7 @@ Public Property Get AffectedRowsCount() As Long
     AffectedRowsCount = this.AffectedRowsCount
 End Property
 
+'''' https://www.sqlite.org/c3ref/stmt_busy.html
 Public Property Get Busy() As Boolean
     If this.StmtHandle <> 0 Then
         Busy = sqlite3_stmt_busy(this.StmtHandle)
@@ -116,6 +117,7 @@ Public Property Get Busy() As Boolean
     End If
 End Property
 
+'''' https://www.sqlite.org/c3ref/stmt_readonly.html
 Public Property Get ReadOnly() As Boolean
     If this.StmtHandle <> 0 Then
         ReadOnly = sqlite3_stmt_readonly(this.StmtHandle)
@@ -281,8 +283,9 @@ Attribute PreparedStatementsGet.VB_Description = "Enumerates prepared statements
             Else
                 ResultCode = DbConn.ErrInfoRetrieve
             End If
+        Else
+            PrepStmts(hStmt) = sqlite3_stmt_busy(hStmt)
         End If
-        PrepStmts(hStmt) = sqlite3_stmt_busy(hStmt)
         hStmt = sqlite3_next_stmt(DbConn.DbHandle, hStmt)
     Loop
     If FinStmt Then
@@ -419,7 +422,6 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
         AffectedRows = -1
     End If
     this.AffectedRowsCount = AffectedRows
-    this.DbPara.BindClear
     ExecuteNonQuery = ResultCode
 End Function
 
@@ -431,7 +433,6 @@ Attribute GetScalar.VB_Description = "Executes SQL statement returning a scalar 
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
     If ResultCode = SQLITE_OK Then
-        If Not IsEmpty(QueryParameters) Then this.DbPara.BindClear
         GetScalar = this.DbExec.GetScalar
     Else
         GetScalar = CVErr(ResultCode)
