@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Attribute VB_Description = "Constructs ADO Recordset"
+Attribute VB_Description = "Constructs ADO Recordset using table metadata."
 '@Folder "SQLite.C.RecordsetADO"
 '@ModuleDescription "Constructs ADO Recordset using table metadata."
 '@Exposed

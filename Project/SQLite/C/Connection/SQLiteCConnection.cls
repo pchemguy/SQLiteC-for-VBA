@@ -293,6 +293,7 @@ End Function
 '@Description "Queries database access mode."
 Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
                           ) As SQLiteDbAccess
+Attribute AccessMode.VB_Description = "Queries database access mode."
     FixGuard.DbNotOpened Me, "SQLiteCConnection/AccessMode"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
@@ -304,6 +305,7 @@ End Function
 ''''
 '@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
+Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
     FixGuard.DbNotOpened Me, "SQLiteCConnection/ChangesCount"
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
@@ -324,6 +326,7 @@ End Function
 '@Description "Executes a plain-text non-query via a convenience shortcut."
 Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
             Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
+Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.EmptyString SQLQuery
     FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)

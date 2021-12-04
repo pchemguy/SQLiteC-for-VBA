@@ -70,7 +70,7 @@ Public Type SQLiteCColumnMeta
     DbName As String
     TableName As String
     OriginName As String
-    DataType As SQLiteDataType
+'    DataType As SQLiteDataType
     TableMeta As Boolean '''' Set to True if table meta is available
     DeclaredTypeC As String
     Affinity As SQLiteTypeAffinity

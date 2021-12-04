@@ -2,7 +2,7 @@ Attribute VB_Name = "LiteFSCheckTests"
 '@Folder "SQLite.Checks"
 '@TestModule
 '@IgnoreModule LineLabelNotUsed, UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
-'@IgnoreModule IndexedDefaultMemberAccess, VariableNotUsed, AssignmentNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, VariableNotUsed, AssignmentNotUsed, SelfAssignedDeclaration
 Option Explicit
 Option Private Module
 

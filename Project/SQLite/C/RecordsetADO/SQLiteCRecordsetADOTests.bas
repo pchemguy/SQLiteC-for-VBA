@@ -61,6 +61,8 @@ Arrange:
     Set dbc = FixObjC.GetDBCMem
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
+    Dim dbsm As SQLiteCMeta
+    Set dbsm = SQLiteCMeta(dbs)
 
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.OpenDb
@@ -74,7 +76,7 @@ Act:
     SQLQuery = FixSQLITRB.SelectRowid
     ResultCode = dbs.Prepare16V2(SQLQuery)
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Prepare16V2 error."
-    ResultCode = dbs.DbExecutor.TableMetaCollect
+    ResultCode = dbsm.TableMetaCollect
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected GetTableMeta error."
     Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
     

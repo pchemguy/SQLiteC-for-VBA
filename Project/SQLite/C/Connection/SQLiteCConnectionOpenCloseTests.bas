@@ -1,7 +1,8 @@
 Attribute VB_Name = "SQLiteCConnectionOpenCloseTests"
 '@Folder "SQLite.C.Connection"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule UnhandledOnErrorResumeNext, FunctionReturnValueDiscarded
 Option Explicit
 Option Private Module
 

@@ -3,18 +3,21 @@ Attribute VB_Name = "SQLiteCHeaderExamples"
 Option Explicit
 
 
+'@EntryPoint
 Private Sub ReadDbHeader()
     Dim dbc As SQLiteCConnection
+    '@Ignore IndexedDefaultMemberAccess
     Set dbc = SQLiteCConnection("blank.db") '''' FixObjC.GetDBCTempInit
     Dim dbh As SQLiteCHeader
-    Set dbh = SQLiteCHeader(dbc.DbPathName)
+    Set dbh = SQLiteCHeader.Create(dbc.DbPathName)
     dbh.LoadHeader
     Set dbc = FixObjC.GetDBCTmpFuncWithData
-    Set dbh = SQLiteCHeader(dbc.DbPathName)
+    Set dbh = SQLiteCHeader.Create(dbc.DbPathName)
     dbh.LoadHeader
 End Sub
 
 
+'@EntryPoint
 Private Sub GenDbHeader()
     Dim dbh As SQLiteCHeader
     Set dbh = SQLiteCHeader.Create(vbNullString)
@@ -25,3 +28,5 @@ Private Sub GenDbHeader()
     PackedHeader = dbh.PackedHeaderFromBytes(HeaderBuffer)
     dbh.UnpackHeader PackedHeader
 End Sub
+
+

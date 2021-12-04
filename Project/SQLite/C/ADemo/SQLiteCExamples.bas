@@ -347,6 +347,8 @@ End Function
 Private Sub GetTableMetaFunctions()
     Dim dbs As SQLiteCStatement
     Set dbs = this.dbs
+    Dim dbsm As SQLiteCMeta
+    Set dbsm = SQLiteCMeta(dbs)
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
@@ -372,7 +374,7 @@ Private Sub GetTableMetaFunctions()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.TableMetaCollect
+    ResultCode = dbsm.TableMetaCollect
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."
@@ -393,6 +395,8 @@ End Sub
 Private Sub GetTableMeta()
     Dim dbs As SQLiteCStatement
     Set dbs = this.dbs
+    Dim dbsm As SQLiteCMeta
+    Set dbsm = SQLiteCMeta(dbs)
     Dim ResultCode As SQLiteResultCodes
     
     Dim SQLQuery As String
@@ -418,7 +422,7 @@ Private Sub GetTableMeta()
                       "Failed to execute the Step API."
     End Select
     
-    ResultCode = dbs.DbExecutor.TableMetaCollect
+    ResultCode = dbsm.TableMetaCollect
     If ResultCode <> SQLITE_OK Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
                   "Failed to get columns meta."
