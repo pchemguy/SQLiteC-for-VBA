@@ -625,7 +625,7 @@ End Sub
 
 
 '@TestMethod("Query 2D RowSet")
-Private Sub ztcGetRowSet2D_SelectPragmaTableWithUseTableMetadataAPI()
+Private Sub ztcGetRowSet2D_SelectPragmaTable()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
@@ -646,11 +646,6 @@ Act:
     SQLQuery = FixSQLFunc.SelectPragmaNoRowid
     Dim RowSet2D As Variant
 Assert:
-    dbs.DbExecutor.UseTableMetaAPI = True
-    RowSet2D = dbs.GetRowSet2D(SQLQuery)
-    Assert.IsTrue IsError(RowSet2D), "Expected an error from RowSet2D."
-    Assert.AreEqual CVErr(SQLITE_ERROR), RowSet2D, "Expected SQLITE_RANGE error."
-    dbs.DbExecutor.UseTableMetaAPI = False
     RowSet2D = dbs.GetRowSet2D(SQLQuery)
     Assert.IsFalse IsError(RowSet2D), "Unexpected error from RowSet2D."
     Assert.IsTrue IsArray(RowSet2D), "Expected a rowset result."

@@ -64,7 +64,7 @@ Friend Sub AddMeta()
     Dim ColumnIndex As Long
     For ColumnIndex = 0 To UBound(TableMeta)
         With TableMeta(ColumnIndex)
-            If this.DbExec.UseTableMetaAPI Then
+            If .TableMeta Then
                 Select Case .AffinityType
                     Case SQLITE_INTEGER
                         .AdoType = adInteger

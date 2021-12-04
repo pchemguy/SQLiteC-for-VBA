@@ -77,9 +77,6 @@ Private Type TSQLiteCExecSQL
     PageSize As Long
     FilledPagesCount As Long
     RowCount As Long
-    '''' Meta API's fenced with the .UseTableMetadataAPI flag will fail if executed
-    '''' against the PRAGMA-Table-functions SELECTs. Set it to false in such a case.
-    UseTableMetaAPI As Boolean
 End Type
 Private this As TSQLiteCExecSQL
 
@@ -106,7 +103,6 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
         .MetaLoaded = False
         .AffinityMap = Array(SQLITE_BLOB, SQLITE_TEXT, SQLITE_TEXT, _
                              SQLITE_INTEGER, SQLITE_FLOAT)
-        .UseTableMetaAPI = True
     End With
 End Sub
 
@@ -151,17 +147,6 @@ End Property
 
 Public Property Get RowCount() As Long
     RowCount = this.RowCount
-End Property
-
-
-'@Ignore ProcedureNotUsed
-Public Property Get UseTableMetaAPI() As Boolean
-    UseTableMetaAPI = this.UseTableMetaAPI
-End Property
-
-
-Public Property Let UseTableMetaAPI(ByVal Value As Boolean)
-    this.UseTableMetaAPI = Value
 End Property
 
 
@@ -246,6 +231,7 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     hStmt = dbs.StmtHandle
     
     Dim ResultCode As SQLiteResultCodes
+    ResultCode = SQLITE_OK
     With ColumnInfo
         If .Initialized <> -1 Then Err.Raise ErrNo.InvalidParameterErr, _
             "SQLiteCExecSQL", "Set .ColumnIndex and .Initialized=-1 before the call!"
@@ -278,48 +264,45 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         ColumnNamePtr = sqlite3_column_origin_name(hStmt, ColumnIndex)
         If ColumnNamePtr <> 0 Then .OriginName = UTFlib.StrFromUTF8Ptr(ColumnNamePtr)
         
-        '''' Meta API's fenced with the .UseTableMetadataAPI flag will fail if executed
-        '''' against the PRAGMA-Table-functions SELECTs. Set it to false in such a case.
-        If this.UseTableMetaAPI Then
-            Dim DataTypePtr As Variant
-            DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
-            If DataTypePtr <> 0 Then
-                .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
-                .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
-                .AffinityType = this.AffinityMap(.Affinity - SQLITE_AFF_NONE - 1)
-            Else
-                '''' SQLITE_RANGE is expected for a calculated column, such as "count(*)"
-                '''' Only return an error, if this is not the case; otherwise, continue.
-                If dbc.ErrInfoRetrieve <> SQLITE_RANGE Then GoTo META_ERROR:
-            End If
+        Dim DataTypePtr As Variant
+        DataTypePtr = sqlite3_column_decltype(hStmt, ColumnIndex)
+        If DataTypePtr <> 0 Then
+            .DeclaredTypeC = UTFlib.StrFromUTF8Ptr(DataTypePtr)
+            .Affinity = TypeAffinityFromDeclaredType(.DeclaredTypeC)
+            .AffinityType = this.AffinityMap(.Affinity - SQLITE_AFF_NONE - 1)
+            .TableMeta = True
+        Else
+            '''' SQLITE_RANGE is expected for a calculated column, such as "count(*)"
+            '''' Only return an error, if this is not the case; otherwise, continue.
+            If dbc.ErrInfoRetrieve <> SQLITE_RANGE Then GoTo META_ERROR:
+            .TableMeta = False
+        End If
 
-            '''' For queries against PRAGMA functions, table_column_metadata
-            '''' should return SQLITE_ERROR (no such table column...).
-            ''''
-            '''' Make sure that relevant previous APIs did not return null pointers.
-            '''' This issue occurs for calculated columns, but basic armor would cut
-            '''' off this information for all columns.
-            ''''
-            If DatabaseNamePtr <> 0 And TableNamePtr <> 0 And ColumnNamePtr <> 0 Then
-                Dim NotNull As Long
-                NotNull = False
-                Dim PrimaryKey As Long
-                PrimaryKey = False
-                Dim AutoIncrement As Long
-                AutoIncrement = False
-                Dim CollationPtr As Variant: CollationPtr = 0 '''' RD workaround
-                ResultCode = sqlite3_table_column_metadata(dbc.DbHandle, _
-                    DatabaseNamePtr, TableNamePtr, ColumnNamePtr, _
-                    DataTypePtr, CollationPtr, NotNull, PrimaryKey, AutoIncrement)
-                If ResultCode = SQLITE_OK And DataTypePtr <> 0 And CollationPtr <> 0 Then
-                    .DeclaredTypeT = UTFlib.StrFromUTF8Ptr(DataTypePtr)
-                    .Collation = UTFlib.StrFromUTF8Ptr(CollationPtr)
-                    .NotNull = CBool(NotNull)
-                    .PrimaryKey = CBool(PrimaryKey)
-                    .AutoIncrement = CBool(AutoIncrement)
-                Else
-                    ResultCode = dbc.ErrInfoRetrieve
-                End If
+        '''' For queries against PRAGMA functions, table_column_metadata
+        '''' should return SQLITE_ERROR (no such table column...).
+        ''''
+        '''' Make sure that relevant previous APIs did not return null pointers.
+        ''''
+        If DatabaseNamePtr <> 0 And TableNamePtr <> 0 And _
+           ColumnNamePtr <> 0 And DataTypePtr <> 0 Then
+            Dim NotNull As Long
+            NotNull = False
+            Dim PrimaryKey As Long
+            PrimaryKey = False
+            Dim AutoIncrement As Long
+            AutoIncrement = False
+            Dim CollationPtr As Variant: CollationPtr = 0 '''' RD workaround
+            ResultCode = sqlite3_table_column_metadata(dbc.DbHandle, _
+                DatabaseNamePtr, TableNamePtr, ColumnNamePtr, _
+                DataTypePtr, CollationPtr, NotNull, PrimaryKey, AutoIncrement)
+            If ResultCode = SQLITE_OK And DataTypePtr <> 0 And CollationPtr <> 0 Then
+                .DeclaredTypeT = UTFlib.StrFromUTF8Ptr(DataTypePtr)
+                .Collation = UTFlib.StrFromUTF8Ptr(CollationPtr)
+                .NotNull = CBool(NotNull)
+                .PrimaryKey = CBool(PrimaryKey)
+                .AutoIncrement = CBool(AutoIncrement)
+            Else
+                ResultCode = dbc.ErrInfoRetrieve
             End If
         End If
     End With
