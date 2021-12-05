@@ -16,7 +16,7 @@ Individual methods provided by these classes can be classified as either SQLite 
 
 ### The Core
 
-The majority of the SQLite library functionality provided by the SQLiteC subpackage is due to the core. The  library operates several different [objects][SQLite Objects]. The two most important objects are the [Connection/sqlite3][dbc] and [Statement/sqlite3_stmt][dbs]. The SQLiteCConnection class wraps the Connection object and provides related functionality, as discussed later. The SQLiteCStatement class wraps the Statement object together with its constructors, destructors, and meta interfaces. Two other classes, SQLIteCParameters and SQLIteCExecSQL, use the Statement object and wrap APIs for handling parameterized queries, executing statements, and retrieving the data.
+The  SQLite library operates several different [objects][SQLite Objects]. The two most important objects are the [Connection/sqlite3][dbc] and [Statement/sqlite3_stmt][dbs]. The SQLiteCConnection class wraps the Connection object and provides related functionality. The SQLiteCStatement class wraps the Statement object together with its constructors and destructor. Three other core classes - SQLiteCParameters, SQLiteCExecSQL, and SQLiteCMeta - use the Statement object and wrap APIs for handling parameterized queries, executing statements, and retrieving the data.
 
 ### Database Manager
 
