@@ -6,7 +6,7 @@ parent: SQLiteC
 permalink: /sqlitec/meta
 ---
 
-SQLite C API provides a set of metadata interfaces (metadata available via SQL queries is beyond the scope of this section) with information dispersed over several pages ([meta1][], [meta2][], [meta3][], [meta4][], and [meta5][]). Importantly, all these interfaces provide information about a single column in a prepared statement (with one exception noted below). There are three sources of metadata (16-bit UTF versions not shown):
+SQLite C API provides a set of metadata interfaces ([metadata available via SQL][metasql] queries is beyond the scope of this section) with information dispersed over several pages ([meta1][], [meta2][], [meta3][], [meta4][], and [meta5][]). Importantly, all these interfaces provide information about a single column in a prepared statement (with one exception noted below). There are three sources of metadata (16-bit UTF versions not shown):
 
 * CREATE TABLE DDL statement (table source):
 	* sqlite3_table_column_metadata
@@ -31,9 +31,9 @@ SQLite employs dynamic typing. Each column has the so-called *Affinity* type det
 
 <!-- References -->
 
-[step API]: https://www.sqlite.org/c3ref/step.html
 [meta1]: https://www.sqlite.org/c3ref/column_database_name.html
 [meta2]: https://www.sqlite.org/c3ref/table_column_metadata.html
 [meta3]: https://www.sqlite.org/c3ref/column_name.html
 [meta4]: https://www.sqlite.org/c3ref/column_blob.html
 [meta5]: https://www.sqlite.org/c3ref/column_decltype.html
+[metasql]: ../sql-tools
