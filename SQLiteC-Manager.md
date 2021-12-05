@@ -12,7 +12,7 @@ The SQLiteC class
 
   1) generates its instances (factory function),
   2) calls the [DllManager][] class to load SQLite3 DLL library,
-  3) calls LiteFSCheck to run initial diagnostics and resolve database pathname,
+  3) calls [LiteFSCheck][] to run initial diagnostics and resolve database pathname,
   4) generates SQLiteCConnection instances (abstract factory),
   5) initiates resolution of [circular references][] at the termination stage.
 
@@ -28,5 +28,6 @@ Another difference involves the number of supported connection objects per manag
 <!-- References -->
 
 [DllManager]: https://pchemguy.github.io/DllTools/
+[LiteFSCheck]: ../integrity
 [Circular References]: https://pchemguy.github.io/ObjectStore/
 [SQLite ICU MinGW]: https://pchemguy.github.io/SQLite-ICU-MinGW/
