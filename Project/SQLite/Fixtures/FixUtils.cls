@@ -218,7 +218,7 @@ End Function
 '@Ignore ParameterCanBeByVal: False positive
 '@Description "Populates a dynamic typed array."
 Public Function ArrayXB(ByRef DynamicTypedArray As Variant, _
-                   ByVal BaseIndex As Long, _
+                        ByVal BaseIndex As Long, _
                    ParamArray ArrayElements() As Variant) As Variant
 Attribute ArrayXB.VB_Description = "Populates a dynamic typed array."
     Guard.NotArray DynamicTypedArray

@@ -151,7 +151,6 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     Set dbs = this.DbStmt
     Dim dbc As SQLiteCConnection
     Set dbc = dbs.DbConnection
-    FixGuard.StmtNotPrepared dbs, "SQLiteCMeta/ColumnMetaAPI"
     
     #If VBA7 Then
         Dim hStmt As LongPtr
@@ -254,6 +253,8 @@ End Function
 '@Description "Collects table metadata."
 Public Function TableMetaCollect() As SQLiteResultCodes
 Attribute TableMetaCollect.VB_Description = "Collects table metadata."
+    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCMeta/ColumnMetaAPI"
+    
     Dim ColumnCount As Long
     ColumnCount = ColumnCountAPI
     If ColumnCount = 0 Then

@@ -461,17 +461,3 @@ Attribute CopyTableData.VB_Description = "Generates a query cloning table data."
         "SELECT * FROM [" & SourceDatabase & "].[" & SourceTable & "]"
     CopyTableData = InsertClause & SelectClause
 End Function
-
-
-''''' TODO: Switch to LiteMetaSQLEngine
-''@Description "Generates query returning SQLite version"
-'Public Property Get SQLiteVersion() As String
-'    SQLiteVersion = "SELECT sqlite_version() AS version"
-'End Property
-'
-'
-''''' TODO: Switch to LiteMetaSQLEngine
-''@Description "Generates query returning available SQLite collations"
-'Public Property Get SQLiteCollations() As String
-'    SQLiteCollations = "SELECT * FROM pragma_collation_list AS collations ORDER BY name"
-'End Property
