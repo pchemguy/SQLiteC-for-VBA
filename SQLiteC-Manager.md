@@ -24,6 +24,8 @@ When comparing similar functions, there are also certain implementation differen
 
 Another difference involves the number of supported connection objects per manager. LiteMan encapsulates a single instance of LiteADO/ILiteADO, which, in turn, encapsulates a single ADODB.Connection. SQLiteC, on the other hand, wraps a Dictionary object used for managing a collection of connection objects. However, since the database path acts as the key, 'main' databases must be unique among connections. One anonymous (such as an in-memory) database (keyed with an empty string) is also acceptable.
 
+The application using SQLiteAdo should retain its reference for the database manager class LiteMan instance until it discards all library objects. In the case of the SQLiteC subpackage, the application must keep such a reference because termination of the SQLiteC manager initiates the CleanUp cascade turning all manager's descendant objects into unusable garbage.
+
 
 <!-- References -->
 
