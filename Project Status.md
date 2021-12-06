@@ -9,6 +9,8 @@ permalink: /project-status
 
 A few general aspects of the SQLiteC subpackage design could be improved. The SQLiteCConnection class currently incorporates several groups of functions. While I used the ADODB.Connection class as a reference, SQLiteCConnection appears overloaded and should benefit from refactoring and splitting. The functionality incorporated into the SQLiteC class is more focused. However, the backup routine should probably be moved to SQLiteCConnection. The other manager, LiteMan, clearly needs to be refactored. While I made a few attempts to reduce the coupling of SQLiteCAdo classes, and SQLiteADO subpackage is largely decoupled, reducing the coupling of SQLiteC classes could be beneficial.
 
+I still have occasional issues with DllManager leaking resources. As a result, DllManager cannot be load SQLite DLL, necessitating the restart of Excel.
+
 The design of the SQLiteC package also incorporates several circular reference loops ([Fig. 2][SQLiteC classes]). I only realized this matter once I drafted the class diagram. This topic is discussed in more detail [here][ObjectStore], and the current implementation of the SQLiteC package resolves circular references via a CleanUp cascade.
 
 Although preliminary tests suggest the current SQLiteCAdo performance is reasonable, I have not evaluated it carefully nor optimized it. While there is room for improvement, it is too early to invest efforts into profiling before refactoring discussed above is performed.
