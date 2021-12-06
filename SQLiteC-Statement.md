@@ -21,7 +21,7 @@ permalink: /sqlitec/statement
 
 #### Query execution
 
-* *ExecuteSetup()* is a helper routine responsible for statement preparation and parameter binding. A parameterized prepared statement can be reused if a blank query is provided on subsequent calls. This routine is meant for internal class use only.
+* *ExecuteSetup()* is a helper routine. The rest of the query routines call *ExecuteSetup()* for statement preparation and parameter binding. They do not finalize the statement object, and *ExecuteSetup()* will reuse a parameterized prepared statement if a blank query is provided on subsequent calls.
 * *ExecuteNonQuery()* executes an SQL statement, possibly parameterized, not returning data. For non-parameterized (plain) queries, SQLiteCConnection.ExecuteNonQueryPlain() interface is used.
 * *GetScalar()* executes an SQL statement, possibly parameterized, returning a scalar value. The actual query may return more than one row/column, but only the first field in the first row is returned, discarding the rest.  
 * *GetPagedRowSet()* executes an SQL statement, possibly parameterized, returning a set of rows. The returned result is a 1D array of pages, with each non-empty element being a 1D array of rows and each row being a 1D array of field values.
@@ -30,6 +30,4 @@ permalink: /sqlitec/statement
 
 #### ILiteADO interface
 
-SQLiteCStatement class implements ILiteADO interface. While the current LiteADO/ILiteADO implementation does not support parameterized queries, the SQLiteCStatement/ILiteADO implementation provides such support.
-
-<!-- References -->
+SQLiteCStatement class implements ILiteADO interface. While the current LiteADO/ILiteADO implementation does not support parameterized queries, the SQLiteCStatement/ILiteADO implementation provides such support. Another important aspect is that this implementation handles the SQLite connection object. If a connection is not opened before one of the query methods is called, it is opened and closed; otherwise, it remains open.
