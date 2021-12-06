@@ -12,7 +12,7 @@ Attribute VB_Description = "Minimalistic ADODB wrapper used by SQLiteDB"
 '@ModuleDescription "Minimalistic ADODB wrapper used by SQLiteDB"
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded
+'@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded, ValueRequired
 Option Explicit
 
 Implements ILiteADO
@@ -167,11 +167,9 @@ Attribute GetScalar.VB_Description = "Returns disconnected Recordset"
         Set .ActiveConnection = Nothing
     End With
     
-    '@Ignore ValueRequired: false positive
     If AdoRecordset.RecordCount = 0 Then
         GetScalar = Empty
     Else
-        '@Ignore IndexedDefaultMemberAccess
         GetScalar = AdoRecordset.Fields(0).Value
     End If
 End Function
@@ -206,33 +204,39 @@ Private Function ILiteADO_OpenDb() As Long
     Err.Clear
     On Error Resume Next
     If this.AdoConnection.State = adStateClosed Then this.AdoConnection.Open
-    On Error GoTo 0
     ILiteADO_OpenDb = Err.Number
+    On Error GoTo 0
 End Function
 
 Private Function ILiteADO_CloseDb() As Long
     Err.Clear
     On Error Resume Next
     If this.AdoConnection.State <> adStateClosed Then this.AdoConnection.Close
-    On Error GoTo 0
     ILiteADO_CloseDb = Err.Number
+    On Error GoTo 0
 End Function
 
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _
                            ) As Variant
+    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO", "Parameterized queries are not supported."
     ILiteADO_GetScalar = GetScalar(SQLQuery)
 End Function
 
 Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As ADODB.Recordset
+    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO", "Parameterized queries are not supported."
     Set ILiteADO_GetAdoRecordset = GetAdoRecordset(SQLQuery)
 End Function
 
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As Long
+    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO", "Parameterized queries are not supported."
     ILiteADO_ExecuteNonQuery = ExecuteNonQuery(SQLQuery)
 End Function
 
