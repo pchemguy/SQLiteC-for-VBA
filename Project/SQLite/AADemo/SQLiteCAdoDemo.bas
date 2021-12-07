@@ -1,0 +1,153 @@
+Attribute VB_Name = "SQLiteCAdoDemo"
+Attribute VB_Description = "Illustrates typical workflows for SQLiteCAdo"
+'@Folder "SQLite.AADemo"
+'@ModuleDescription "Illustrates typical workflows for SQLiteCAdo"
+'@IgnoreModule
+Option Explicit
+Option Private Module
+
+Private Const LITE_LIB As String = "SQLiteCAdo"
+Private Const PATH_SEP As String = "\"
+Private Const LITE_RPREFIX As String = "Library" & PATH_SEP & LITE_LIB & PATH_SEP
+
+Private Type TSQLiteCAdoDemo
+    DbPathName As String
+    dbmC As SQLiteC
+    dbmADO As LiteMan
+    dbs As SQLiteCStatement
+    dbq As ILiteADO
+End Type
+Private this As TSQLiteCAdoDemo
+
+
+Private Sub CleanUp()
+    With this
+        Set .dbq = Nothing
+        Set .dbs = Nothing
+        Set .dbmADO = Nothing
+        Set .dbmC = Nothing
+    End With
+End Sub
+
+
+Private Sub MainC()
+    this.DbPathName = FixObjAdo.RandomTempFileName
+    InitDBQC
+    Debug.Print "Created blank db: " & this.dbq.MainDB
+    
+    DemoDBQ "C"
+    
+    CleanUp
+End Sub
+
+
+Private Sub MainADO()
+    this.DbPathName = FixObjAdo.RandomTempFileName
+    Set this.dbmADO = LiteMan(this.DbPathName, True)
+    Set this.dbq = this.dbmADO.ExecADO
+    Debug.Print "Created blank db: " & this.dbq.MainDB
+    
+    DemoDBQ "ADO"
+    
+    CleanUp
+End Sub
+
+
+Private Sub DemoDBQ(Optional ByVal Subpackage As String = "C")
+    Dim dbq As ILiteADO
+    Set dbq = this.dbq
+    
+    Dim SQLQuery As String
+    Dim AffectedRows As Long
+    
+    SQLQuery = FixSQLFunc.Create
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+    SQLQuery = FixSQLFunc.InsertData
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+    
+    Debug.Print "Number of inserted rows: " & CStr(AffectedRows)
+    
+    Dim QueryParams As Scripting.Dictionary
+    If Subpackage = "C" Then
+        SQLQuery = FixSQLFunc.SelectFilteredParamName
+        Set QueryParams = FixSQLFunc.SelectFilteredParamNameValues
+    Else
+        SQLQuery = FixSQLFunc.SelectFilteredPlain
+        Set QueryParams = Nothing
+    End If
+    
+    Dim AdoRecordset As ADODB.Recordset
+    Set AdoRecordset = dbq.GetAdoRecordset(SQLQuery, QueryParams)
+    
+    Dim RowSet2D As Variant
+    RowSet2D = ArrayLib.TransposeArray(AdoRecordset.GetRows)
+    
+    
+    Debug.Print "Number of selected records: " & CStr(AdoRecordset.RecordCount)
+End Sub
+
+
+Private Sub InitDBQC()
+    '------------------------'
+    '===== INIT MANAGER ====='
+    '------------------------'
+    Dim DllPath As String
+    DllPath = LITE_RPREFIX & "dll\" & ARCH
+    Dim DllNames As Variant
+    #If Win64 Then
+        DllNames = "sqlite3.dll"
+    #Else
+        DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
+                         "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+    #End If
+    Dim dbm As SQLiteC
+    '@Ignore IndexedDefaultMemberAccess
+    Set dbm = SQLiteC(DllPath, DllNames)
+    If dbm Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteC instance."
+    Else
+        Debug.Print "Database manager instance (SQLiteC class) is ready"
+    End If
+    
+    '''' Test SQLite3.dll
+    If Replace(dbm.Version(False), ".", "0") & "0" = CStr(dbm.Version) Then
+        Debug.Print "Database engine version functionality test passed."
+    Else
+        Debug.Print "Database engine version functionality test failed."
+    End If
+    Set this.dbmC = dbm
+
+    '---------------------------'
+    '===== INIT CONNECTION ====='
+    '---------------------------'
+    Dim dbc As SQLiteCConnection
+    Set dbc = dbm.CreateConnection(this.DbPathName, AllowNonExistent:=True)
+    If dbc Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteCConnection instance."
+    Else
+        Debug.Print "Database SQLiteCConnection instance is ready."
+    End If
+
+    '--------------------------'
+    '===== INIT STATEMENT ====='
+    '--------------------------'
+    Dim DbStmtName As String
+    DbStmtName = vbNullString
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement(DbStmtName)
+    Set this.dbs = dbs
+    Dim dbq As ILiteADO
+    Set dbq = dbs
+    If dbq Is Nothing Then
+        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+                  "Failed to create an SQLiteCStatement instance."
+    Else
+        Debug.Print "Database SQLiteCStatement instance is ready."
+    End If
+    '''' Maximum capapacity of 100x10 = 1000 rows
+    dbs.DbExecutor.PageCount = 10
+    dbs.DbExecutor.PageSize = 100
+    Set this.dbq = dbq
+End Sub

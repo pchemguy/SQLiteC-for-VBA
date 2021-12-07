@@ -327,7 +327,8 @@ End Function
 Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
             Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
-    Guard.EmptyString SQLQuery
+    Guard.ExpressionErr Len(SQLQuery) > 0, InvalidParameterErr, _
+        "SQLiteCConnection/ExecuteNonQueryPlain", "Query string is empty."
     FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte

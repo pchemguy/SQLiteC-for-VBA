@@ -56,21 +56,21 @@ End Property
 
 
 '@Description("Raises a run-time error if the specified string is empty.")
-Public Sub EmptyString(ByVal Text As Variant)
+Public Sub EmptyString(ByVal TEXT As Variant)
 Attribute EmptyString.VB_Description = "Raises a run-time error if the specified string is empty."
     Dim errorDetails As TError
     With errorDetails
-        .Trapped = (VarType(Text) <> vbString)
+        .Trapped = (VarType(TEXT) <> vbString)
         If .Trapped Then
             .Name = "TypeMismatchErr"
             .Number = ErrNo.TypeMismatchErr
-            .Source = TypeName(Text) & " type"
+            .Source = TypeName(TEXT) & " type"
             .Message = "String required"
-            .Description = "Variable type: " & TypeName(Text) & ". String required."
+            .Description = "Variable type: " & TypeName(TEXT) & ". String required."
             RaiseError errorDetails
         End If
         
-        .Trapped = (Text = vbNullString)
+        .Trapped = (TEXT = vbNullString)
         If .Trapped Then
             .Name = "EmptyStringErr"
             .Number = ErrNo.EmptyStringErr

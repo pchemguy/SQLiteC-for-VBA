@@ -124,7 +124,7 @@ End Property
 '''' Raises an error if DbPathName (or resolved value) has already been used.
 '@Description "Creates a new SQLiteCConnection instance."
 Public Function CreateConnection(ByVal DbPathName As String, _
-                        Optional ByVal AllowNonExistent As Variant = True _
+                        Optional ByVal AllowNonExistent As Variant = False _
                         ) As SQLiteCConnection
 Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection instance."
     Dim PathCheck As LiteFSCheck

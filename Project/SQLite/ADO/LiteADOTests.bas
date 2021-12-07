@@ -160,7 +160,7 @@ Private Sub ztcCreate_ValidatesDefaultConnectionString()
 Arrange:
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
-               ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
+               ";" & LiteADO.DefaultOptions & "NoCreat=True;"
 Act:
     Dim dbq As ILiteADO
     Set dbq = FixObjAdo.GetDbReg()
@@ -184,7 +184,7 @@ Private Sub ztcCreate_ValidatesNoCreatConnectionString()
 Arrange:
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
-               ";SyncPragma=NORMAL;FKSupport=True;NoCreat=True;"
+               ";" & LiteADO.DefaultOptions & "NoCreat=True;"
 Act:
     Dim dbq As ILiteADO
     Set dbq = LiteADO(FixObjAdo.DefaultDbPathName, False)
@@ -208,7 +208,7 @@ Private Sub ztcCreate_ValidatesCreatConnectionString()
 Arrange:
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
-               ";SyncPragma=NORMAL;FKSupport=True;"
+               ";" & LiteADO.DefaultOptions
 Act:
     Dim dbq As ILiteADO
     Set dbq = LiteADO(FixObjAdo.DefaultDbPathName, True)
@@ -217,6 +217,122 @@ Act:
 Assert:
     Assert.AreEqual Expected, Actual, "Default ConnectionString mismatch"
 
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Options")
+Private Sub ztcODBCOptionsStr_ValidatesDefaultODBCOptionsStr()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim Expected As String
+    Expected = LiteADO.DefaultOptions
+Act:
+    Dim Actual As String
+    Actual = LiteADO.ODBCOptionsStr
+Assert:
+    Assert.AreEqual Expected, Actual, "Default options mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Options")
+Private Sub ztcDefaultOptionsDict_ValidatesDefaultOptionsDictType()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+Assert:
+    Assert.IsTrue IsObject(LiteADO.DefaultOptionsDict), "Default options dict type mismatch"
+    Assert.AreEqual "Dictionary", TypeName(LiteADO.DefaultOptionsDict), "Default options dict type mismatch"
+    Assert.AreEqual 5, LiteADO.DefaultOptionsDict.Count, "Default options dict count mismatch"
+    Assert.AreEqual True, LiteADO.DefaultOptionsDict("FKSupport"), "Default option FKSupport mismatch"
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Options")
+Private Sub ztcODBCOptionsStr_ValidatesEmptyOptions()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+    Dim dbqCI As LiteADO
+    Set dbqCI = LiteADO(vbNullString, False, Empty)
+Assert:
+    Assert.AreEqual 6, dbqCI.ODBCOptions.Count, "ODBC options count mismatch."
+    Assert.AreEqual True, dbqCI.ODBCOptions("FKSupport"), "ODBC option FKSupport mismatch."
+    Assert.AreEqual True, dbqCI.ODBCOptions("NoCreat"), "ODBC option NoCreat mismatch."
+    Assert.AreEqual dbqCI.DefaultOptions & "NoCreat=True;", dbqCI.ODBCOptionsStr, "ODBC options str mismatch."
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Options")
+Private Sub ztcODBCOptionsStr_ValidatesStringOptions()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+    Dim dbqCI As LiteADO
+    Set dbqCI = LiteADO(vbNullString, True, "FKSupport=False;")
+Assert:
+    Assert.IsTrue vbString = VarType(dbqCI.ODBCOptions), "ODBC options type mismatch."
+    Assert.AreEqual dbqCI.ODBCOptionsStr, dbqCI.ODBCOptions, "ODBC options mismatch."
+    Assert.AreEqual "FKSupport=False;", dbqCI.ODBCOptions, "ODBC options mismatch."
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Options")
+Private Sub ztcODBCOptionsStr_ValidatesDictOptions()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim Options As Scripting.Dictionary
+    Set Options = New Scripting.Dictionary
+    Options("FKSupport") = False
+    Options("Timeout") = 50000
+    Dim Expected As String
+    Expected = Replace(LiteADO.DefaultOptions, "FKSupport=True;", "FKSupport=False;") _
+               & "Timeout=50000;NoCreat=True;"
+Act:
+    Dim dbqCI As LiteADO
+    Set dbqCI = LiteADO(vbNullString, False, Options)
+Assert:
+    Assert.IsTrue IsObject(dbqCI.ODBCOptions), "ODBC options type mismatch."
+    Assert.AreEqual "Dictionary", TypeName(dbqCI.ODBCOptions), "ODBC options type mismatch."
+    Assert.AreEqual 7, dbqCI.ODBCOptions.Count, "ODBC options count mismatch."
+    Assert.AreEqual False, dbqCI.ODBCOptions("FKSupport"), "ODBC option FKSupport mismatch."
+    Assert.AreEqual True, dbqCI.ODBCOptions("NoCreat"), "ODBC option NoCreat mismatch."
+    Assert.AreEqual 50000, dbqCI.ODBCOptions("Timeout"), "ODBC option Timeout mismatch."
+    Assert.AreEqual Expected, dbqCI.ODBCOptionsStr, "ODBC options mismatch."
+    
 CleanExit:
     Exit Sub
 TestFail:

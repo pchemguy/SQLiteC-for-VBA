@@ -397,7 +397,7 @@ End Function
 '@Description "Executes SQL statement not returning data."
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty, _
-                       Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
+                       Optional ByRef AffectedRows As Long = -2) As SQLiteResultCodes
 Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning data."
     Dim ResultCode As SQLiteResultCodes
     If IsNull(QueryParameters) Then
@@ -411,16 +411,16 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
         Exit Function
     End If
     
-    If AffectedRows <> -1 Then AffectedRows = this.DbConn.ChangesCount(True)
+    If AffectedRows <> -2 Then AffectedRows = this.DbConn.ChangesCount(True)
     ResultCode = this.DbExec.ExecuteStepAPI
-    If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
-        If AffectedRows <> -1 Then
+    If AffectedRows <> -2 Then
+        If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
             AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
+        Else
+            AffectedRows = -1
         End If
-        ExecuteNonQuery = ResultCode
-    Else
-        AffectedRows = -1
     End If
+    
     this.AffectedRowsCount = AffectedRows
     ExecuteNonQuery = ResultCode
 End Function
@@ -609,7 +609,7 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
     Dim AffectedRows As Long: AffectedRows = 0 '''' RD Workaround
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteNonQuery(SQLQuery, QueryParameters, AffectedRows)
-    If ResultCode = SQLITE_OK Then
+    If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Then
         ILiteADO_ExecuteNonQuery = AffectedRows
     Else
         ILiteADO_ExecuteNonQuery = -1

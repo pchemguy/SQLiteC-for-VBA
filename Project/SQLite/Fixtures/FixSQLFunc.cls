@@ -44,6 +44,13 @@ Public Function SelectPragmaNoRowid() As String
     SelectPragmaNoRowid = "SELECT * FROM pragma_function_list AS functions"
 End Function
 
+Public Function InsertData() As String
+    InsertData = Join(Array( _
+        "INSERT INTO functions ", _
+        SelectPragmaNoRowid _
+    ), vbNewLine)
+End Function
+
 Public Function CreateWithData() As String
     CreateWithData = Join(Array( _
         "DROP TABLE IF EXISTS functions;", _

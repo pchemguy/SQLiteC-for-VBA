@@ -434,6 +434,7 @@ Attribute GetFabRecordset.VB_Description = "Shapes/flattens the data returning a
             .Update
         Next RowIndex
         .UpdateBatch
+        .MoveFirst
     End With
     
     Set GetFabRecordset = FabRecordset

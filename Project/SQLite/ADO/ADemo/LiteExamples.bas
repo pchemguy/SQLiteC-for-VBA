@@ -55,8 +55,9 @@ End Sub
 Private Sub DemoHostFreezeWithBusyDb()
     Const PROC_NAME As String = "DemoHostFreezeWithBusyDb"
     Dim dbm As LiteMan
-    Set dbm = LiteMan(":tmp:")
+    Set dbm = LiteMan(":tmp:", , "StepAPI=True;Timeout=10000;SyncPragma=NORMAL;FKSupport=True;")
     Debug.Print dbm.ExecADO.MainDB
+    dbm.ExecADO.ExecuteNonQuery FixSQLFunc.CreateWithData
     
     Dim dbAdo As LiteADO
     Set dbAdo = dbm.ExecADO
@@ -75,4 +76,72 @@ Private Sub DemoHostFreezeWithBusyDb()
     On Error GoTo 0
     Debug.Print PROC_NAME & ":" & " App has been locked due to busy db for " & _
         Delta & " s."
+End Sub
+
+Private Sub ConnectSQLiteAdoCommandSourceFreezeWithBusyDb()
+    Dim Driver As String
+    Driver = "SQLite3 ODBC Driver"
+    Dim Database As String
+    Database = Environ("Temp") & "\" & CStr(Format(Now, "yyyy-mm-dd_hh-mm-ss.")) _
+        & CStr((Timer * 10000) Mod 10000) & CStr(Round(Rnd * 10000, 0)) & ".db"
+    Debug.Print Database
+    Dim Options As String
+    Options = "JournalMode=DELETE;SyncPragma=NORMAL;FKSupport=True;"
+
+    Dim AdoConnStr As String
+    AdoConnStr = "Driver=" & Driver & ";" & "Database=" & Database & ";" & Options
+    
+    Dim SQLQuery As String
+    Dim RecordsAffected As Long: RecordsAffected = 0 '''' RD workaround
+    Dim AdoCommand As ADODB.Command
+    Set AdoCommand = New ADODB.Command
+    With AdoCommand
+        .CommandType = adCmdText
+        .ActiveConnection = AdoConnStr
+        .ActiveConnection.CursorLocation = adUseClient
+    End With
+    
+    '''' ===== Create Functions table ===== ''''
+    SQLQuery = Join(Array( _
+        "CREATE TABLE functions(", _
+        "    name    TEXT COLLATE NOCASE NOT NULL,", _
+        "    builtin INTEGER             NOT NULL,", _
+        "    type    TEXT COLLATE NOCASE NOT NULL,", _
+        "    enc     TEXT COLLATE NOCASE NOT NULL,", _
+        "    narg    INTEGER             NOT NULL,", _
+        "    flags   INTEGER             NOT NULL", _
+        ")" _
+    ), vbLf)
+    With AdoCommand
+        .CommandText = SQLQuery
+        .Execute RecordsAffected, Options:=adExecuteNoRecords
+    End With
+    
+    '''' ===== Insert rows into Functions table ===== ''''
+    SQLQuery = Join(Array( _
+        "INSERT INTO functions", _
+        "SELECT * FROM pragma_function_list" _
+    ), vbLf)
+    With AdoCommand
+        .CommandText = SQLQuery
+        .Execute RecordsAffected, Options:=adExecuteNoRecords
+    End With
+    
+    '@Ignore StopKeyword
+    Stop '''' Lock Db. For example, open in GUI admin tool and start a transaction
+    '''' ===== Try changing journal mode ===== ''''
+    On Error Resume Next
+    With AdoCommand
+        .CommandText = "PRAGMA journal_mode = 'WAL'"
+        .Execute RecordsAffected, Options:=adExecuteNoRecords
+    End With
+    If Err.Number <> 0 Then
+        Debug.Print "Error: #" & CStr(Err.Number) & ". " & vbNewLine & _
+                    "Error description: " & Err.Description
+    End If
+    '@Ignore StopKeyword
+    Stop
+    On Error GoTo 0
+    
+    AdoCommand.ActiveConnection.Close
 End Sub

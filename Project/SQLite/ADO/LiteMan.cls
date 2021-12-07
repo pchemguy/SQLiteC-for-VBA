@@ -47,27 +47,35 @@ Private this As TLiteMan
 ''''       * True/False             - new db file is based on the value
 ''''                                  and path resolution is enabled
 ''''
+''''   ConnOptions (Variant, optional, Empty):
+''''     Either a string or dictionary of ODBC options. If a string is provided,
+''''     it is used as is. If a dictionary is provided, the containing options
+''''     are added to / override the default options.
+''''
 '@DefaultMember
 Public Function Create(ByVal Database As String, _
-              Optional ByVal AllowNonExistent As Variant = False) As LiteMan
+              Optional ByVal AllowNonExistent As Variant = False, _
+              Optional ByVal ConnOptions As Variant = Empty) As LiteMan
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteMan
     Set Instance = New LiteMan
-    Instance.Init Database, AllowNonExistent
+    Instance.Init Database, AllowNonExistent, ConnOptions
     Set Create = Instance
 End Function
 
 Friend Sub Init(ByVal Database As String, _
-       Optional ByVal AllowNonExistent As Variant = False)
+       Optional ByVal AllowNonExistent As Variant = False, _
+       Optional ByVal ConnOptions As Variant = Empty)
     With this
-        Set .ExecADO = NewDB(Database, AllowNonExistent)
+        Set .ExecADO = NewDB(Database, AllowNonExistent, ConnOptions)
         Set .MetaADO = LiteMetaADO(.ExecADO)
         Set .MetaSQL = .MetaADO.MetaSQL
     End With
 End Sub
 
 Friend Function NewDB(ByVal Database As String, _
-                      ByVal AllowNonExistent As Variant) As ILiteADO
+                      ByVal AllowNonExistent As Variant, _
+             Optional ByVal ConnOptions As Variant = Empty) As ILiteADO
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(Database, AllowNonExistent)
     With PathCheck
@@ -76,7 +84,8 @@ Friend Function NewDB(ByVal Database As String, _
         FilePathName = .DatabasePathName
         Debug.Assert (Len(FilePathName) > 0 And Database <> ":blank:") _
                   Or (Len(FilePathName) = 0 And Database = ":blank:")
-        Set NewDB = LiteADO(.DatabasePathName, AllowNonExistent Or .IsSpecial)
+        Set NewDB = LiteADO(.DatabasePathName, AllowNonExistent Or .IsSpecial, _
+                            ConnOptions)
     End With
 End Function
 

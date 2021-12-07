@@ -400,7 +400,7 @@ Private Sub ztcExecuteNonQuery_VerifiesCreateTable()
 
 Arrange:
     Dim dbc As SQLiteCConnection
-    Set dbc = FixObjC.GetDBCMem
+    Set dbc = FixObjC.GetDBCTmp
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(vbNullString)
 
@@ -413,7 +413,8 @@ Act:
     SQLQuery = FixSQLITRB.CreateRowid
     Dim AffectedRows As Long: AffectedRows = 0 '''' RD ByRef workaround.
     ResultCode = dbs.ExecuteNonQuery(SQLQuery, , AffectedRows)
-    Assert.AreEqual SQLITE_DONE, ResultCode, "Unexpected ExecuteNonQuery error."
+    Assert.IsTrue ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE, _
+        "Unexpected ExecuteNonQuery error."
 Assert:
     Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
     Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"

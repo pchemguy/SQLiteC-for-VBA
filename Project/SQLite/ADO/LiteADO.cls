@@ -19,6 +19,7 @@ Implements ILiteADO
 
 Private Type TLiteADO
     MainDB As String '''' Absolute file pathname to the main database.
+    ODBCOptions As Variant
     ConnectionString As String
     AdoConnection As ADODB.Connection
     AdoCommand As ADODB.Command
@@ -28,11 +29,12 @@ Private this As TLiteADO
 
 '@DefaultMember
 Public Function Create(ByVal Database As String, _
-              Optional ByVal AllowNonExistent As Variant = False) As ILiteADO
+              Optional ByVal AllowNonExistent As Variant = False, _
+              Optional ByVal ConnOptions As Variant = Empty) As ILiteADO
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteADO
     Set Instance = New LiteADO
-    Instance.Init Database, AllowNonExistent
+    Instance.Init Database, AllowNonExistent, ConnOptions
     Set Create = Instance
 End Function
 
@@ -45,14 +47,20 @@ End Function
 ''''     If True, Database may refer to a non-existent database, which will be
 ''''     created. If Empty, path resolution will be skipped.
 ''''
+''''   ConnOptions (Variant, optional, Empty):
+''''     Either a string or dictionary of ODBC options. If a string is provided,
+''''     it is used as is. If a dictionary is provided, the containing options
+''''     are added to / override the default options.
+''''
 Friend Sub Init(ByVal Database As String, _
-       Optional ByVal AllowNonExistent As Variant = False)
+       Optional ByVal AllowNonExistent As Variant = False, _
+       Optional ByVal ConnOptions As Variant = Empty)
     Set this.AdoCommand = New ADODB.Command
     With this.AdoCommand
         .CommandType = adCmdText
         .CommandText = LiteMetaSQL.Version
         .Prepared = True
-        .ActiveConnection = ConnectionString(Database, AllowNonExistent)
+        .ActiveConnection = ConnectionString(Database, AllowNonExistent, ConnOptions)
         .ActiveConnection.CursorLocation = adUseClient
         Set this.AdoConnection = .ActiveConnection
     End With
@@ -103,25 +111,105 @@ Public Property Get AdoCommand() As ADODB.Command
 End Property
 
 
+Public Property Get ODBCOptions() As Variant
+    If IsObject(this.ODBCOptions) Then
+        Set ODBCOptions = this.ODBCOptions
+    Else
+        ODBCOptions = this.ODBCOptions
+    End If
+End Property
+
+
+Public Property Get ODBCOptionsStr() As String
+    Dim Options As String
+    If VarType(this.ODBCOptions) = vbString Then
+        Options = this.ODBCOptions
+    Else
+        Dim OptionsDict As Scripting.Dictionary
+        Set OptionsDict = IIf(IsObject(this.ODBCOptions), this.ODBCOptions, DefaultOptionsDict)
+        Dim OptionsArray As Variant
+        OptionsArray = OptionsDict.Keys
+        Dim OptionName As String
+        Dim OptionIndex As Long
+        For OptionIndex = 0 To OptionsDict.Count - 1
+            OptionName = OptionsArray(OptionIndex)
+            OptionsArray(OptionIndex) = OptionName & "=" & OptionsDict(OptionName)
+        Next OptionIndex
+        Options = Join(OptionsArray, ";") & ";"
+    End If
+    ODBCOptionsStr = Options
+End Property
+
+
+Public Property Get DefaultOptions() As String
+    DefaultOptions = "StepAPI=True;NoTXN=False;NoWCHAR=False;SyncPragma=NORMAL;FKSupport=True;"
+End Property
+
+
+Public Property Get DefaultOptionsDict() As Scripting.Dictionary
+    Dim Options As Scripting.Dictionary
+    Set Options = New Scripting.Dictionary
+    With Options
+        .CompareMode = TextCompare
+        .Item("StepAPI") = True
+        .Item("NoTXN") = False
+        .Item("NoWCHAR") = False
+        .Item("SyncPragma") = "NORMAL"
+        .Item("FKSupport") = True
+    End With
+    Set DefaultOptionsDict = Options
+End Property
+
+
 '''' Args:
 ''''   DatabaseName (string):
 ''''     File pathname of the main database
+''''
 ''''   AllowNonExistent (boolean, optional, false):
 ''''     If false, creation of new database will not be allowed.
 ''''
+''''   Options (Variant, optional, Empty):
+''''     Either a string or dictionary of ODBC options. If a string is provided,
+''''     it is used as is. If a dictionary is provided, the containing options
+''''     are added to / override the default options.
+''''
 '@Description "Constructs default SQLiteODBC connection string"
 Private Function ConnectionString(ByVal Database As String, _
-                         Optional ByVal AllowNonExistent As Variant = False _
-                         ) As String
+                         Optional ByVal AllowNonExistent As Variant = False, _
+                         Optional ByVal Options As Variant = Empty) As String
 Attribute ConnectionString.VB_Description = "Constructs default SQLiteODBC connection string"
     this.MainDB = Database
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
-    Dim Options As String
-    Options = "SyncPragma=NORMAL;FKSupport=True;"
-    If Not AllowNonExistent Then _
-        Options = Options & "NoCreat=True;"
-    this.ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & Options
+    Dim OptionsStr As String
+    Select Case VarType(Options)
+        Case vbEmpty, vbNull
+            Set this.ODBCOptions = DefaultOptionsDict
+        Case vbString
+            this.ODBCOptions = Options
+        Case vbObject
+            Dim OptionsDict As Scripting.Dictionary
+            Set OptionsDict = DefaultOptionsDict
+            Dim OptionNames As Variant
+            OptionNames = Options.Keys()
+            Dim OptionIndex As Long
+            Dim OptionName As String
+            For OptionIndex = 0 To Options.Count - 1
+                OptionName = OptionNames(OptionIndex)
+                OptionsDict(OptionName) = Options(OptionName)
+            Next OptionIndex
+            Set this.ODBCOptions = OptionsDict
+    End Select
+    If Not AllowNonExistent Then
+        If IsObject(this.ODBCOptions) Then
+            this.ODBCOptions("NoCreat") = True
+        Else
+            this.ODBCOptions = this.ODBCOptions & "NoCreat=True;"
+        End If
+    End If
+    OptionsStr = ODBCOptionsStr
+    
+    this.ConnectionString = "Driver=" & Driver & ";Database=" & Database & ";" & OptionsStr
     ConnectionString = this.ConnectionString
 End Function
 
@@ -219,24 +307,27 @@ End Function
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _
                            ) As Variant
-    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
-                        "LiteADO", "Parameterized queries are not supported."
+    Guard.ExpressionErr IsFalsy(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO/ILiteADO_GetScalar", _
+                        "Parameterized queries are not supported."
     ILiteADO_GetScalar = GetScalar(SQLQuery)
 End Function
 
 Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As ADODB.Recordset
-    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
-                        "LiteADO", "Parameterized queries are not supported."
+    Guard.ExpressionErr IsFalsy(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO/ILiteADO_GetAdoRecordset", _
+                        "Parameterized queries are not supported."
     Set ILiteADO_GetAdoRecordset = GetAdoRecordset(SQLQuery)
 End Function
 
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
                                  Optional ByVal QueryParameters As Variant = Empty _
                                  ) As Long
-    Guard.ExpressionErr IsEmpty(QueryParameters), ActionNotSupportedErr, _
-                        "LiteADO", "Parameterized queries are not supported."
+    Guard.ExpressionErr IsFalsy(QueryParameters), ActionNotSupportedErr, _
+                        "LiteADO/ILiteADO_ExecuteNonQuery", _
+                        "Parameterized queries are not supported."
     ILiteADO_ExecuteNonQuery = ExecuteNonQuery(SQLQuery)
 End Function
 
