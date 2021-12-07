@@ -20,16 +20,6 @@ End Type
 Private this As TSQLiteCAdoDemo
 
 
-Private Sub CleanUp()
-    With this
-        Set .dbq = Nothing
-        Set .dbs = Nothing
-        Set .dbmADO = Nothing
-        Set .dbmC = Nothing
-    End With
-End Sub
-
-
 Private Sub MainC()
     this.DbPathName = FixObjAdo.RandomTempFileName
     InitDBQC
@@ -53,6 +43,16 @@ Private Sub MainADO()
 End Sub
 
 
+Private Sub CleanUp()
+    With this
+        Set .dbq = Nothing
+        Set .dbs = Nothing
+        Set .dbmADO = Nothing
+        Set .dbmC = Nothing
+    End With
+End Sub
+
+
 Private Sub DemoDBQ(Optional ByVal Subpackage As String = "C")
     Dim dbq As ILiteADO
     Set dbq = this.dbq
@@ -60,30 +60,62 @@ Private Sub DemoDBQ(Optional ByVal Subpackage As String = "C")
     Dim SQLQuery As String
     Dim AffectedRows As Long
     
+    '''' ===== CREATE Functions table ===== ''''
     SQLQuery = FixSQLFunc.Create
     AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+    '''' ========= INSERT records ========= ''''
     SQLQuery = FixSQLFunc.InsertData
     AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
     
     Debug.Print "Number of inserted rows: " & CStr(AffectedRows)
     
+    '''' ========= SELECT records ========= ''''
     Dim QueryParams As Scripting.Dictionary
     If Subpackage = "C" Then
+        '''' ========= SQLiteC/ILiteADO supports PARAMS ========= ''''
         SQLQuery = FixSQLFunc.SelectFilteredParamName
         Set QueryParams = FixSQLFunc.SelectFilteredParamNameValues
     Else
+        '''' ==== SQLiteADO/ILiteADO does not support PARAMS ==== ''''
         SQLQuery = FixSQLFunc.SelectFilteredPlain
         Set QueryParams = Nothing
     End If
     
+    '''' ============== Get Recordset ============= ''''
     Dim AdoRecordset As ADODB.Recordset
     Set AdoRecordset = dbq.GetAdoRecordset(SQLQuery, QueryParams)
     
+    '''' ========= Conert into a 2D array ========= ''''
     Dim RowSet2D As Variant
     RowSet2D = ArrayLib.TransposeArray(AdoRecordset.GetRows)
+        
+    Debug.Print "Number of selected rows: " & CStr(AdoRecordset.RecordCount)
     
+    '''' ================================================================= ''''
+    '''' ================================================================= ''''
     
-    Debug.Print "Number of selected records: " & CStr(AdoRecordset.RecordCount)
+    '''' ===== CREATE ITRB table ===== ''''
+    SQLQuery = FixSQLITRB.Create
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+    '''' ========= INSERT records ========= ''''
+    SQLQuery = FixSQLITRB.InsertPlain
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+
+    Debug.Print "Number of inserted rows: " & CStr(AffectedRows)
+
+
+    '''' ========= UPDATE records ========= ''''
+    If Subpackage = "C" Then
+        '''' ========= SQLiteC/ILiteADO supports PARAMS ========= ''''
+        SQLQuery = FixSQLITRB.UpdateParamName
+        Set QueryParams = FixSQLITRB.UpdateParamValueDict
+    Else
+        '''' ==== SQLiteADO/ILiteADO does not support PARAMS ==== ''''
+        SQLQuery = FixSQLITRB.UpdatePlain
+        Set QueryParams = Nothing
+    End If
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery, QueryParams)
+    Debug.Print "Number of updated rows: " & CStr(AffectedRows)
 End Sub
 
 

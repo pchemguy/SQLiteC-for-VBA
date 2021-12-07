@@ -204,8 +204,9 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
         Else
             '''' SQLITE_RANGE is expected for a calculated column, such as "count(*)"
             '''' Only return an error, if this is not the case; otherwise, continue.
-            ResultCode = dbc.ErrInfoRetrieve
+            ResultCode = dbc.ErrInfoRetrieve(False)
             If ResultCode <> SQLITE_OK And ResultCode <> SQLITE_RANGE Then
+                dbc.PrintErr
                 ColumnMetaAPI = ResultCode
                 Exit Function
             Else

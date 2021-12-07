@@ -263,9 +263,10 @@ Public Sub PrintErr()
     End With
 End Sub
 
-Public Function ErrInfoRetrieve() As SQLiteResultCodes
+Public Function ErrInfoRetrieve(Optional ByVal PrintDebug As Boolean = True _
+                               ) As SQLiteResultCodes
     GetErr
-    PrintErr
+    If PrintDebug Then PrintErr
     ErrInfoRetrieve = this.ErrInfo.ErrorCodeEx
 End Function
 
