@@ -16,7 +16,15 @@ The SQLiteC class
   4) generates SQLiteCConnection instances (abstract factory),
   5) initiates resolution of [circular references][] at the termination stage.
 
-While functions (1), (3), and (4) are similar to those provided by LiteMan, (2) and (5) are specific to SQLiteC. It also provides a wrapper for the SQLite backup APIs. Since the SQLite version API does not require a database connection, SQLiteC wraps it, providing a basic SQLite3.dll usability check. The *immediate pane* command `?SQLiteC(vbNullString).Version` should print the library version as an integer number, e.g., 3037000. Alternatively, this command `?SQLiteC(vbNullString).Version(False)` prints the same value as a string, e.g., 3.37.0.
+While functions (1), (3), and (4) are similar to those provided by LiteMan, (2) and (5) are specific to SQLiteC. It also provides a wrapper for the SQLite backup APIs. Since the SQLite version API does not require a database connection, SQLiteC wraps it, providing a basic SQLite3.dll usability check.  When executed from the *immediate pane*, commands shown in the left table column below should produce output as indicated in the right column:
+
+<p align="center"><b>Table 1. Sample immediate pane commands</b></p>
+
+|                          Command                       |              Output              |  
+|--------------------------------------------------------|----------------------------------|  
+| `?CStr(SQLiteC(vbNullString).Version(Numeric:=True))`  | SQLite version, e.g. **3037000** |  
+| `?CStr(SQLiteC(vbNullString).Version(Numeric:=False))` | SQLite version, e.g. **3.37.0**  |  
+
 
 Project repository includes custom-compiled SQLite3 binaries for Windows. The Library/SQLiteCAdo/dll folder contains x32 (built with Microsoft Build Tools) and x64 (built with MSYS/MinGW) versions. Both have all optional extensions enabled, including the ICU extension, which depends on the ICU binaries (also included). Further information regarding the building process, including the scripts, is available from the  [SQLite ICU MinGW][] project.
 
