@@ -20,10 +20,10 @@ While functions (1), (3), and (4) are similar to those provided by LiteMan, (2) 
 
 <p align="center"><b>Table 1. Sample immediate pane commands</b></p>
 
-|                          Command                       |              Output              |  
-|--------------------------------------------------------|----------------------------------|  
-| `?CStr(SQLiteC(vbNullString).Version(Numeric:=True))`  | SQLite version, e.g. **3037000** |  
-| `?CStr(SQLiteC(vbNullString).Version(Numeric:=False))` | SQLite version, e.g. **3.37.0**  |  
+|                          Command                       |              Output               |  
+|--------------------------------------------------------|-----------------------------------|  
+| `?CStr(SQLiteC(vbNullString).Version(Numeric:=True))`  | SQLite version, e.g., **3037000** |  
+| `?CStr(SQLiteC(vbNullString).Version(Numeric:=False))` | SQLite version, e.g., **3.37.0**  |  
 
 
 Project repository includes custom-compiled SQLite3 binaries for Windows. The Library/SQLiteCAdo/dll folder contains x32 (built with Microsoft Build Tools) and x64 (built with MSYS/MinGW) versions. Both have all optional extensions enabled, including the ICU extension, which depends on the ICU binaries (also included). Further information regarding the building process, including the scripts, is available from the  [SQLite ICU MinGW][] project.
