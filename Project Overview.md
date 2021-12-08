@@ -41,10 +41,10 @@ I assumed the following convention for structuring my project, as seen from the 
 
 * *CPearson/Array* contains the [Chip Pearson's Array library][CPearson Array] with some fixes,
 * *Guard* contains the Guard component used for input validation and testing,
-* *Project Utils* contains the *RDVBA Project Utils* package, and
+* *Project Utils* contains the [RDVBA Project Utils][] package, and
 * *Shared* contains several regular modules with various helper routines.
 
-There are three other root-level directories in this project. The *SQLite* directory contains sufficiently mature components, which are the main focus of this project. *SQLiteDBdev* includes various experimental/draft modules. Finally, the *DllManager* directory contains the *DLL Manager* developed specifically for the SQLiteC subpackage, but it may be useful in other projects and is described later in this documentation.
+There are three other root-level directories in this project. The *SQLite* directory contains sufficiently mature components, which are the main focus of this project. *SQLiteDBdev* includes various experimental/draft modules. Finally, the *DllTools* directory contains [DLL Manager][DllTools] developed specifically for the SQLiteC subpackage, but it may be useful in other projects and is described later in this documentation.
 
 I do not use the top-level directory *Tests*. Instead, I prefer having individual test modules as close to their targets as possible. In this relatively large project, I decided to make one exception. While I usually place test fixtures within test modules, in this case, it would mean a lot of duplicated code. Further, some of them are complex enough to justify tests of their own. For these reasons, I grouped test fixtures into several separate *Fix-* prefixed modules. To avoid global namespace pollution, I decided to use predeclared classes rather than standard modules. And because these modules serve the entire project, they essentially constitute a test fixtures subpackage. I added tests to this subpackage and placed it under the main project directory (*SQLite*).
 
@@ -52,7 +52,7 @@ I do not use the top-level directory *Tests*. Instead, I prefer having individua
 
 The main project file hosting this VBA project is the *SQLiteCAdoReflectVBAdev.xls* Excel Workbook located in the repository root. The repo also contains three directories. The *Project* directory contains all project code modules exported by running the *ProjectUtilsSnippets.ProjectFilesExport* macro from the *Common/Project Utils* virtual project folder. The *Assets* directory hosts documentation figures. Finally, the *Library* directory is for package-specific files.
 
-Each package should host its files in a subdirectory under *Library*. This way, packages with all their supporting files can be added to other projects easily. For example, the *DllManager* subdirectory contains custom-build SQLite binaries (both x32 and x64). Several DLL Manager tests use these binaries as test fixtures. Similarly, *SQLiteCAdo* holds a demo database and various files used by tests, demos, and examples.
+Each package should host its files in a subdirectory under *Library*. This way, packages with all their supporting files can be added to other projects easily. For example, the *DllTools* subdirectory contains custom-build SQLite binaries (both x32 and x64). Several DLL Manager tests use these binaries as test fixtures. Similarly, *SQLiteCAdo* holds a demo database and various files used by tests, demos, and examples.
 
 ### Supporting tools
 
@@ -70,6 +70,7 @@ I prepare diagrams starting from the [yWorks yEd][] graph editor. I save origina
 [SQLiteDB VBA]: https://pchemguy.github.io/SQLiteDB-VBA-Library/
 [CPearson Array]: http://www.cpearson.com/Excel/VBAArrays.htm
 [RDVBA Project Utils]: https://pchemguy.github.io/RDVBA-Project-Utils/
+[DllTools]: https://pchemguy.github.io/DllTools/
 [SO Q&amp;A]: https://stackoverflow.com/questions/70098835/excel-hangs-at-exit-after-running-rdvba-tests
 [yWorks yEd]: https://www.yworks.com/products/yed
 [TableGenerator]: https://www.tablesgenerator.com/
