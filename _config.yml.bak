@@ -1,8 +1,14 @@
 remote_theme: pmarsceill/just-the-docs
 
+<<<<<<< HEAD
 title: "SQLiteC for VBA"
 
+markdown: CommonMarkGhPages
+=======
+title: "SQLite C API"
+
 markdown: GFM
+>>>>>>> gh-pages-C-Ado
 
 webmaster_verifications:
   google: "eeyANkR7sUrPKHD5z5GheWmEg9GY5Sjpn1aCSpbx0J0"
