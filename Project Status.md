@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Performance and known issues
-nav_order: 4
+nav_order: 5
 permalink: /project-status
 ---
 

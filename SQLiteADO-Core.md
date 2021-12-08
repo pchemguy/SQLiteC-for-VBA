@@ -1,7 +1,7 @@
 ---
 layout: default
 title: SQLiteADO core
-nav_order: 5
+nav_order: 6
 permalink: /sqliteado-core
 ---
 
@@ -40,7 +40,7 @@ As mentioned earlier, this class is a feature-limited ADODB wrapper. Presently, 
 
 ### ILiteADO
 
-ILiteADO formalizes LiteADO’s interface, and it represents the main database-associated object. ILiteADO provides a unified high-level interface for interactions with SQLite databases, including opening/closing database connections, query execution methods, and transaction control. The two other groups of SQLiteADO classes take an ILiteADO object as a dependency. Originally a part of the SQLiteADO package, those classes can now be used by SQLiteC via its implementation of ILiteADO.
+ILiteADO formalizes LiteADO's interface, and it represents the main database-associated object. ILiteADO provides a unified high-level interface for interactions with SQLite databases, including opening/closing database connections, query execution methods, and transaction control. The two other groups of SQLiteADO classes take an ILiteADO object as a dependency. Originally a part of the SQLiteADO package, those classes can now be used by SQLiteC via its implementation of ILiteADO.
 
 ### ADOlib
 
