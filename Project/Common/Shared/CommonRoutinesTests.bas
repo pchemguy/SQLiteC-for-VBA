@@ -1,12 +1,15 @@
 Attribute VB_Name = "CommonRoutinesTests"
 '@Folder "Common.Shared"
-''@TestModule
-'@IgnoreModule LineLabelNotUsed
+'@TestModule
+'@IgnoreModule LineLabelNotUsed, SelfAssignedDeclaration
 '@IgnoreModule UnhandledOnErrorResumeNext: Test routines validating expected errors do not need to resume error handling
 '@IgnoreModule FunctionReturnValueDiscarded: Test routines validating expected errors may not need the returned value
 '@IgnoreModule AssignmentNotUsed, VariableNotUsed: Ignore dummy assignments in tests
 Option Explicit
 Option Private Module
+
+Private Const MODULE_NAME As String = "CommonRoutinesTests"
+Private TestCounter As Long
 
 #If LateBind Then
     Private Assert As Object
@@ -23,6 +26,16 @@ Private Sub ModuleInitialize()
     #Else
         Set Assert = New Rubberduck.PermissiveAssertClass
     #End If
+    With Logger
+        .ClearLog
+        .DebugLevelDatabase = DEBUGLEVEL_MAX
+        .DebugLevelImmediate = DEBUGLEVEL_NONE
+        .UseIdPadding = True
+        .UseTimeStamp = False
+        .RecordIdDigits 3
+        .TimerSet MODULE_NAME
+    End With
+    TestCounter = 0
 End Sub
 
 
@@ -30,6 +43,8 @@ End Sub
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     Set Assert = Nothing
+    Logger.TimerLogClear MODULE_NAME, TestCounter
+    Logger.PrintLog
 End Sub
 
 
@@ -41,6 +56,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_ThrowsIfScalarArgument()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     UnfoldParamArray 1
     Guard.AssertExpectedError Assert, ErrNo.ExpectedArrayErr
 End Sub
@@ -49,6 +65,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_ThrowsIfObjectArgument()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     UnfoldParamArray Application
     Guard.AssertExpectedError Assert, ErrNo.ExpectedArrayErr
 End Sub
@@ -57,6 +74,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesUnfoldsWrappedArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ParamArrayParamArrayArg(0 To 0) As Variant
@@ -78,6 +96,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingEmptyArray()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -96,6 +115,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch1stLB()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ArgumentOuter(1 To 1) As Variant
@@ -120,6 +140,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch1stUB()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ArgumentOuter(0 To 1) As Variant
@@ -144,6 +165,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch1stDim()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Argument(0 To 0, 0 To 1) As Variant
@@ -166,6 +188,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch2ndLB()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ArgumentOuter(0 To 0) As Variant
@@ -190,6 +213,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch2ndDim()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim ArgumentOuter(0 To 0) As Variant
@@ -214,6 +238,7 @@ End Sub
 '@TestMethod("ParramArray")
 Private Sub ztcUnfoldParamArray_VerifiesNoUnfoldingMismatch2ndType()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
 Act:
@@ -233,6 +258,7 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ValidatesFullPathName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
@@ -253,10 +279,11 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ValidatesValidPathName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(Expected, Array("db", "sqlite"))
@@ -270,42 +297,13 @@ End Sub
 
 
 '@TestMethod("PathCheck")
-Private Sub ztcVerifyOrGetDefaultPath_ValidatesEmptyFilePathName()
-    On Error GoTo TestFail
-
-Arrange:
-    Dim PATHuSEP As String
-    PATHuSEP = Application.PathSeparator
-    Dim PROJuNAME As String
-    PROJuNAME = ThisWorkbook.VBProject.Name
-    Dim Expected As String
-    Expected = ThisWorkbook.Path & _
-               PATHuSEP & PROJuNAME & "." & "db"
-Act:
-    Dim Actual As String
-    Actual = VerifyOrGetDefaultPath(vbNullString, Array("db", "sqlite"))
-    '''' Depending on search order, either Thisworkbook.Path or
-    '''' its Library\<PROJuNAME> subfolder is searched first.
-    '''' Ignore this matter for the purpose of this test.
-    Actual = Replace(Actual, "Library" & PATHuSEP & PROJuNAME & PATHuSEP, vbNullString)
-Assert:
-    Assert.AreEqual Expected, Actual, "CheckPath failed with empty file pathname." _
-                                    & "Expected: < " & Expected & " > "
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ValidatesFileName()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
     Actual = VerifyOrGetDefaultPath(ThisWorkbook.Name, vbNullString)
@@ -322,15 +320,14 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ValidatesRelativePath()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
 
 Arrange:
-    Dim DotPathSep As String
-    DotPathSep = "." & Application.PathSeparator
     Dim Expected As String
-    Expected = ThisWorkbook.Path & Application.PathSeparator & DotPathSep & ThisWorkbook.Name
+    Expected = ThisWorkbook.Path & "\" & ThisWorkbook.Name
 Act:
     Dim Actual As String
-    Actual = VerifyOrGetDefaultPath(DotPathSep & ThisWorkbook.Name, vbNullString)
+    Actual = VerifyOrGetDefaultPath(".\" & ThisWorkbook.Name, vbNullString)
 Assert:
     Assert.AreEqual Expected, Actual, "CheckPath failed with relative path"
 
@@ -344,6 +341,7 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfFileNotFound()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim FilePathName As String
     FilePathName = VerifyOrGetDefaultPath(vbNullString, vbNullString)
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
@@ -353,6 +351,7 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfNoFileNameSupplied()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim FilePathName As String
     FilePathName = VerifyOrGetDefaultPath(Environ$("SystemRoot"), vbNullString)
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
@@ -362,8 +361,39 @@ End Sub
 '@TestMethod("PathCheck")
 Private Sub ztcVerifyOrGetDefaultPath_ThrowsIfRootedPathSupplied()
     On Error Resume Next
+    TestCounter = TestCounter + 1
     Dim FilePathName As String
     FilePathName = VerifyOrGetDefaultPath("\ABC\DEF", vbNullString)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnEmptyPathName()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath(vbNullString, "db", False)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnNonExistingFile()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath("Blabla", Array("sqlite", "db"), False)
+    Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
+End Sub
+
+
+'@TestMethod("PathCheck")
+Private Sub ztcVerifyOrGetDefaultPath_ThrowsOnWrongPath()
+    On Error Resume Next
+    TestCounter = TestCounter + 1
+    Dim FilePathName As String
+    FilePathName = VerifyOrGetDefaultPath("..\" & ThisWorkbook.Name, , False)
     Guard.AssertExpectedError Assert, ErrNo.FileNotFoundErr
 End Sub
 
@@ -371,6 +401,7 @@ End Sub
 '@TestMethod("IsFalsy")
 Private Sub IsFalsy_VerifiesFalsiness()
     On Error GoTo TestFail
+    TestCounter = TestCounter + 1
     
 Arrange:
     Dim TestVar As Variant
@@ -401,4 +432,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-

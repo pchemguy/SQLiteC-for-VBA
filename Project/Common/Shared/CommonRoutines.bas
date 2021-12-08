@@ -1,12 +1,18 @@
 Attribute VB_Name = "CommonRoutines"
 '@Folder "Common.Shared"
-'@IgnoreModule MoveFieldCloserToUsage, IndexedDefaultMemberAccess
+'@IgnoreModule MoveFieldCloserToUsage, IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
+
+#If Win64 Then
+    Public Const ARCH As String = "x64"
+#Else
+    Public Const ARCH As String = "x32"
+    Public Const vbLongLong As Long = 20&
+#End If
 
 Private lastID As Double
 
 
-'@EntryPoint
 Public Function GetTimeStampMs() As String
     '''' On Windows, the Timer resolution is subsecond, the fractional part (the four characters at the end
     '''' given the format) is concatenated with DateTime. It appears that the Windows' high precision time
@@ -16,10 +22,9 @@ End Function
 
 
 '''' The number of seconds since the Epoch is multiplied by 10^4 to bring the first
-'''' four fractional places in Timer value into the whole part before trancation.
-'''' Long on a 32bit machine does not provide sufficient number of digits,
-'''' so returning double. Alternatively, a Currency type could be used.
-'@EntryPoint
+'''' four fractional places in Timer value into the whole part before truncation.
+'''' Long does not provide sufficient number of digits, so returning double.
+'''' Alternatively, a Currency type could be used.
 Public Function GenerateSerialID() As Double
     Dim newID As Double
     Dim secTillLastMidnight As Double
@@ -32,6 +37,33 @@ Public Function GenerateSerialID() As Double
     End If
     GenerateSerialID = lastID
     'GetSerialID = Fix((CDbl(Date) * 100000# + CDbl(Timer) / 8.64))
+End Function
+
+Public Function GetEpoch() As Double
+    GetEpoch = CDbl(DateDiff("s", DateSerial(1970, 1, 1), Date)) + Timer
+End Function
+
+Public Function EpochToString(Optional ByVal Epoch As Double = -1) As String
+    Dim EpochValue As Double
+    Dim EpochRef As Date
+    EpochRef = DateSerial(1970, 1, 1)
+    If Epoch > 0 Then
+        EpochValue = Epoch
+    Else
+        EpochValue = CDbl(DateDiff("s", EpochRef, Date)) + Timer
+    End If
+    Dim DateVal As Date
+    DateVal = DateAdd("s", EpochValue, EpochRef)
+    EpochToString = Format(DateVal, "YYYY-MM-DD hh:mm:ss") & "." & _
+                    Format(Round((EpochValue - Int(EpochValue)) * 1000), "000")
+End Function
+
+Public Function GenerateGUID() As String
+    GenerateGUID = Mid$(CreateObject("Scriptlet.TypeLib").GUID, 2, 36)
+End Function
+
+Public Function RandomLong() As Long
+    RandomLong = Val("&H" & Left$(GenerateGUID, 8))
 End Function
 
 
@@ -70,7 +102,6 @@ Attribute UnfoldParamArray.VB_Description = "Unfolds a ParamArray argument when 
 End Function
 
 
-'@EntryPoint
 Public Function GetVarType(ByRef Variable As Variant) As String
     Dim NDim As String
     NDim = IIf(IsArray(Variable), "/Array", vbNullString)
@@ -124,11 +155,12 @@ End Function
 '''' Resolves file pathname
 ''''
 '''' This helper routines attempts to interpret provided pathname as
-'''' a reference to an existing file:
+'''' a file reference:
 '''' 1) check if provided reference is a valid absolute file pathname, if not,
-'''' 2) if AllowNonExistent, return FilePathName, possibly prefixed with
-''''      ThisWorkbook.Path
-''''    if absolute path is provided, fail resolution at this point.
+'''' 2) if AllowNonExistent and parent folder exists and the reference does not
+''''      point to an existing folder, return FilePathName, possibly prefixed
+''''      with ThisWorkbook.Path
+'''' If absolute path is provided and not resolved, fail resolution at this point.
 '''' 3) construct an array of possible file locations:
 ''''      - ThisWorkbook.Path & Application.PathSeparator
 ''''      - Environ("APPDATA") & Application.PathSeparator &
@@ -136,7 +168,7 @@ End Function
 ''''    construct an array of possible file names:
 ''''      - FilePathName
 ''''          skip if len=0, or prefix is not relative
-''''      - ThisWorkbook.VBProject.Name & Ext (Ext comes from the second argument
+''''      - FilePathName & Ext (Ext comes from the second argument)
 '''' 4) loop through all possible path/filename combinations until a valid
 ''''    pathname is found or all options are exhausted
 ''''
@@ -149,7 +181,7 @@ End Function
 ''''
 ''''   AllowNonExistent (boolean, optional, False):
 ''''     If set to True, FilePathName may point to a non-existent file.
-''''     If FilePathName does not contain path separator, prefix ThisWorkbook.Path
+''''     Check with ThisWorkbook.Path prefix
 ''''     If FilePathName is blank, raise an error
 ''''
 '''' Returns:
@@ -204,7 +236,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     
     '''' === (1) === Check if FilePathName is a valid path to an existing file.
     If fso.FileExists(FilePathName) Then
-        VerifyOrGetDefaultPath = FilePathName
+        VerifyOrGetDefaultPath = fso.GetAbsolutePathName(FilePathName)
         Exit Function
     End If
     
@@ -217,14 +249,15 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
                                     ThisWorkbook.Path & PATHuSEP & FilePathName)
         Else
             PathNameCandidate = fso.GetAbsolutePathName(FilePathName)
-            If Not fso.FolderExists(fso.GetParentFolderName(PathNameCandidate)) Then
-                GoTo FILE_NOT_FOUND
-            End If
+        End If
+        If Not fso.FolderExists(fso.GetParentFolderName(PathNameCandidate)) Then
+            GoTo FILE_NOT_FOUND
         End If
         VerifyOrGetDefaultPath = PathNameCandidate
         Exit Function
     End If
     
+    '''' Absolute path name, if valid, should be resolved in (1) or (2)
     If Len(fso.GetDriveName(FilePathName)) > 0 Then GoTo FILE_NOT_FOUND
     
     '''' === (3a) === Array of prefixes
@@ -264,11 +297,11 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
     End If
     If VarType(DefaultExts) = vbString Then
         If Len(DefaultExts) > 0 Then
-            FileNames(FileNameIndex) = PROJuNAME & "." & DefaultExts
+            FileNames(FileNameIndex) = FilePathName & "." & DefaultExts
         End If
     ElseIf VarType(DefaultExts) >= vbArray Then
         For ExtIndex = LBound(DefaultExts, 1) To UBound(DefaultExts, 1)
-            FileNames(FileNameIndex) = PROJuNAME & "." & DefaultExts(ExtIndex)
+            FileNames(FileNameIndex) = FilePathName & "." & DefaultExts(ExtIndex)
             FileNameIndex = FileNameIndex + 1
         Next ExtIndex
     End If
@@ -280,8 +313,7 @@ Attribute VerifyOrGetDefaultPath.VB_Description = "Resolves file pathname"
         For PrefixIndex = 0 To UBound(Prefixes)
             PathNameCandidate = Prefixes(PrefixIndex) & FileNames(FileNameIndex)
             If fso.FileExists(PathNameCandidate) Then
-                VerifyOrGetDefaultPath = Replace$(PathNameCandidate, _
-                                                  PATHuSEP & PATHuSEP, PATHuSEP)
+                VerifyOrGetDefaultPath = fso.GetAbsolutePathName(PathNameCandidate)
                 Exit Function
             End If
         Next PrefixIndex
@@ -368,7 +400,6 @@ End Function
 ''''   NoTopHeader (boolean):
 ''''     If true, do not format the first row as header
 ''''
-'@Ignore ProcedureNotUsed
 '@Description "Places a 2D array with top header on a worksheet"
 Public Sub Array2Range(ByVal DataArray As Variant, _
                        ByVal TopLeftCell As Excel.Range, _

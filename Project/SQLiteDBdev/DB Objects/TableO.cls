@@ -12,8 +12,7 @@ Attribute VB_Description = "SQLite table class. The suffix is used to avoid poss
 '@ModuleDescription "SQLite table class. The suffix is used to avoid possible collision with ADOX"
 '@PredeclaredId
 '@Exposed
-'@IgnoreModule IndexedDefaultMemberAccess
-'@IgnoreModule ProcedureNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
 
@@ -25,7 +24,7 @@ Private Type TTableO
     CKs As Scripting.Dictionary
     FKs As Scripting.Dictionary
     PK As ConstraintPK
-    DbManager As SQLiteDB
+    DbManager As ILiteADO
     FromDbHelper As TableOFromDbHelper
     '''' Interpreted values:
     ''''   vbNullString - No Action
@@ -78,7 +77,7 @@ End Function
 
 '@Description "Factory, pulling metadata from database"
 Public Function FromDb(ByVal TableName As String, _
-                       ByVal DbManager As SQLiteDB) As TableO
+                       ByVal DbManager As ILiteADO) As TableO
 Attribute FromDb.VB_Description = "Factory, pulling metadata from database"
     Dim Instance As TableO
     Set Instance = New TableO
@@ -269,13 +268,14 @@ Public Property Get SQL() As String
         CreateTable(LineIndex) = this.PK.SQL
     End If
     
-    SQL = IIf(this.CreateActionIfExists = "DROP", _
-              "DROP TABLE IF EXISTS """ & this.TableName & """;" & vbLf, _
-              vbNullString) & _
-          "CREATE TABLE " & _
-          IIf(this.CreateActionIfExists = "SKIP", _
-              "IF NOT EXISTS ", _
-              vbNullString) & _
+    Dim DropCmd As String
+    If this.CreateActionIfExists = "DROP" Then
+        DropCmd = "DROP TABLE IF EXISTS """ & this.TableName & """;" & vbLf
+    Else
+        DropCmd = vbNullString
+    End If
+    SQL = DropCmd & "CREATE TABLE " & _
+          IIf(this.CreateActionIfExists = "SKIP", "IF NOT EXISTS ", vbNullString) & _
           """" & this.TableName & """ (" & vbLf & _
           Join(CreateTable, "," & vbLf) & vbLf & ")"
 End Property
@@ -285,6 +285,7 @@ Public Sub CreateTable(Optional ByVal OnConflictAction As Variant = Empty)
     If Not IsEmpty(OnConflictAction) Then
         this.CreateActionIfExists = OnConflictAction
     End If
+    '@Ignore FunctionReturnValueDiscarded
     this.DbManager.ExecuteNonQuery Me.SQL
 End Sub
 
@@ -357,11 +358,11 @@ Public Property Set PK(ByVal PKInstance As ConstraintPK)
     Set this.PK = PKInstance
 End Property
 
-Public Property Get DbManager() As SQLiteDB
+Public Property Get DbManager() As ILiteADO
     Set DbManager = this.DbManager
 End Property
 
-Public Property Set DbManager(ByVal DbManagerInstance As SQLiteDB)
+Public Property Set DbManager(ByVal DbManagerInstance As ILiteADO)
     Set this.DbManager = DbManagerInstance
 End Property
 

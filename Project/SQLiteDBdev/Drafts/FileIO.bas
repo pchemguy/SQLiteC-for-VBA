@@ -5,7 +5,7 @@ Option Explicit
 Option Private Module
 Option Compare Text
 
-Private Const LIB_NAME As String = "SQLiteDBVBA"
+Private Const LIB_NAME As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
 Private Const REL_PREFIX As String = "Library" & PATH_SEP & LIB_NAME & PATH_SEP
 

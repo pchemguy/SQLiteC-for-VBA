@@ -213,3 +213,4 @@ Private Sub RstAddNew(ByVal AdoRecordset As ADODB.Recordset, ByVal Suffix As Lon
         End With
 End Sub
 
+

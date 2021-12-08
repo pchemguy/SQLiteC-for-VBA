@@ -1,0 +1,7 @@
+EXPORTS
+    CopyMem @1
+    DummyFnc0Args @2
+    DummyFnc3Args @3
+    DummySub0Args @4
+    DummySub3Args @5
+    PerfGauge @6

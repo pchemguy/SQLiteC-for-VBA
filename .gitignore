@@ -4,3 +4,6 @@ desktop.ini
 *.sqlite-shm
 *.sqlite-wal
 *.journal
+*.tmp
+Tmp
+Temp
