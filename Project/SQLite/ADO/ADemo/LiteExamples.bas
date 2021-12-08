@@ -5,18 +5,18 @@ Attribute VB_Name = "LiteExamples"
 Option Explicit
 
 
-'''' Should print "True" if the SQLiteODBC driver is available
+'''' Should print "SQLiteODBC Found: True" if the SQLiteODBC driver is available
 '@Description "Checks and prints SQLiteODBC driver status."
 Private Sub SQLite3ODBCDriverCheck()
 Attribute SQLite3ODBCDriverCheck.VB_Description = "Checks and prints SQLiteODBC driver status."
-    Debug.Print LiteMan.SQLite3ODBCDriverCheck()
+    Debug.Print "SQLiteODBC Found: " & LiteMan.SQLite3ODBCDriverCheck()
 End Sub
 
-'''' Should print SQLite version number, e.g., "3.32.3"
+'''' Should print SQLite version number, e.g., "SQLite version: 3.32.3"
 '@Description "Queries and prints SQLite version number."
 Private Sub CheckConnectionAndVersion()
 Attribute CheckConnectionAndVersion.VB_Description = "Queries and prints SQLite version number."
-    Debug.Print LiteMan(":mem:").ExecADO.GetScalar(vbNullString)
+    Debug.Print "SQLite version: " & LiteMan(":mem:").ExecADO.GetScalar(vbNullString)
 End Sub
 
 '''' Should print pathname of the new database file, e.g.,

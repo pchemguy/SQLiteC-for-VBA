@@ -160,7 +160,7 @@ Private Sub ztcCreate_ValidatesDefaultConnectionString()
 Arrange:
     Dim Expected As String
     Expected = "Driver=SQLite3 ODBC Driver;Database=" & FixObjAdo.DefaultDbPathName & _
-               ";" & LiteADO.DefaultOptions & "NoCreat=True;"
+               ";" & LiteADO.DefaultOptions
 Act:
     Dim dbq As ILiteADO
     Set dbq = FixObjAdo.GetDbReg()

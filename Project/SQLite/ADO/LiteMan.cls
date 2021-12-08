@@ -54,7 +54,7 @@ Private this As TLiteMan
 ''''
 '@DefaultMember
 Public Function Create(ByVal Database As String, _
-              Optional ByVal AllowNonExistent As Variant = False, _
+              Optional ByVal AllowNonExistent As Variant = True, _
               Optional ByVal ConnOptions As Variant = Empty) As LiteMan
 Attribute Create.VB_UserMemId = 0
     Dim Instance As LiteMan
@@ -64,7 +64,7 @@ Attribute Create.VB_UserMemId = 0
 End Function
 
 Friend Sub Init(ByVal Database As String, _
-       Optional ByVal AllowNonExistent As Variant = False, _
+       Optional ByVal AllowNonExistent As Variant = True, _
        Optional ByVal ConnOptions As Variant = Empty)
     With this
         Set .ExecADO = NewDB(Database, AllowNonExistent, ConnOptions)

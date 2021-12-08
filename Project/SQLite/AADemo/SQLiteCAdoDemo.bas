@@ -20,17 +20,18 @@ End Type
 Private this As TSQLiteCAdoDemo
 
 
+'''' ILiteADO/SQLiteAdo demo
 Private Sub MainC()
     this.DbPathName = FixObjAdo.RandomTempFileName
     InitDBQC
     Debug.Print "Created blank db: " & this.dbq.MainDB
     
     DemoDBQ "C"
-    
     CleanUp
 End Sub
 
 
+'''' ILiteADO/SQLiteC demo
 Private Sub MainADO()
     this.DbPathName = FixObjAdo.RandomTempFileName
     Set this.dbmADO = LiteMan(this.DbPathName, True)
@@ -38,7 +39,6 @@ Private Sub MainADO()
     Debug.Print "Created blank db: " & this.dbq.MainDB
     
     DemoDBQ "ADO"
-    
     CleanUp
 End Sub
 
