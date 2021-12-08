@@ -17,7 +17,7 @@ I planned to integrate SQLiteDB with my fork of [SecureADODB][SecureADODB PG] an
 
 While I significantly refactored the code and added some features, the package is still focused on
 
-* database connectivity (ADO/SQLiteODBC connection string helpers and limited ADODB wrappers),
+* database connectivity (SQLiteODBC connection string helper and a limited ADODB wrapper),
 * validation/integrity, and
 * metadata (SQL-based SQLite introspection).
 
