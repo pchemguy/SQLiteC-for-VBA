@@ -26,7 +26,7 @@ The third issue is related to the performance of DLL calls from VBA. It should a
 
 <!-- References -->
 
-[SQLiteC classes]: /SQLite-C-API/class-hierarchy#SQLiteC
+[SQLiteC classes]: ./class-hierarchy#SQLiteC
 [ObjectStore]: https://pchemguy.github.io/ObjectStore/
 [SecureADODB fork]: https://pchemguy.github.io/SecureADODB-Fork/
 [ContactEditor]: https://pchemguy.github.io/ContactEditor/
