@@ -22,7 +22,7 @@ Functionally, the SQLiteCConnection class roughly follows the ADODB.Connection c
 
 #### Statement functionality
 
-SQLiteCConnection acts as an abstract factory for the SQLiteCStatement class, providing three related members, including the *CreateStatement()* factory, the *StmtDb()* accessor, and the *Finalize()* destructor.
+SQLiteCConnection acts as an abstract factory for the SQLiteCStatement class, providing three related members, including the *CreateStatement()* factory, the *StmtDb()* accessor, and the *Finalize()* destructor. Additionally, *ExecADO()* is a shortcut returning an ILiteADO/SQLiteCStatement instance.
 
 #### Transaction control
 

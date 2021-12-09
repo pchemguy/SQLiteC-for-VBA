@@ -30,4 +30,4 @@ permalink: /sqlitec/statement
 
 #### ILiteADO interface
 
-SQLiteCStatement class implements ILiteADO interface. While the current LiteADO/ILiteADO implementation does not support parameterized queries, the SQLiteCStatement/ILiteADO implementation provides such support. Another important aspect is that this implementation handles the SQLite connection object. If a connection is not opened before one of the query methods is called, it is opened and closed; otherwise, it remains open.
+SQLiteCStatement class implements the ILiteADO interface accessible via the *ExecADO* property. While the current ILiteADO/LiteADO implementation does not support parameterized queries, the ILiteADO/SQLiteCStatement implementation provides such support. Another important aspect is that this implementation handles the SQLite connection object. If a connection is not opened before one of the query methods is called, it is opened and closed; otherwise, it remains open.
