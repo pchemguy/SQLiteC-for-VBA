@@ -23,6 +23,9 @@ Private this As TSQLiteCAdoDemo
 '''' ILiteADO/SQLiteAdo demo
 Private Sub MainC()
     this.DbPathName = FixObjAdo.RandomTempFileName
+    '''' The shortcut version:
+    ''''     Set this.dbmC = SQLiteC("")
+    ''''     Set this.dbq = this.dbmC.CreateConnection(this.DbPathName, True).ExecADO
     InitDBQC
     Debug.Print "Created blank db: " & this.dbq.MainDB
     

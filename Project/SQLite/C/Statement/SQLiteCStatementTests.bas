@@ -52,7 +52,7 @@ End Sub
 
 
 '@TestMethod("DbStatement")
-Private Sub ztcCreateStatement_VerifiesNewStatement()
+Private Sub ztcCreate_VerifiesNewStatement()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
@@ -69,6 +69,28 @@ Assert:
     Assert.IsTrue dbs.DbParameters Is Nothing, "Parameters object should not be set."
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
     Assert.AreSame dbc, dbs.DbConnection, "Connection object mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("DbStatement")
+Private Sub ztcExecADO_VerifiesILiteADOStatement()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+    Dim dbc As SQLiteCConnection
+    Set dbc = FixObjC.GetDBCMem
+    Dim dbs As SQLiteCStatement
+    Set dbs = dbc.CreateStatement("ILiteADO")
+Assert:
+    Assert.IsFalse dbs Is Nothing, "DbStmt is not set."
+    Assert.IsTrue dbs.ExecADO Is dbc.ExecADO, "ExecADO reference mismatch."
 
 CleanExit:
     Exit Sub

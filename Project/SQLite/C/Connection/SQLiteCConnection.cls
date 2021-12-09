@@ -424,6 +424,15 @@ Attribute StmtDb.VB_Description = "Returns an existing SQLiteCStatement instance
     End If
 End Function
 
+'@Description "Shortcut returning ILiteADO interface instance."
+Public Property Get ExecADO() As ILiteADO
+Attribute ExecADO.VB_Description = "Shortcut returning ILiteADO interface instance."
+    Dim DbStmt As SQLiteCStatement
+    Set DbStmt = StmtDb("ILiteADO")
+    If DbStmt Is Nothing Then Set DbStmt = CreateStatement("ILiteADO")
+    Set ExecADO = DbStmt
+End Property
+
 '@Description "Finalizes all statement objects associated with connection."
 Friend Function Finalize() As SQLiteResultCodes
 Attribute Finalize.VB_Description = "Finalizes all statement objects associated with connection."
