@@ -96,6 +96,10 @@ Friend Property Get DbParameters() As SQLiteCParameters
     Set DbParameters = this.DbPara
 End Property
 
+Public Property Get ExecADO() As ILiteADO
+    Set ExecADO = Me
+End Property
+
 #If VBA7 Then
 Public Property Get StmtHandle() As LongPtr
 #Else
