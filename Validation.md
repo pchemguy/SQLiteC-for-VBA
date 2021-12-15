@@ -11,13 +11,13 @@ LiteFSCheck and LiteACID classes (SQLite/Checks) with the CommonRoutines module 
 
 ### LiteFSCheck
 
-The sole function of the LiteFSCheck class is to validate/resolve database specifications and perform file-system-based checks if appropriate. LiteFSCheck is a predeclared class, and its factory (default member) has the same signature as that of LiteMan. If a file path is provided, the second parameter controls whether the specified file must be a valid existing database file. When opening an existing file, the second argument must be set explicitly to *False*. Apart from relative/absolute file path, the LiteFSCheck factory also accepts these names as the first argument:
+The sole function of the LiteFSCheck class is to validate/resolve database specifications and perform file-system-based checks if appropriate. LiteFSCheck is a predeclared class, and its factory (default member) has the same signature as that of LiteMan. If a file path is provided, the second parameter controls whether the specified file must be a valid existing database file. The second argument should be set to *False* when opening an existing file. Apart from relative/absolute file path, the LiteFSCheck factory also accepts these names as the first argument:
 
  * ":memory:" or ":mem:" for an in-memory database,
  * ":temp:" or ":tmp:" for a new file-based database located in the Temp folder (with file name generated using date, time, and a random suffix string),
  * ":blank:" for an anonymous file-based database.
 
-LiteFSCheck contains three functional sections: one focused on stepwise verification of the path, another block, if appropriate, executes a series of checks aiming at verifying that the file is accessible and appears to be a valid SQLite3 database file, and the third (entry routine) is a dispatcher. The dispatcher handles shortcut names described above and passes control to the first two routines as necessary. For an existing file, it will also call the path resolution function VerifyOrGetDefaultPath in CommonRoutines. LiteFSCheck factory calls its constructor, which, in turn, runs all tests according to provided arguments, so the instance of LiteFSCheck returned by the factory already has the check results available.
+LiteFSCheck contains three functional sections: one focused on stepwise verification of the path, another block, if appropriate, executes a series of checks aiming at verifying that the file is accessible and appears to be a valid SQLite3 database file, and the third (entry routine) is a dispatcher. The dispatcher handles shortcut names described above and passes control to the first two routines as necessary. When instructed to look for an existing file, LiteFSCheck calls the path resolution function VerifyOrGetDefaultPath in CommonRoutines. LiteFSCheck factory calls its constructor, which, in turn, runs all tests according to provided arguments, so the instance of LiteFSCheck returned by the factory already has the check results available.
 
 <p align="center"><b>Table 1. Sample immediate pane commands</b></p>
 

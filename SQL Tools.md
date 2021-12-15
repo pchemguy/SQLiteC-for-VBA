@@ -27,10 +27,10 @@ LiteMetaADO focuses on retrieving the DDL description of database objects using 
 
 ### LiteMetaSQLIdxFK
 
-LiteMetaSQLIdxFK is different from other members in that it provides neither factory nor constructor. Instead, its default instance should be used. LiteMetaSQL also exposes LiteMetaSQLIdxFK's functionality via encapsulation.
+Unlike most classes, LiteMetaSQLIdxFK has neither factory nor constructor. Instead, the default instance provides its SQL generation functionality. LiteMetaSQL also exposes LiteMetaSQLIdxFK's functionality via encapsulation.
 
 SQLite provides several pragmas to query information about foreign keys and indices. *ForeingKeys* and *Indices* construct derived queries combining metadata from individual pragmas into extended tables (see above-referenced module for examples).
 
 FKChildIndices method generates a query returning information focusing on columns children from foreign key relationships and what indices for such columns are available. While the database does not require indices on foreign key children columns, such indices facilitate the processing of cascade restrict clauses. This query aims to identify foreign-key child columns without indices.
 
-SimilarIndices is another experimental query. It attempts to provide information related to the following matter. If IDX1 indexes columns (A, B) and IDX2 indexes columns (A, B, C), IDX2 can replace IDX1. This query aims to return all such similar indices, though it has not been thoroughly verified. It may yield some false positives. Whether it can miss indices is not clear.
+SimilarIndices is another experimental query. If the IDX1 index includes columns (A, B), and the IDX2 index includes columns (A, B, C), IDX2 can replace IDX1. SimilarIndices attempts to provide information related to any such combinations, though additional verification is necessary. It may yield some false positives. Whether it can miss indices is not clear.

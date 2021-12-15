@@ -6,7 +6,7 @@ parent: SQLiteC
 permalink: /sqlitec/connection
 ---
 
-Functionally, the SQLiteCConnection class roughly follows the ADODB.Connection class. It is usually instantiated via the SQLiteC.CreateConnection method and is responsible for several groups of functions. The primary responsibility of SQLiteCConnection is to open a database connection and keep a connection handle. SQLiteCConnection is involved in a circular reference. This project presently uses the [CleanUp cascade][ObjectStore] approach to resolve the loops, so the clean-up code is placed in the CleanUp() sub and not Class_Terminate().
+Functionally, the SQLiteCConnection class roughly follows the ADODB.Connection class. It is usually instantiated via the SQLiteC.CreateConnection method and is responsible for several function groups. The primary responsibility of SQLiteCConnection is to open a database connection and keep a connection handle. SQLiteCConnection is involved in a circular reference. This project presently uses the [CleanUp cascade][ObjectStore] approach to resolve the loops, so the clean-up code is placed in the CleanUp() sub and not Class_Terminate().
 
 #### SQLite API wrappers
 
@@ -16,7 +16,7 @@ Functionally, the SQLiteCConnection class roughly follows the ADODB.Connection c
   *ErrInfo()*, *GetErrc()*, *PrintErr()*, and *ErrInfoRetrieve()* methods retrieve and provide access to error information.  
 * Connection information  
   *AttachedDbPathName()* and *AccessMode()* provide file pathname and access mode for a specified attached database;  
-  *ChangesCount()* returns the number of changes for the last modifying transaction or the total number of changes performed via a particular connection.  
+  *ChangesCount()* returns the number of changes for the last modifying transaction or the total count performed via a particular connection.  
 * Basic query  
   *ExecuteNonQueryPlain()* wraps the SQLite *exec* API and executes SQL queries not returning data. The SQLite engine provides diverse APIs necessary to run a query and retrieve the result, including a simplified "shortcut" *exec*. This interface does not support parameterized statements and returns data via a callback function. At the same time, it handles multi-statement queries automatically, whereas the primary query interface stops processing the query command at the first semicolon. For simplicity, this method does not use a callback function and cannot return any data, so it is only suitable for controlling and modifying statements.
 

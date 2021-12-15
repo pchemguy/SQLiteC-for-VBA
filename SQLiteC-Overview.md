@@ -24,7 +24,7 @@ The SQLiteC class primarily acts as a manager object and the main entry point fo
 
 ### SQLiteCRC
 
-The SQLiteCRC class is merely a container holding the enum of SQLite error codes and providing a mapping from code to code name by its default instance.
+The SQLiteCRC class is a simple dictionary-based container. It keeps the SQLite error codes enum and provides code to code name mapping.
 
 ### SQLiteCRecordsetADO
 
