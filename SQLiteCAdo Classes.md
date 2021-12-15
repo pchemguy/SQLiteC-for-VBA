@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Class hierarchy
-nav_order: 4
+nav_order: 5
 permalink: /class-hierarchy
 ---
 
@@ -15,7 +15,7 @@ I planned to integrate SQLiteDB with my fork of [SecureADODB][SecureADODB PG] an
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteADO.svg" alt="SQLiteADO" width="100%" /></div>
 <p align="center"><b>Fig. 1. SQLiteADO class diagram</b></p>  
 
-While I significantly refactored the code and added some features, the package is still focused on
+While I significantly refactored the code and added some features, the package still focuses on
 
 * database connectivity (SQLiteODBC connection string helper and a limited ADODB wrapper),
 * validation/integrity, and
@@ -35,7 +35,7 @@ When I realized that some limitations of the SQLiteODBC driver are difficult, if
 <div align="center"><img src="https://raw.githubusercontent.com/pchemguy/SQLiteC-for-VBA/develop/Assets/Diagrams/SQLiteC.svg" alt="SQLiteC" width="100%" /></div>
 <p align="center"><b>Fig. 2. SQLiteC class diagram</b></p>  
 
-While developing the two packages, SQLiteADO and SQLiteC, I realized that it would be instructive to combine the two packages and define an interface class unifying and formalizing their high-level APIs. Thus, the two packages formed the *SQLite C/ADO with Introspection for VBA* library.
+While developing the two packages, SQLiteADO and SQLiteC, I realized that it would be instructive to combine them and define an interface class unifying and formalizing their high-level APIs. Thus, the two packages formed the *SQLite C/ADO with Introspection for VBA* library.
 
 
 <!-- References -->

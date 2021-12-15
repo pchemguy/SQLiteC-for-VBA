@@ -1,7 +1,7 @@
 ---
 layout: default
 title: SQLiteADO core
-nav_order: 6
+nav_order: 7
 permalink: /sqliteado-core
 ---
 
