@@ -20,7 +20,7 @@ End Type
 Private this As TSQLiteCAdoDemo
 
 
-'''' ILiteADO/SQLiteAdo demo
+'''' ILiteADO/SQLiteC demo
 Private Sub MainC()
     this.DbPathName = FixObjAdo.RandomTempFileName
     '''' The shortcut version:
@@ -34,7 +34,7 @@ Private Sub MainC()
 End Sub
 
 
-'''' ILiteADO/SQLiteC demo
+'''' ILiteADO/SQLiteAdo demo
 Private Sub MainADO()
     this.DbPathName = FixObjAdo.RandomTempFileName
     Set this.dbmADO = LiteMan(this.DbPathName, True)
