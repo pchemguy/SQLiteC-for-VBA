@@ -335,6 +335,140 @@ Public Function INSERTVALUESFrom2DArray(ByRef TableData As Variant) As String
 End Function
 
 
+'''' This routine splits a semicolon separated multi-statement SQL query into
+'''' subqueries. Since semicolons may be a part of a string value, direct
+'''' splitting cannot be used. The code scans the query and tracks single and
+'''' double quotation marks and square brackets. Only one of these can be
+'''' "opened" at any given position. Quotation marks may be escaped by doubling
+'''' or by a precedening odd number of backslashes. If quotation mark is escaped,
+'''' it is treated literally. When a semicolon is encountered, a split point is
+'''' added if all three tracked sets are closed. Otherwise, such a semicolon is
+'''' skipped.
+''''
+'''' Args:
+''''   SQLQuery (string):
+''''     SQL query to be split
+''''
+'''' Returns:
+''''   Array, containing individual subqueries
+''''
+'''' '''' "SELECT 1; SELECT ';''\''; ;SELECT 2; SELECT ''';[""]'; SELECT "
+''''
+'@Description "Splits multi-statement SQL query into subqueries."
+Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
+    Const SingleQuoteASCII As Byte = 39
+    Const DoubleQuoteASCII As Byte = 34
+    Const LeftBracketASCII As Byte = 91
+    Const RightBracketASCII As Byte = 93
+    Const BackSlashASCII As Byte = 92
+    Const SemicolonASCII As Byte = 59
+    
+    Dim QueryChars() As Byte
+    QueryChars = StrConv(" " & SQLQuery & " ", vbFromUnicode)
+    
+    Dim SplitPositions As Scripting.Dictionary
+    Set SplitPositions = New Scripting.Dictionary
+    SplitPositions.CompareMode = TextCompare
+    
+    Dim SQuoteOpen As Boolean
+    SQuoteOpen = False
+    Dim DQuoteOpen As Boolean
+    DQuoteOpen = False
+    Dim BracketOpen As Boolean
+    BracketOpen = False
+    
+    Dim BackSlashed As Boolean
+    
+    Dim CurChar As Byte
+    Dim ChrJ As Long
+    Dim CharIndex As Long
+    For CharIndex = 1 To Len(SQLQuery)
+        CurChar = QueryChars(CharIndex)
+        Select Case CurChar
+            Case LeftBracketASCII, RightBracketASCII
+                If Not (SQuoteOpen Or DQuoteOpen) Then _
+                    BracketOpen = Not BracketOpen
+            Case SingleQuoteASCII
+                '''' Bail immediately if the other quote or bracket is open
+                If Not (DQuoteOpen Or BracketOpen) Then
+                    '''' Char is backslashed if preceded by an odd number of "\".
+                    BackSlashed = False
+                    If QueryChars(CharIndex - 1) = BackSlashASCII Then
+                        ChrJ = CharIndex
+                        Do While QueryChars(ChrJ - 1) = BackSlashASCII
+                            ChrJ = ChrJ - 1
+                        Loop
+                        BackSlashed = CBool((CharIndex - ChrJ) Mod 2)
+                    End If
+                    
+                    '''' If quote is repeated, shift CharIndex to the last one
+                    '''' and flip the quote state if the total count is odd
+                    If Not BackSlashed Then
+                        ChrJ = CharIndex - 1
+                        Do While QueryChars(CharIndex + 1) = SingleQuoteASCII
+                            CharIndex = CharIndex + 1
+                        Loop
+                        If CBool((CharIndex - ChrJ) Mod 2) Then _
+                            SQuoteOpen = Not SQuoteOpen
+                    End If
+                End If
+            Case DoubleQuoteASCII
+                '''' Bail immediately if the other quote or bracket is open
+                If Not (SQuoteOpen Or BracketOpen) Then
+                    '''' Char is backslashed if preceded by an odd number of "\".
+                    BackSlashed = False
+                    If QueryChars(CharIndex - 1) = BackSlashASCII Then
+                        ChrJ = CharIndex
+                        Do While QueryChars(ChrJ - 1) = BackSlashASCII
+                            ChrJ = ChrJ - 1
+                        Loop
+                        BackSlashed = CBool((CharIndex - ChrJ) Mod 2)
+                    End If
+                    
+                    '''' If quote is repeated, shift CharIndex to the last one
+                    '''' and flip the quote state if the total count is odd
+                    If Not BackSlashed Then
+                        ChrJ = CharIndex - 1
+                        Do While QueryChars(CharIndex + 1) = DoubleQuoteASCII
+                            CharIndex = CharIndex + 1
+                        Loop
+                        If CBool((CharIndex - ChrJ) Mod 2) Then _
+                            DQuoteOpen = Not DQuoteOpen
+                    End If
+                End If
+            Case SemicolonASCII
+                If Not (SQuoteOpen Or DQuoteOpen Or BracketOpen) Then
+                    SplitPositions(SplitPositions.Count) = CharIndex
+                End If
+        End Select
+    Next CharIndex
+    SplitPositions(SplitPositions.Count) = Len(SQLQuery)
+    Dim SplitPosArr As Variant
+    SplitPosArr = SplitPositions.Items
+    
+    Dim SQLStmtStore As Scripting.Dictionary
+    Set SQLStmtStore = New Scripting.Dictionary
+    SQLStmtStore.CompareMode = TextCompare
+    
+    Dim LeftPos As Long
+    LeftPos = 1
+    Dim RightPos As Long
+    Dim SubStmt As String
+    
+    Dim SubStmtIndex As Long
+    For SubStmtIndex = LBound(SplitPosArr) To UBound(SplitPosArr)
+        RightPos = SplitPosArr(SubStmtIndex)
+        SubStmt = Trim$(Mid$(SQLQuery, LeftPos, RightPos - LeftPos))
+        If Len(SubStmt) > 0 Then
+            SQLStmtStore(SQLStmtStore.Count) = SubStmt
+        End If
+        LeftPos = RightPos + 1
+    Next SubStmtIndex
+    
+    SplitMultiStatement = SQLStmtStore.Items
+End Function
+
+
 '@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
