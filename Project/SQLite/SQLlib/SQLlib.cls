@@ -232,6 +232,109 @@ Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single qu
 End Function
 
 
+'''' Extracts field names from 2D array with header.
+''''
+'''' Extracts field names from the header row of a 2D array table. If any field
+'''' name contains double qoute, an error is raised. If any field name contains
+'''' a space, the name id double quoted.
+''''
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+'''' Returns:
+''''   1D array of field names.
+''''
+'''' Examples:
+''''   >>> ?Join(FieldNamesFrom2DArrayHeader(FixPeopleData.UsedRange.Value2), "#")
+''''   "id#first_name#last_name#age#gender#email#country#domain"
+''''
+'@Description "Extracts field names from 2D array with header."
+Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
+    Const PROC_NAME As String = "FieldNamesFrom2DArrayHeader"
+    
+    Dim FieldNames() As String
+    ReDim FieldNames(1 To UBound(TableData, 2) - LBound(TableData, 2) + 1)
+    Dim FieldIndexOffset As Long
+    FieldIndexOffset = LBound(TableData, 2) - LBound(FieldNames)
+    Dim FieldName As String
+    Dim FieldIndex As Long
+    For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
+        FieldName = TableData(1, FieldIndex + FieldIndexOffset)
+        If InStr(FieldName, """") > 0 Then
+            Err.Raise ErrNo.InvalidParameterErr, "SQLlib/" & PROC_NAME, _
+                      "Quote in fieldname: " & FieldName
+        End If
+        If InStr(FieldName, " ") > 0 Then
+            FieldNames(FieldIndex) = """" & FieldName & """"
+        Else
+            FieldNames(FieldIndex) = FieldName
+        End If
+    Next FieldIndex
+    FieldNamesFrom2DArrayHeader = FieldNames
+End Function
+
+
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+'@Description "Generates an array of record values for INSERT INTO VALUES"
+Public Function FieldValuesToVALUESFrom2DArray(ByRef TableData As Variant)
+    Dim FieldUB As Long
+    FieldUB = UBound(TableData, 2)
+    Dim FieldLB As Long
+    FieldLB = LBound(TableData, 2)
+    Dim RecordUB As Long
+    RecordUB = UBound(TableData, 1)
+    Dim RecordLB As Long
+    '''' +1 due to the header row
+    RecordLB = LBound(TableData, 1) + 1
+    
+    Dim FieldValues() As String
+    ReDim FieldValues(FieldLB To FieldUB)
+    Dim RecordValues() As String
+    ReDim RecordValues(RecordLB To RecordUB)
+    Dim FieldValue As Variant
+    
+    Dim FieldIndex As Long
+    Dim RecordIndex As Long
+    For RecordIndex = RecordLB To RecordUB
+        For FieldIndex = FieldLB To FieldUB
+            FieldValue = TableData(RecordIndex, FieldIndex)
+            Select Case VarType(FieldValue)
+                Case vbString
+                    FieldValues(FieldIndex) = SQLlib.QuoteSQLString(FieldValue)
+                Case vbLong, vbDouble, vbInteger, vbSingle, vbCurrency, vbByte, vbLongLong
+                    FieldValues(FieldIndex) = CStr(FieldValue)
+                Case vbEmpty, vbNull, vbError
+                    FieldValues(FieldIndex) = "NULL"
+                Case vbBoolean, vbDate
+                    FieldValues(FieldIndex) = SQLlib.QuoteSQLString(CStr(FieldValue))
+            End Select
+        Next FieldIndex
+        RecordValues(RecordIndex) = "(" & Join(FieldValues, ", ") & ")"
+    Next RecordIndex
+    FieldValuesToVALUESFrom2DArray = RecordValues
+End Function
+
+
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+'@Description "Generates the INSERT INTO VALUES query for bulk insert."
+Public Function INSERTVALUESFrom2DArray(ByRef TableData As Variant) As String
+    Dim SQLQuery As String
+    SQLQuery = _
+        "INSERT INTO " & this.TableName & "(" & _
+        Join(SQLlib.FieldNamesFrom2DArrayHeader(TableData), ", ") & ")" & _
+        vbNewLine & "VALUES" & vbNewLine & "    " & _
+        Join(FieldValuesToVALUESFrom2DArray(TableData), "," & vbNewLine & "    ")
+    INSERTVALUESFrom2DArray = SQLQuery
+End Function
+
+
 '@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
