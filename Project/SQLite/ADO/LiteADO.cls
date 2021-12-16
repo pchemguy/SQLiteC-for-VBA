@@ -266,12 +266,21 @@ End Function
 '@Description "Executes database modifying statement (UPDATE, DELETE, INSERT)"
 Private Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
 Attribute ExecuteNonQuery.VB_Description = "Executes database modifying statement (UPDATE, DELETE, INSERT)"
-    Dim RecordsAffected As Long: RecordsAffected = 0 '''' RD Workaround
-    With this.AdoCommand
-        .CommandText = SQLQuery
-        .Execute RecordsAffected, Options:=adExecuteNoRecords
-    End With
-    ExecuteNonQuery = RecordsAffected
+    Dim SubQueries As Variant
+    SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
+    Dim TotalRecordsAffected As Long
+    TotalRecordsAffected = 0
+    Dim RecordsAffected As Long
+    Dim SubQueryIndex As Long
+    For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
+        RecordsAffected = 0
+        With this.AdoCommand
+            .CommandText = SubQueries(SubQueryIndex)
+            .Execute RecordsAffected, Options:=adExecuteNoRecords
+        End With
+        TotalRecordsAffected = TotalRecordsAffected + RecordsAffected
+    Next SubQueryIndex
+    ExecuteNonQuery = TotalRecordsAffected
 End Function
 
 

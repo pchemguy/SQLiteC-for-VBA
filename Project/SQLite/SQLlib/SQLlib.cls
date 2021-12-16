@@ -251,6 +251,7 @@ End Function
 ''''
 '@Description "Extracts field names from 2D array with header."
 Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
+Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names from 2D array with header."
     Const PROC_NAME As String = "FieldNamesFrom2DArrayHeader"
     
     Dim FieldNames() As String
@@ -280,7 +281,8 @@ End Function
 ''''     2D array with data and field names in the first row.
 ''''
 '@Description "Generates an array of record values for INSERT INTO VALUES"
-Public Function FieldValuesToVALUESFrom2DArray(ByRef TableData As Variant)
+Public Function FieldValuesToVALUESFrom2DArray(ByRef TableData As Variant) As String()
+Attribute FieldValuesToVALUESFrom2DArray.VB_Description = "Generates an array of record values for INSERT INTO VALUES"
     Dim FieldUB As Long
     FieldUB = UBound(TableData, 2)
     Dim FieldLB As Long
@@ -325,6 +327,7 @@ End Function
 ''''
 '@Description "Generates the INSERT INTO VALUES query for bulk insert."
 Public Function INSERTVALUESFrom2DArray(ByRef TableData As Variant) As String
+Attribute INSERTVALUESFrom2DArray.VB_Description = "Generates the INSERT INTO VALUES query for bulk insert."
     Dim SQLQuery As String
     SQLQuery = _
         "INSERT INTO " & this.TableName & "(" & _
@@ -356,12 +359,18 @@ End Function
 ''''
 '@Description "Splits multi-statement SQL query into subqueries."
 Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
+Attribute SplitMultiStatement.VB_Description = "Splits multi-statement SQL query into subqueries."
     Const SingleQuoteASCII As Byte = 39
     Const DoubleQuoteASCII As Byte = 34
     Const LeftBracketASCII As Byte = 91
     Const RightBracketASCII As Byte = 93
     Const BackSlashASCII As Byte = 92
     Const SemicolonASCII As Byte = 59
+    
+    If SQLQuery = vbNullString Then
+        SplitMultiStatement = Array(vbNullString)
+        Exit Function
+    End If
     
     Dim QueryChars() As Byte
     QueryChars = StrConv(" " & SQLQuery & " ", vbFromUnicode)
@@ -442,7 +451,11 @@ Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
                 End If
         End Select
     Next CharIndex
-    SplitPositions(SplitPositions.Count) = Len(SQLQuery)
+    If SplitPositions.Count = 0 Then
+        SplitPositions(0) = Len(SQLQuery) + 1
+    ElseIf SplitPositions(SplitPositions.Count - 1) < Len(SQLQuery) Then
+        SplitPositions(SplitPositions.Count) = Len(SQLQuery) + 1
+    End If
     Dim SplitPosArr As Variant
     SplitPosArr = SplitPositions.Items
     
@@ -458,7 +471,8 @@ Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
     Dim SubStmtIndex As Long
     For SubStmtIndex = LBound(SplitPosArr) To UBound(SplitPosArr)
         RightPos = SplitPosArr(SubStmtIndex)
-        SubStmt = Trim$(Mid$(SQLQuery, LeftPos, RightPos - LeftPos))
+        SubStmt = Mid$(SQLQuery, LeftPos, RightPos - LeftPos)
+        SubStmt = Trim$(Replace(SubStmt, ";" & vbNewLine, "; "))
         If Len(SubStmt) > 0 Then
             SQLStmtStore(SQLStmtStore.Count) = SubStmt
         End If

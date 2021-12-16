@@ -116,6 +116,7 @@ Private Function GetAdoCommand(ByVal TableName As String, _
             .Value = FieldTypeValues(FieldIndex)
             .Size = GetAdoParamSize(.Value)
             .DataType = GetAdoParamType(.Value)
+            '@Ignore ArgumentWithIncompatibleObjectType: False positive
             Set AdoParam = AdoCommand.CreateParameter(.Name, .DataType, adParamInput, .Size, .Value)
             AdoCommand.Parameters.Append AdoParam
         End With

@@ -409,12 +409,17 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
         Exit Function
     End If
     
-    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
-    If ResultCode <> SQLITE_OK Then
-        ExecuteNonQuery = ResultCode
-        Exit Function
-    End If
-    
+    Dim SubQueries As Variant
+    SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
+    Dim SubQueryIndex As Long
+    For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
+        ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters)
+        If ResultCode <> SQLITE_OK Then
+            ExecuteNonQuery = ResultCode
+            Exit Function
+        End If
+    Next SubQueryIndex
+        
     If AffectedRows <> -2 Then AffectedRows = this.DbConn.ChangesCount(True)
     ResultCode = this.DbExec.ExecuteStepAPI
     If AffectedRows <> -2 Then

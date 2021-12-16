@@ -439,7 +439,7 @@ Act:
         "Unexpected ExecuteNonQuery error."
 Assert:
     Assert.AreEqual 0, AffectedRows, "AffectedRows mismatch"
-    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal, "Original query mismatch"
+    Assert.AreEqual SQLQuery, dbs.SQLQueryOriginal & ";", "Original query mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."

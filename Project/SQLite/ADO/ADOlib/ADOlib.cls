@@ -11,7 +11,8 @@ Attribute VB_Description = "Provides ADO related helpers"
 '@Folder "SQLite.ADO.ADOlib"
 '@ModuleDescription "Provides ADO related helpers"
 '@PredeclaredId
-'@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed
+'@IgnoreModule IndexedDefaultMemberAccess, ProcedureNotUsed, ArgumentWithIncompatibleObjectType
+''''
 Option Explicit
 
 Private Type TADOlib

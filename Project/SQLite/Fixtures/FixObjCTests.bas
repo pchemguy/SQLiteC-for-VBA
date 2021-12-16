@@ -153,6 +153,30 @@ End Sub
 
 
 '@TestMethod("Fixture")
+Private Sub ztcGetDBCMem_VerifiesDBSToILiteADO()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim dbs As SQLiteCStatement
+    Set dbs = FixObjC.GetDBCMem.CreateStatement(vbNullString)
+Act:
+    Dim dbq As ILiteADO
+    Set dbq = dbs
+Assert:
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Err.Number = ErrNo.TypeMismatchErr Then
+        Assert.Fail "SQLiteCStatement->ILiteADO interface assignment error."
+    Else
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
+
+
+'@TestMethod("Fixture")
 Private Sub ztcGetDBSMemFuncWithData_VerifiesDBSMemFuncWithData()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1

@@ -1,5 +1,6 @@
 Attribute VB_Name = "SQLiteCAdoTutorial"
 '@Folder "SQLite.AADemo"
+'@IgnoreModule
 Option Explicit
 
 Private Type TSQLiteCAdoTutorial
@@ -29,18 +30,10 @@ Private Sub MainADO()
     Set this.dbq = this.dbmADO.ExecADO
     Debug.Print "Created blank db: " & this.dbq.MainDB
     
-    Dim SQLQueries() As String
-    SQLQueries = SQLCreateTablePeople()
     Dim SQLQuery As String
+    SQLQuery = SQLCreateTablePeople()
     Dim Result As Long
-    
-    With this.dbq
-        Dim QueryIndex As Long
-        For QueryIndex = LBound(SQLQueries) To UBound(SQLQueries)
-            SQLQuery = SQLQueries(QueryIndex)
-            Result = .ExecuteNonQuery(SQLQuery)
-        Next QueryIndex
-    End With
+    Result = this.dbq.ExecuteNonQuery(SQLQuery)
     
     Dim TableName As String
     TableName = "main.people"
@@ -55,10 +48,8 @@ Private Sub MainADO()
 End Sub
 
 
-Private Function SQLCreateTablePeople() As String()
-    Dim SQLQueries(1 To 3) As String
-    
-    SQLQueries(1) = Join(Array( _
+Private Function SQLCreateTablePeople() As String
+    SQLCreateTablePeople = Join(Array( _
         "CREATE TABLE people (", _
         "    id         INTEGER NOT NULL,", _
         "    first_name VARCHAR(255) NOT NULL COLLATE NOCASE,", _
@@ -72,22 +63,14 @@ Private Function SQLCreateTablePeople() As String()
         "    UNIQUE(last_name, first_name, email),", _
         "    CHECK(18 <= ""Age"" <= 80),", _
         "    CHECK(""gender"" IN ('male', 'female'))", _
-        ")" _
-    ), vbNewLine)
-
-    SQLQueries(2) = Join(Array( _
+        ");", _
         "CREATE UNIQUE INDEX female_names_idx ON people (", _
         "    last_name,", _
         "    first_name", _
-        ") WHERE gender = 'female'" _
-    ), vbNewLine)
-
-    SQLQueries(3) = Join(Array( _
+        ") WHERE gender = 'female';", _
         "CREATE UNIQUE INDEX male_names_idx ON people (", _
         "    last_name,", _
         "    first_name", _
         ") WHERE gender = 'male'" _
     ), vbNewLine)
-    
-    SQLCreateTablePeople = SQLQueries
 End Function
