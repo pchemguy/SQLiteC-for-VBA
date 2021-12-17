@@ -32,6 +32,7 @@ Public Enum ErrNo
     EmptyStringErr = VBA.vbObjectError + 1013&
     SingletonErr = VBA.vbObjectError + 1014&
     UnknownClassErr = VBA.vbObjectError + 1015&
+    EmptyOrNullErr = VBA.vbObjectError + 1016&
     ObjectSetErr = VBA.vbObjectError + 1091&
     ExpectedArrayErr = VBA.vbObjectError + 2013&
     InvalidCharacterErr = VBA.vbObjectError + 2014&
