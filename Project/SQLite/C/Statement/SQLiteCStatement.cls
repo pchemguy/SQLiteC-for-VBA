@@ -409,8 +409,10 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
         Exit Function
     End If
     
+    If AffectedRows <> -2 Then AffectedRows = this.DbConn.ChangesCount(True)
+    
     Dim SubQueries As Variant
-    SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
+    SubQueries = LiteSQLlib.SplitMultiStatement(SQLQuery)
     Dim SubQueryIndex As Long
     For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
         ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters)
@@ -418,16 +420,17 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
             ExecuteNonQuery = ResultCode
             Exit Function
         End If
+        ResultCode = this.DbExec.ExecuteStepAPI
+        If Not (ResultCode = SQLITE_OK Or _
+                ResultCode = SQLITE_DONE Or _
+                ResultCode = SQLITE_ROW) Then
+            ExecuteNonQuery = ResultCode
+            Exit Function
+        End If
     Next SubQueryIndex
         
-    If AffectedRows <> -2 Then AffectedRows = this.DbConn.ChangesCount(True)
-    ResultCode = this.DbExec.ExecuteStepAPI
     If AffectedRows <> -2 Then
-        If ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or ResultCode = SQLITE_ROW Then
-            AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
-        Else
-            AffectedRows = -1
-        End If
+        AffectedRows = this.DbConn.ChangesCount(True) - AffectedRows
     End If
     
     this.AffectedRowsCount = AffectedRows

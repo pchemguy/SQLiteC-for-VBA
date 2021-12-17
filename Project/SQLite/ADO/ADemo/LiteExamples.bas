@@ -57,7 +57,9 @@ Private Sub DemoHostFreezeWithBusyDb()
     Dim dbm As LiteMan
     Set dbm = LiteMan(":tmp:", , "StepAPI=True;Timeout=10000;SyncPragma=NORMAL;FKSupport=True;")
     Debug.Print dbm.ExecADO.MainDB
-    dbm.ExecADO.ExecuteNonQuery FixSQLFunc.CreateWithData
+    Dim AffectedRows As Long
+    AffectedRows = dbm.ExecADO.ExecuteNonQuery(FixSQLFunc.CreateWithData)
+    Debug.Assert AffectedRows > 0
     
     Dim dbAdo As LiteADO
     Set dbAdo = dbm.ExecADO
