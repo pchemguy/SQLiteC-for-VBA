@@ -90,6 +90,7 @@ Private Sub LoadDlls()
 End Sub
 
 Private Sub UnLoadDlls()
+    '@Ignore FunctionReturnValueDiscarded
     this.DllMan.FreeMultiple
     Set this.DllMan = Nothing
 End Sub
@@ -243,3 +244,4 @@ Private Function DummyFnc3ArgsVBA(ByRef Destination As Byte, _
     Result = 10241024
     DummyFnc3ArgsVBA = Result
 End Function
+

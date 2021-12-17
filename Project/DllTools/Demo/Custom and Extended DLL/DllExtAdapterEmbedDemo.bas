@@ -46,9 +46,12 @@ End Sub
 
 Private Sub LoadDlls(ByVal DllPath As String)
     Dim DllMan As DllManager
+    '@Ignore FunctionReturnValueDiscarded
     DllManager.Free
     Dim DllName As String
     DllName = "sqlite3demo.dll"
     Set DllMan = DllManager.Create(DllPath, DllName)
     Set this.DllMan = DllMan
 End Sub
+
+
