@@ -24,6 +24,7 @@ End Enum
 Private Type TSQLlib
     TableName As String
     Limit As Long
+    FieldMap As Scripting.Dictionary
 End Type
 Private this As TSQLlib
 
@@ -47,7 +48,15 @@ End Function
 Friend Sub Init(ByVal TableName As String)
 Attribute Init.VB_Description = "Default constructor"
     this.TableName = TableName
+    Set this.FieldMap = New Scripting.Dictionary
+    this.FieldMap.CompareMode = TextCompare
 End Sub
+
+
+'@Ignore ProcedureNotUsed: Used by instance Guard
+Public Property Get Class() As SQLlib
+    Set Class = SQLlib
+End Property
 
 
 Public Property Get TableName() As String
@@ -57,12 +66,15 @@ End Property
 
 '@Ignore ProcedureNotUsed
 Public Property Let TableName(ByVal Values As String)
+    Guard.DefaultInstance Me
     this.TableName = Values
+    this.FieldMap.RemoveAll
 End Property
 
 
 '@Ignore WriteOnlyProperty
 Public Property Let Limit(ByVal LimitValue As Long)
+    Guard.DefaultInstance Me
     this.Limit = LimitValue
 End Property
 
@@ -237,6 +249,69 @@ Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single qu
 End Function
 
 
+'''' Examples:
+''''   >>> ?SQLlib.QuoteFieldName("file_name")
+''''   "file_name"
+''''
+''''   >>> ?SQLlib.QuoteFieldName("file name")
+''''   """file name"""
+''''
+''''   >>> ?SQLlib.QuoteFieldName("file_name", True)
+''''   "file_name"
+''''
+'@Description "Quotes field name."
+Public Function QuoteSQLName(ByVal FieldName As String, _
+                    Optional ByVal Force As Boolean = False) As String
+Attribute QuoteSQLName.VB_Description = "Quotes field name."
+    If InStr(FieldName, """") > 0 Or _
+       InStr(FieldName, "'") > 0 Or _
+       InStr(FieldName, "=") > 0 Then
+        Err.Raise ErrNo.InvalidParameterErr, "SQLlib/QuoteFieldName", _
+                  "Invalid char in fieldname: " & FieldName
+    End If
+    If Force Or InStr(FieldName, " ") > 0 Then
+        QuoteSQLName = """" & FieldName & """"
+    Else
+        QuoteSQLName = FieldName
+    End If
+End Function
+
+
+'''' Examples:
+''''   >>> ?SQLlib.CStrSQL(5.5)
+''''   "5.5"
+''''
+''''   >>> ?SQLlib.CStrSQL("Text")
+''''   "'Text'"
+''''
+''''   >>> ?SQLlib.CStrSQL(Empty)
+''''   "NULL"
+''''
+''''   >>> ?SQLlib.CStrSQL(Null)
+''''   "NULL"
+''''
+''''   >>> ?SQLlib.CStrSQL(True)
+''''   "'True'"
+''''
+'@Description "Converts a VBA Variant to SQL textual representation."
+Public Function CStrSQL(ByVal VariantVBA As Variant) As String
+Attribute CStrSQL.VB_Description = "Converts a VBA Variant to SQL textual representation."
+    Select Case VarType(VariantVBA)
+        Case vbString
+            CStrSQL = QuoteSQLString(VariantVBA)
+        Case vbLong, vbDouble, vbInteger, vbSingle, _
+             vbCurrency, vbByte, vbLongLong
+            CStrSQL = CStr(VariantVBA)
+        Case vbEmpty, vbNull, vbError
+            CStrSQL = "NULL"
+        Case vbBoolean
+            CStrSQL = QuoteSQLString(CStr(VariantVBA))
+        Case vbDate
+            CStrSQL = Format(VariantVBA, "YYYY-MM-DDTHH:MM:SS")
+    End Select
+End Function
+
+
 '@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
@@ -264,6 +339,152 @@ Attribute SubQuery.VB_Description = "Formats a SELECT query as a subquery suitab
     SubQuery = " (" & vbNewLine & _
                "    " & Replace(Replace(SQLQuery, ";", vbNullString), vbNewLine, vbNewLine & "    ") & _
                vbNewLine & "    )" & vbNewLine
+End Function
+
+
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+'@Description "Generates field map from 2D data array with header."
+Public Function MapFields(ByRef TableData As Variant) As Scripting.Dictionary
+Attribute MapFields.VB_Description = "Generates field map from 2D data array with header."
+    Dim FieldMap As Scripting.Dictionary
+    If Not this.FieldMap Is Nothing Then
+        If this.FieldMap.Count > 0 Then
+            Set MapFields = this.FieldMap
+            Exit Function
+        Else
+            Set FieldMap = this.FieldMap
+        End If
+    Else
+        Set FieldMap = New Scripting.Dictionary
+    End If
+    
+    Dim HeaderRowIndex As Long
+    HeaderRowIndex = LBound(TableData, 1)
+    Dim FieldIndex As Long
+    For FieldIndex = LBound(TableData, 2) To UBound(TableData, 2)
+        FieldMap(TableData(HeaderRowIndex, FieldIndex)) = FieldIndex
+    Next FieldIndex
+    Set MapFields = FieldMap
+End Function
+
+
+'''' Generates set membership test clause.
+''''
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+''''   ColNames (array):
+''''     1D array of field names to be included. The order may be
+''''     important in terms of performance. When there is a corresponding
+''''     usable multi-field index, it is better to supply field names
+''''     according to their appearance in the index.
+''''
+''''   RowIndices (array):
+''''     1D array of record indices. The 1st data row (2nd row in the
+''''     TableData array) has index of LBound(TableData, 2) (one is
+''''     added by the code.
+''''
+'''' Examples:
+''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country", "age"), Array(2, 3))
+''''   "(country, age) IN (VALUES
+''''       ('Kazakhstan', '62'),
+''''       ('Belarus', '26'))"
+''''
+''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country"), Array(2, 3))
+''''   "country IN ('Kazakhstan', 'Belarus')"
+''''
+'@Description "Generates set (IN) condition."
+Public Function TestSetMembership(ByRef TableData As Variant, _
+                                  ByRef ColNames As Variant, _
+                                  ByRef RowIndices As Variant) As String
+Attribute TestSetMembership.VB_Description = "Generates set (IN) condition."
+    Dim RowIdxLow As Long
+    RowIdxLow = LBound(RowIndices)
+    Dim RowIdxHigh As Long
+    RowIdxHigh = UBound(RowIndices)
+    
+    Dim ColIdxLow As Long
+    ColIdxLow = LBound(ColNames)
+    Dim ColIdxHigh As Long
+    ColIdxHigh = UBound(ColNames)
+    
+    '''' If there is one column only, strip unnecessary syntax
+    Dim LeftParen As String
+    Dim RightParen As String
+    If ColIdxLow = ColIdxHigh Then
+        LeftParen = vbNullString
+        RightParen = vbNullString
+    Else
+        LeftParen = "("
+        RightParen = ")"
+    End If
+    
+    Dim FieldMap As Scripting.Dictionary
+    Set FieldMap = MapFields(TableData)
+    Dim FieldName As String
+    Dim FieldNames As Variant
+    ReDim FieldNames(ColIdxLow To ColIdxHigh)
+    Dim ColIndices() As Long
+    ReDim ColIndices(ColIdxLow To ColIdxHigh)
+    Dim ColIdxIndex As Long
+    For ColIdxIndex = ColIdxLow To ColIdxHigh
+        FieldName = ColNames(ColIdxIndex)
+        Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
+            "SQLlib/VectorInValues", "Invalid field name: " & FieldName
+        ColIndices(ColIdxIndex) = FieldMap(FieldName)
+        FieldNames(ColIdxIndex) = SQLlib.QuoteSQLName(FieldName)
+    Next ColIdxIndex
+    FieldNames = LeftParen & Join(FieldNames, ", ") & RightParen
+    
+    Dim RowValues() As String
+    ReDim RowValues(RowIdxLow To RowIdxHigh)
+    Dim VectorValues() As String
+    ReDim VectorValues(ColIdxLow To ColIdxHigh)
+    
+    Dim RowIdxIndex As Long
+    For RowIdxIndex = RowIdxLow To RowIdxHigh
+        For ColIdxIndex = ColIdxLow To ColIdxHigh
+            VectorValues(ColIdxIndex) = CStrSQL(TableData(RowIndices(RowIdxIndex) + 1, ColIndices(ColIdxIndex)))
+        Next ColIdxIndex
+        RowValues(RowIdxIndex) = LeftParen & Join(VectorValues, ", ") & RightParen
+    Next RowIdxIndex
+        
+    If ColIdxLow = ColIdxHigh Then
+        TestSetMembership = FieldNames & " IN (" & Join(RowValues, "," & " ") & ")"
+    Else
+        TestSetMembership = FieldNames & " IN (VALUES" & vbNewLine & _
+            "    " & Join(RowValues, "," & vbNewLine & "    ") & ")"
+    End If
+End Function
+
+
+'''' Args:
+''''   See TestSetMembership
+''''
+'@Description "Generates SELECT with set (IN) condition."
+Public Function SelectSetMembers(ByRef TableData As Variant, _
+                                 ByRef ColNames As Variant, _
+                                 ByRef RowIndices As Variant) As String
+    Guard.DefaultInstance Me
+    SelectSetMembers = "SELECT * FROM " & this.TableName & " WHERE " & _
+        TestSetMembership(TableData, ColNames, RowIndices)
+End Function
+
+
+'''' Args:
+''''   See TestSetMembership
+''''
+'@Description "Generates DELETE with set (IN) condition."
+Public Function DeleteSetMembers(ByRef TableData As Variant, _
+                                 ByRef ColNames As Variant, _
+                                 ByRef RowIndices As Variant) As String
+    Guard.DefaultInstance Me
+    DeleteSetMembers = "DELETE FROM " & this.TableName & " WHERE " & _
+        TestSetMembership(TableData, ColNames, RowIndices)
 End Function
 
 
@@ -372,9 +593,9 @@ End Function
 
 
 '@Description "Generates a query returning/setting the foreign keys status."
-Public Function FKStatus(Optional ByVal Status As Variant) As String
+Public Function FKStatus(Optional ByVal Status As Variant = Empty) As String
 Attribute FKStatus.VB_Description = "Generates a query returning/setting the foreign keys status."
-    If IsMissing(Status) Then
+    If IsEmpty(Status) Then
         FKStatus = "SELECT * FROM pragma_foreign_keys"
     Else
         FKStatus = "PRAGMA foreign_keys=" & Status
@@ -465,4 +686,52 @@ Attribute CopyTableData.VB_Description = "Generates a query cloning table data."
     SelectClause = _
         "SELECT * FROM [" & SourceDatabase & "].[" & SourceTable & "]"
     CopyTableData = InsertClause & SelectClause
+End Function
+
+
+'@Description "Converts 1D array of 1D arrays to 2D array"
+Public Function RowsToTable(ByRef TableRows As Variant) As Variant
+Attribute RowsToTable.VB_Description = "Converts 1D array of 1D arrays to 2D array"
+    Guard.NotArray TableRows
+    Guard.NotArray TableRows(LBound(TableRows))
+    
+    Dim RowLow As Long
+    RowLow = LBound(TableRows)
+    Dim RowHigh As Long
+    RowHigh = UBound(TableRows)
+    
+    Dim ColumnLow As Long
+    ColumnLow = LBound(TableRows(RowLow))
+    Dim ColumnHigh As Long
+    ColumnHigh = UBound(TableRows(RowLow))
+    
+    Dim Values() As String
+    ReDim Values(RowLow To RowHigh, ColumnLow To ColumnHigh)
+    Dim ColumnIndex As Long
+    Dim RowIndex As Long
+    For RowIndex = RowLow To RowHigh
+        For ColumnIndex = ColumnLow To ColumnHigh
+            Values(RowIndex, ColumnIndex) = TableRows(RowIndex)(ColumnIndex)
+        Next ColumnIndex
+    Next RowIndex
+    RowsToTable = Values
+End Function
+
+
+'@Description "Returns sample 2D array"
+Public Function People2D() As Variant
+Attribute People2D.VB_Description = "Returns sample 2D array"
+    People2D = RowsToTable(Array( _
+        Array("id", "first_name", "last_name", "age", "gender", "email", "country", "domain"), _
+        Array("1", "Teresa", "Glover", "52", "male", "Teresa.Glover@bol.com.br", "Macedonia", "hiphopmyway.com"), _
+        Array("2", "Bramwell", "Simpson", "69", "female", "Bramwell.Simpson@hotmail.com", "Guinea-Bissau", "vcmedia.vn"), _
+        Array("3", "Kay", "Seals", "62", "male", "Kay.Seals@laposte.net", "Kazakhstan", "c4tracking01.com"), _
+        Array("4", "Edna", "Jennings", "26", "male", "Edna.Jennings@neuf.fr", "Belarus", "taptica.com"), _
+        Array("5", "Kimble", "Graeme", "57", "male", "Kimble.Graeme@yahoo.co.id", "Suriname", "nvhrlq.cc"), _
+        Array("6", "Buck", "Bowers", "68", "female", "Buck.Bowers@live.co.uk", "Lesotho", "cloudmark.com"), _
+        Array("7", "Lana", "Wilson", "41", "male", "Lana.Wilson@yahoo.com.ar", "Maldives", "mobogenie.com"), _
+        Array("8", "Ethan", "Jacobson", "79", "male", "Ethan.Jacobson@neuf.fr", "Paraguay", "echo.msk.ru"), _
+        Array("9", "Cindy", "Brailsford", "75", "female", "Cindy.Brailsford@windstream.net", "Latvia", "feiwei.tv"), _
+        Array("10", "Sylvester", "Creelman", "45", "male", "Sylvester.Creelman@yahoo.com", "Cameroon", "kmplayer.com") _
+    ))
 End Function

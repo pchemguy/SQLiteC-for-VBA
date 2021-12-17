@@ -17,7 +17,7 @@ Option Explicit
 Private Type TObjectState
     TableName As String
     FieldNamesQ() As String
-    FieldNamesQUsable As Boolean
+    FieldNamesUsable As Boolean
 End Type
 Private this As TObjectState
 
@@ -41,7 +41,7 @@ End Function
 Friend Sub Init(ByVal TableName As String)
 Attribute Init.VB_Description = "Default constructor"
     this.TableName = TableName
-    this.FieldNamesQUsable = False
+    this.FieldNamesUsable = False
 End Sub
 
 
@@ -53,7 +53,7 @@ End Property
 
 Public Property Let TableName(ByVal Values As String)
     this.TableName = Values
-    this.FieldNamesQUsable = False '''' Quoted if necessary (not very solid)
+    this.FieldNamesUsable = False '''' Quoted if necessary (not very solid)
 End Property
 
 
@@ -77,9 +77,7 @@ End Property
 '@Description "Extracts field names from 2D array with header."
 Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
 Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names from 2D array with header."
-    Const PROC_NAME As String = "FieldNamesFrom2DArrayHeader"
-    
-    If this.FieldNamesQUsable Then
+    If this.FieldNamesUsable Then
         FieldNamesFrom2DArrayHeader = this.FieldNamesQ
         Exit Function
     End If
@@ -92,18 +90,10 @@ Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names fro
     Dim FieldIndex As Long
     For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
         FieldName = TableData(1, FieldIndex + FieldIndexOffset)
-        If InStr(FieldName, """") > 0 Or InStr(FieldName, "=") > 0 Then
-            Err.Raise ErrNo.InvalidParameterErr, "LiteSQLlib/" & PROC_NAME, _
-                      "Invalid char in fieldname: " & FieldName
-        End If
-        If InStr(FieldName, " ") > 0 Then
-            FieldNames(FieldIndex) = """" & FieldName & """"
-        Else
-            FieldNames(FieldIndex) = FieldName
-        End If
+        FieldNames(FieldIndex) = SQLlib.QuoteSQLName(FieldName)
     Next FieldIndex
     this.FieldNamesQ = FieldNames
-    this.FieldNamesQUsable = True
+    this.FieldNamesUsable = True
     FieldNamesFrom2DArrayHeader = FieldNames
 End Function
 
@@ -116,7 +106,7 @@ End Function
 Public Function DefaultUPSERT(ByRef TableData As Variant) As String
 Attribute DefaultUPSERT.VB_Description = "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
     Dim FieldNames() As String
-    If Not this.FieldNamesQUsable Then
+    If Not this.FieldNamesUsable Then
         FieldNames = FieldNamesFrom2DArrayHeader(TableData)
     Else
         FieldNames = this.FieldNamesQ
@@ -189,18 +179,7 @@ RECORD_LOOP:
     Dim FieldIndex As Long
     For FieldIndex = FieldLB To FieldUB
         FieldValue = TableData(RecordSrcIndex, FieldIndex)
-        Select Case VarType(FieldValue)
-            Case vbString
-                FieldValues(FieldIndex) = SQLlib.QuoteSQLString(FieldValue)
-            Case vbLong, vbDouble, vbInteger, vbSingle, _
-                 vbCurrency, vbByte, vbLongLong
-                FieldValues(FieldIndex) = CStr(FieldValue)
-            Case vbEmpty, vbNull, vbError
-                FieldValues(FieldIndex) = "NULL"
-            Case vbBoolean, vbDate
-                FieldValues(FieldIndex) = _
-                    SQLlib.QuoteSQLString(CStr(FieldValue))
-        End Select
+        FieldValues(FieldIndex) = SQLlib.CStrSQL(FieldValue)
     Next FieldIndex
     RecordValues(RecordDstIndex) = "(" & Join(FieldValues, ", ") & ")"
     Return
