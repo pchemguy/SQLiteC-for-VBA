@@ -34,18 +34,8 @@ Private Sub MainADO()
     Set this.dbl = LiteADOlib(this.dbq)
     Debug.Print "Created blank db: " & this.dbq.MainDB
     
-    Dim SQLQuery As String
-    SQLQuery = SQLCreateTablePeople()
-    Dim AffectedRows As Long
-    AffectedRows = this.dbq.ExecuteNonQuery(SQLQuery, Null)
-    
-    Dim TableName As String
-    TableName = "main.people"
-    Dim TableData As Variant
-    TableData = ThisWorkbook.Worksheets("FixPeopleData").UsedRange.Value2
-    AffectedRows = this.dbl.InsertSkipExistingFrom2D(TableName, TableData)
-    AffectedRows = this.dbl.InsertUpdateExistingFrom2D(TableName, TableData, Array(2, 3, 5, 7, 99))
-    
+    SQLILiteADOCommon
+        
     CleanUp
 End Sub
 
@@ -55,17 +45,7 @@ Private Sub MainC()
     this.DbPathName = FixObjC.RandomTempFileName
     InitDBQC
     
-    Dim SQLQuery As String
-    SQLQuery = SQLCreateTablePeople()
-    Dim AffectedRows As Long
-    AffectedRows = this.dbq.ExecuteNonQuery(SQLQuery)
-    
-    Dim TableName As String
-    TableName = "main.people"
-    Dim TableData As Variant
-    TableData = ThisWorkbook.Worksheets("FixPeopleData").UsedRange.Value2
-    AffectedRows = this.dbl.InsertSkipExistingFrom2D(TableName, TableData)
-    AffectedRows = this.dbl.InsertUpdateExistingFrom2D(TableName, TableData, Array(2, 3, 5, 7, 99))
+    SQLILiteADOCommon
     
     CleanUp
 End Sub
@@ -97,6 +77,39 @@ Private Function SQLCreateTablePeople() As String
         ") WHERE gender = 'male'" _
     ), vbNewLine)
 End Function
+
+
+Private Sub SQLILiteADOCommon()
+    Dim SQLQuery As String
+    SQLQuery = SQLCreateTablePeople()
+    Dim AffectedRows As Long
+    AffectedRows = this.dbq.ExecuteNonQuery(SQLQuery, Null)
+    
+    Dim TableName As String
+    TableName = "main.people"
+    Dim TableData As Variant
+    TableData = ThisWorkbook.Worksheets("FixPeopleData").UsedRange.Range("A1:H50").Value2
+    AffectedRows = this.dbl.InsertSkipExistingFrom2D(TableName, TableData)
+    
+    TableData = ThisWorkbook.Worksheets("FixPeopleData").UsedRange.Value2
+    Dim DataRowIndices As Variant
+    DataRowIndices = Array(2, 3, 5, 7, 18, 29, 55, 63, 65, 77, 89)
+    Dim RowIndex As Variant
+    For Each RowIndex In DataRowIndices
+        TableData(RowIndex + 1, 7) = Null
+    Next RowIndex
+    AffectedRows = this.dbl.InsertSkipExistingFrom2D(TableName, TableData, DataRowIndices)
+    AffectedRows = this.dbl.InsertUpdateExistingFrom2D(TableName, TableData, DataRowIndices)
+    AffectedRows = this.dbl.InsertSkipExistingFrom2D(TableName, TableData)
+        
+    Dim FieldNameSelectors As Variant
+    FieldNameSelectors = Array("first_name", "age")
+    DataRowIndices = Array(17, 19, 40, 89, 320, 371, 460, 556, 919, 998)
+    Dim Subset As Variant
+    Subset = this.dbl.SelectSubsetFrom2D(TableName, TableData, FieldNameSelectors, DataRowIndices)
+    AffectedRows = this.dbl.DeleteSubsetFrom2D(TableName, TableData, FieldNameSelectors, DataRowIndices)
+    Subset = this.dbl.SelectSubsetFrom2D(TableName, TableData, FieldNameSelectors, DataRowIndices)
+End Sub
 
 
 Private Sub InitDBQC()

@@ -557,3 +557,31 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("Utils")
+Private Sub ztcRowsToTable_ValidatesArray()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+    Dim Values As Variant
+    Values = FixUtils.RowsToTable(Array( _
+        Array("A", "B", "C"), _
+        Array("1", "1", "1"), _
+        Array("2", "2", "2"), _
+        Array("3", "3", "3") _
+    ))
+Assert:
+    Assert.AreEqual 0, LBound(Values, 1), "Row base mismatch."
+    Assert.AreEqual 0, LBound(Values, 2), "Col base mismatch."
+    Assert.AreEqual 3, UBound(Values, 1), "Row count mismatch."
+    Assert.AreEqual 2, UBound(Values, 2), "Col count mismatch."
+    Assert.AreEqual "ABC", Values(0, 0) & Values(0, 1) & Values(0, 2), "Header row mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

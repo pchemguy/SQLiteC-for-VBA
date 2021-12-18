@@ -12,13 +12,29 @@ Attribute VB_Description = "SQL generator for LiteADOlib."
 '@PredeclaredId
 '@Folder "SQLite.Abstract"
 '@IgnoreModule IndexedDefaultMemberAccess
+
+'''' Common Args:
+''''   TableName (string):
+''''     Name of the destination table, possibly with schema alias.
+''''
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+''''   ColNames (array):
+''''     1D array of field names to be included. The order may be
+''''     important in terms of performance. When there is a corresponding
+''''     usable multi-field index, it is better to supply field names
+''''     according to their appearance in the index.
+''''
+''''   DataRowIndices (array):
+''''     1D array of record indices. The 1st data row (2nd row in the
+''''     TableData array) has index of LBound(TableData, 2) (one is
+''''     added by the code.
+
 Option Explicit
 
 Private Type TObjectState
     TableName As String
-    FieldNamesQ() As String
-    FieldMap As Scripting.Dictionary
-    FieldData As Boolean
 End Type
 Private this As TObjectState
 
@@ -42,9 +58,6 @@ End Function
 Friend Sub Init(ByVal TableName As String)
 Attribute Init.VB_Description = "Default constructor"
     this.TableName = TableName
-    this.FieldData = False
-    Set this.FieldMap = New Scripting.Dictionary
-    this.FieldMap.CompareMode = TextCompare
 End Sub
 
 
@@ -56,8 +69,6 @@ End Property
 
 Public Property Let TableName(ByVal Values As String)
     this.TableName = Values
-    this.FieldData = False
-    this.FieldMap.RemoveAll
 End Property
 
 
@@ -65,81 +76,55 @@ End Property
 ''''
 '''' Extracts field names from the header row of a 2D array table. If any field
 '''' name contains double qoute, an error is raised. If any field name contains
-'''' a space, the name id double quoted.
-''''
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
+'''' a space, the name is double quoted.
 ''''
 '''' Returns:
 ''''   1D array of field names.
 ''''
 '''' Examples:
-''''   >>> ?Join(FieldNamesFrom2DArrayHeader(FixPeopleData.UsedRange.Value2), "#")
-''''   "id#first_name#last_name#age#gender#email#country#domain"
+''''   >>> ?Join(LiteSQLlib.FieldNamesFrom2DArrayHeader(FixUtils.People2D), "#")
+''''   id#first_name#last_name#age#gender#email#country#domain
+''''
+''''   >>> ?Join(LiteSQLlib.FieldNamesFrom2DArrayHeader(FixUtils.People2DSpacesInFieldNames), "#")
+''''   id#"first name"#"last name"#age#gender#email#country#domain
 ''''
 '@Description "Extracts field names from 2D array with header."
 Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
-Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names from 2D array with header."
-    If this.FieldData Then
-        FieldNamesFrom2DArrayHeader = this.FieldNamesQ
-        Exit Function
-    End If
-    
     Dim FieldNames() As String
-    ReDim FieldNames(1 To UBound(TableData, 2) - LBound(TableData, 2) + 1)
-    Dim FieldIndexOffset As Long
-    FieldIndexOffset = LBound(TableData, 2) - LBound(FieldNames)
-    Dim FieldName As String
+    ReDim FieldNames(LBound(TableData, 2) To UBound(TableData, 2))
+    Dim HeaderRowIndex As Long
+    HeaderRowIndex = LBound(TableData, 1)
     Dim FieldIndex As Long
     For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
-        FieldName = TableData(1, FieldIndex + FieldIndexOffset)
-        FieldNames(FieldIndex) = SQLlib.QuoteSQLName(FieldName)
+        FieldNames(FieldIndex) = SQLlib.QuoteSQLName( _
+                                 TableData(HeaderRowIndex, FieldIndex))
     Next FieldIndex
-    this.FieldNamesQ = FieldNames
-    this.FieldData = True
     FieldNamesFrom2DArrayHeader = FieldNames
 End Function
 
 
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
 '@Description "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
 Public Function DefaultUPSERT(ByRef TableData As Variant) As String
 Attribute DefaultUPSERT.VB_Description = "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
     Dim FieldNames() As String
-    If Not this.FieldData Then
-        FieldNames = FieldNamesFrom2DArrayHeader(TableData)
-    Else
-        FieldNames = this.FieldNamesQ
-    End If
-    
+    ReDim FieldNames(LBound(TableData, 2) To UBound(TableData, 2))
     Dim FieldTerms() As String
     ReDim FieldTerms(LBound(FieldNames) To UBound(FieldNames))
+    Dim HeaderRowIndex As Long
+    HeaderRowIndex = LBound(TableData, 1)
     Dim FieldName As String
     Dim FieldIndex As Long
     For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
-        FieldName = FieldNames(FieldIndex)
-        FieldTerms(FieldIndex) = FieldName & "=" & "excluded." & FieldName
+        FieldName = SQLlib.QuoteSQLName(TableData(HeaderRowIndex, FieldIndex))
+        FieldTerms(FieldIndex) = (FieldName & "=" & "excluded." & FieldName)
     Next FieldIndex
     DefaultUPSERT = "ON CONFLICT DO UPDATE SET" & vbNewLine & _
                     "    " & Join(FieldTerms, "," & vbNewLine & "    ")
 End Function
 
 
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
-''''   DataRowIndices (array, optional, Empty):
-''''     1D array of data row indices to be used. The 1st data row (the 2nd
-''''     row in the TableData) has index of 1. If empty, all rows are used.
-''''
 '@Description "Generates an array of record values for INSERT INTO VALUES"
-Public Function RecordValuesFrom2DArray( _
-                     ByRef TableData As Variant, _
+Public Function RecordValuesFrom2DArray(ByRef TableData As Variant, _
             Optional ByVal DataRowIndices As Variant = Empty) As String()
 Attribute RecordValuesFrom2DArray.VB_Description = "Generates an array of record values for INSERT INTO VALUES"
     If Not (IsArray(DataRowIndices) Or IsEmpty(DataRowIndices)) Then
@@ -190,17 +175,8 @@ RECORD_LOOP:
 End Function
 
 
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
-''''   DataRowIndices (array, optional, Empty):
-''''     1D array of data row indices to be used. The 1st data row (the 2nd
-''''     row in the TableData) has index of 1. If empty, all rows are used.
-''''
 '@Description "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
-Public Function InsertNewRecordsFrom2DArray( _
-                     ByRef TableData As Variant, _
+Public Function InsertNewRecordsFrom2DArray(ByRef TableData As Variant, _
             Optional ByVal DataRowIndices As Variant = Empty) As String
 Attribute InsertNewRecordsFrom2DArray.VB_Description = "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
     Dim FieldNames() As String
@@ -216,17 +192,8 @@ Attribute InsertNewRecordsFrom2DArray.VB_Description = "Generates the INSERT OR 
 End Function
 
 
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
-''''   DataRowIndices (array, optional, Empty):
-''''     1D array of data row indices to be used. The 1st data row (the 2nd
-''''     row in the TableData) has index of 1. If empty, all rows are used.
-''''
 '@Description "Generates the INSERT OR UPDATE INTO VALUES query for bulk insert."
-Public Function UpsertFrom2DArray( _
-                     ByRef TableData As Variant, _
+Public Function UpsertFrom2DArray(ByRef TableData As Variant, _
             Optional ByVal DataRowIndices As Variant = Empty) As String
 Attribute UpsertFrom2DArray.VB_Description = "Generates the INSERT OR UPDATE INTO VALUES query for bulk insert."
     Dim FieldNames() As String
@@ -245,23 +212,11 @@ Attribute UpsertFrom2DArray.VB_Description = "Generates the INSERT OR UPDATE INT
 End Function
 
 
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
 '@Description "Generates field map from 2D data array with header."
 Public Function MapFields(ByRef TableData As Variant) As Scripting.Dictionary
     Dim FieldMap As Scripting.Dictionary
-    If Not this.FieldMap Is Nothing Then
-        If this.FieldMap.Count > 0 Then
-            Set MapFields = this.FieldMap
-            Exit Function
-        Else
-            Set FieldMap = this.FieldMap
-        End If
-    Else
-        Set FieldMap = New Scripting.Dictionary
-    End If
+    Set FieldMap = New Scripting.Dictionary
+    FieldMap.CompareMode = TextCompare
     
     Dim HeaderRowIndex As Long
     HeaderRowIndex = LBound(TableData, 1)
@@ -275,38 +230,24 @@ End Function
 
 '''' Generates set membership test clause.
 ''''
-'''' Args:
-''''   TableData (array):
-''''     2D array with data and field names in the first row.
-''''
-''''   ColNames (array):
-''''     1D array of field names to be included. The order may be
-''''     important in terms of performance. When there is a corresponding
-''''     usable multi-field index, it is better to supply field names
-''''     according to their appearance in the index.
-''''
-''''   RowIndices (array):
-''''     1D array of record indices. The 1st data row (2nd row in the
-''''     TableData array) has index of LBound(TableData, 2) (one is
-''''     added by the code.
-''''
 '''' Examples:
-''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country", "age"), Array(2, 3))
-''''   "(country, age) IN (VALUES
+''''   >>> ?LiteSQLlib.TestSetMembership(FixUtils.People2D, Array("country", "age"), Array(2, 3))
+''''   (country, age) IN (VALUES
 ''''       ('Kazakhstan', '62'),
-''''       ('Belarus', '26'))"
+''''       ('Belarus', '26'))
 ''''
-''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country"), Array(2, 3))
-''''   "country IN ('Kazakhstan', 'Belarus')"
+''''   >>> ?LiteSQLlib.TestSetMembership(FixUtils.People2D, Array("country"), Array(2, 3))
+''''   country IN ('Kazakhstan', 'Belarus')
 ''''
 '@Description "Generates set (IN) condition."
 Public Function TestSetMembership(ByRef TableData As Variant, _
                                   ByRef ColNames As Variant, _
-                                  ByRef RowIndices As Variant) As String
+                                  ByRef DataRowIndices As Variant) As String
+Attribute TestSetMembership.VB_Description = "Generates set (IN) condition."
     Dim RowIdxLow As Long
-    RowIdxLow = LBound(RowIndices)
+    RowIdxLow = LBound(DataRowIndices)
     Dim RowIdxHigh As Long
-    RowIdxHigh = UBound(RowIndices)
+    RowIdxHigh = UBound(DataRowIndices)
     
     Dim ColIdxLow As Long
     ColIdxLow = LBound(ColNames)
@@ -335,7 +276,7 @@ Public Function TestSetMembership(ByRef TableData As Variant, _
     For ColIdxIndex = ColIdxLow To ColIdxHigh
         FieldName = ColNames(ColIdxIndex)
         Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
-            "SQLlib/VectorInValues", "Invalid field name: " & FieldName
+            "LiteSQLlib/VectorInValues", "Invalid field name: " & FieldName
         ColIndices(ColIdxIndex) = FieldMap(FieldName)
         FieldNames(ColIdxIndex) = SQLlib.QuoteSQLName(FieldName)
     Next ColIdxIndex
@@ -349,7 +290,8 @@ Public Function TestSetMembership(ByRef TableData As Variant, _
     Dim RowIdxIndex As Long
     For RowIdxIndex = RowIdxLow To RowIdxHigh
         For ColIdxIndex = ColIdxLow To ColIdxHigh
-            VectorValues(ColIdxIndex) = SQLlib.CStrSQL(TableData(RowIndices(RowIdxIndex) + 1, ColIndices(ColIdxIndex)))
+            VectorValues(ColIdxIndex) = SQLlib.CStrSQL( _
+                TableData(DataRowIndices(RowIdxIndex) + 1, ColIndices(ColIdxIndex)))
         Next ColIdxIndex
         RowValues(RowIdxIndex) = LeftParen & Join(VectorValues, ", ") & RightParen
     Next RowIdxIndex
@@ -363,27 +305,78 @@ Public Function TestSetMembership(ByRef TableData As Variant, _
 End Function
 
 
-'''' Args:
-''''   See TestSetMembership
-''''
 '@Description "Generates SELECT with set (IN) condition."
 Public Function SelectSetMembers(ByRef TableData As Variant, _
                                  ByRef ColNames As Variant, _
-                                 ByRef RowIndices As Variant) As String
-    Guard.DefaultInstance Me
+                                 ByRef DataRowIndices As Variant) As String
+Attribute SelectSetMembers.VB_Description = "Generates SELECT with set (IN) condition."
     SelectSetMembers = "SELECT * FROM " & this.TableName & " WHERE " & _
-        TestSetMembership(TableData, ColNames, RowIndices)
+        TestSetMembership(TableData, ColNames, DataRowIndices)
 End Function
 
 
-'''' Args:
-''''   See TestSetMembership
-''''
 '@Description "Generates DELETE with set (IN) condition."
 Public Function DeleteSetMembers(ByRef TableData As Variant, _
                                  ByRef ColNames As Variant, _
-                                 ByRef RowIndices As Variant) As String
-    Guard.DefaultInstance Me
+                                 ByRef DataRowIndices As Variant) As String
+Attribute DeleteSetMembers.VB_Description = "Generates DELETE with set (IN) condition."
     DeleteSetMembers = "DELETE FROM " & this.TableName & " WHERE " & _
-        TestSetMembership(TableData, ColNames, RowIndices)
+        TestSetMembership(TableData, ColNames, DataRowIndices)
+End Function
+
+
+'''' Examples:
+''''   >>> ?LiteSQLlib("people").GetUpdateTemplate(FixUtils.People2D, Array("age", "last_name"))
+''''   UPDATE people
+''''   SET (id, first_name, gender, email, country, domain) = (?0, ?1, ?4, ?5, ?6, ?7)
+''''   WHERE age = ?3, last_name = ?2
+''''
+''''   >>> LiteSQLlib("people").GetUpdateTemplate(FixUtils.People2DSpacesInFieldNames, Array("age", "last name"))
+''''   UPDATE people
+''''   SET (id, "first name", gender, email, country, domain) = (?0, ?1, ?4, ?5, ?6, ?7)
+''''   WHERE age = ?3, "last name" = ?2
+''''
+'@Description "Generates UPDATE template."
+Public Function GetUpdateTemplate(ByRef TableData As Variant, _
+                                  ByRef ColNames As Variant) As String
+    Dim SQLTerms(0 To 2) As String
+    SQLTerms(0) = "UPDATE " & SQLlib.QuoteSQLName(this.TableName)
+    
+    Dim ColNamesLB As Long
+    ColNamesLB = LBound(ColNames)
+    Dim ColNamesUB As Long
+    ColNamesUB = UBound(ColNames)
+        
+    Dim FieldMap As Scripting.Dictionary
+    Set FieldMap = MapFields(TableData)
+    Dim FieldName As String
+    Dim FieldNames As Variant
+    ReDim FieldNames(ColNamesLB To ColNamesUB)
+    Dim ColNameIndex As Long
+    For ColNameIndex = ColNamesLB To ColNamesUB
+        FieldName = ColNames(ColNameIndex)
+        Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
+            "LiteSQLlib/GetUpdateTemplate", "Invalid field name: " & FieldName
+        FieldNames(ColNameIndex) = SQLlib.QuoteSQLName(FieldName) & " = ?" & CStr(FieldMap(FieldName))
+        FieldMap.Remove FieldName
+    Next ColNameIndex
+    SQLTerms(2) = "WHERE " & Join(FieldNames, ", ")
+
+    Dim PlaceHolders As Variant
+    PlaceHolders = FieldMap.Items
+    FieldNames = FieldMap.Keys
+    Dim NameIndex As Long
+    For NameIndex = 0 To UBound(FieldNames)
+        FieldNames(NameIndex) = SQLlib.QuoteSQLName(FieldNames(NameIndex))
+        PlaceHolders(NameIndex) = "?" & CStr(PlaceHolders(NameIndex))
+    Next NameIndex
+    
+    If UBound(FieldNames) = 0 Then
+        SQLTerms(1) = "SET " & FieldNames(0) & " = " & PlaceHolders(0)
+    Else
+        SQLTerms(1) = "SET " & "(" & Join(FieldNames, ", ") & ") = (" & _
+                                     Join(PlaceHolders, ", ") & ")"
+    End If
+    
+    GetUpdateTemplate = Join(SQLTerms, vbNewLine)
 End Function

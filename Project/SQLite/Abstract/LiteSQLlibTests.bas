@@ -59,7 +59,7 @@ Private Sub ztcMapFields_ValidatesFieldMap()
 Arrange:
 Act:
     Dim FieldMap As Scripting.Dictionary
-    Set FieldMap = LiteSQLlib.MapFields(SQLlib.People2D)
+    Set FieldMap = LiteSQLlib.MapFields(FixUtils.People2D)
 Assert:
     Assert.AreEqual 8, FieldMap.Count, "FieldMap size mismatch."
     Assert.IsTrue FieldMap.Exists("gender"), "Missing field."

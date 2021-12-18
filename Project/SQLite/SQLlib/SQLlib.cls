@@ -539,54 +539,6 @@ Attribute CopyTableData.VB_Description = "Generates a query cloning table data."
 End Function
 
 
-'@Description "Converts 1D array of 1D arrays to 2D array"
-Public Function RowsToTable(ByRef TableRows As Variant) As Variant
-Attribute RowsToTable.VB_Description = "Converts 1D array of 1D arrays to 2D array"
-    Guard.NotArray TableRows
-    Guard.NotArray TableRows(LBound(TableRows))
-    
-    Dim RowLow As Long
-    RowLow = LBound(TableRows)
-    Dim RowHigh As Long
-    RowHigh = UBound(TableRows)
-    
-    Dim ColumnLow As Long
-    ColumnLow = LBound(TableRows(RowLow))
-    Dim ColumnHigh As Long
-    ColumnHigh = UBound(TableRows(RowLow))
-    
-    Dim Values() As String
-    ReDim Values(RowLow To RowHigh, ColumnLow To ColumnHigh)
-    Dim ColumnIndex As Long
-    Dim RowIndex As Long
-    For RowIndex = RowLow To RowHigh
-        For ColumnIndex = ColumnLow To ColumnHigh
-            Values(RowIndex, ColumnIndex) = TableRows(RowIndex)(ColumnIndex)
-        Next ColumnIndex
-    Next RowIndex
-    RowsToTable = Values
-End Function
-
-
-'@Description "Returns sample 2D array"
-Public Function People2D() As Variant
-Attribute People2D.VB_Description = "Returns sample 2D array"
-    People2D = RowsToTable(Array( _
-        Array("id", "first_name", "last_name", "age", "gender", "email", "country", "domain"), _
-        Array("1", "Teresa", "Glover", "52", "male", "Teresa.Glover@bol.com.br", "Macedonia", "hiphopmyway.com"), _
-        Array("2", "Bramwell", "Simpson", "69", "female", "Bramwell.Simpson@hotmail.com", "Guinea-Bissau", "vcmedia.vn"), _
-        Array("3", "Kay", "Seals", "62", "male", "Kay.Seals@laposte.net", "Kazakhstan", "c4tracking01.com"), _
-        Array("4", "Edna", "Jennings", "26", "male", "Edna.Jennings@neuf.fr", "Belarus", "taptica.com"), _
-        Array("5", "Kimble", "Graeme", "57", "male", "Kimble.Graeme@yahoo.co.id", "Suriname", "nvhrlq.cc"), _
-        Array("6", "Buck", "Bowers", "68", "female", "Buck.Bowers@live.co.uk", "Lesotho", "cloudmark.com"), _
-        Array("7", "Lana", "Wilson", "41", "male", "Lana.Wilson@yahoo.com.ar", "Maldives", "mobogenie.com"), _
-        Array("8", "Ethan", "Jacobson", "79", "male", "Ethan.Jacobson@neuf.fr", "Paraguay", "echo.msk.ru"), _
-        Array("9", "Cindy", "Brailsford", "75", "female", "Cindy.Brailsford@windstream.net", "Latvia", "feiwei.tv"), _
-        Array("10", "Sylvester", "Creelman", "45", "male", "Sylvester.Creelman@yahoo.com", "Cameroon", "kmplayer.com") _
-    ))
-End Function
-
-
 '''' This routine splits a semicolon separated multi-statement SQL query into
 '''' subqueries. Since semicolons may be a part of a string value, direct
 '''' splitting cannot be used. The code scans the query and tracks single and
@@ -608,6 +560,7 @@ End Function
 ''''
 '@Description "Splits multi-statement SQL query into subqueries."
 Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
+Attribute SplitMultiStatement.VB_Description = "Splits multi-statement SQL query into subqueries."
     Const SingleQuoteASCII As Byte = 39
     Const DoubleQuoteASCII As Byte = 34
     Const LeftBracketASCII As Byte = 91
