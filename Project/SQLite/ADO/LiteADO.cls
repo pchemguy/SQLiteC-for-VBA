@@ -267,7 +267,7 @@ End Function
 Private Function ExecuteNonQuery(ByVal SQLQuery As String) As Long
 Attribute ExecuteNonQuery.VB_Description = "Executes database modifying statement (UPDATE, DELETE, INSERT)"
     Dim SubQueries As Variant
-    SubQueries = LiteSQLlib.SplitMultiStatement(SQLQuery)
+    SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
     Dim TotalRecordsAffected As Long
     TotalRecordsAffected = 0
     Dim RecordsAffected As Long

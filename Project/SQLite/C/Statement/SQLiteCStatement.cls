@@ -412,7 +412,7 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
     If AffectedRows <> -2 Then AffectedRows = this.DbConn.ChangesCount(True)
     
     Dim SubQueries As Variant
-    SubQueries = LiteSQLlib.SplitMultiStatement(SQLQuery)
+    SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
     Dim SubQueryIndex As Long
     For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
         ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters)

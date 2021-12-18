@@ -17,7 +17,8 @@ Option Explicit
 Private Type TObjectState
     TableName As String
     FieldNamesQ() As String
-    FieldNamesUsable As Boolean
+    FieldMap As Scripting.Dictionary
+    FieldData As Boolean
 End Type
 Private this As TObjectState
 
@@ -41,7 +42,9 @@ End Function
 Friend Sub Init(ByVal TableName As String)
 Attribute Init.VB_Description = "Default constructor"
     this.TableName = TableName
-    this.FieldNamesUsable = False
+    this.FieldData = False
+    Set this.FieldMap = New Scripting.Dictionary
+    this.FieldMap.CompareMode = TextCompare
 End Sub
 
 
@@ -53,7 +56,8 @@ End Property
 
 Public Property Let TableName(ByVal Values As String)
     this.TableName = Values
-    this.FieldNamesUsable = False '''' Quoted if necessary (not very solid)
+    this.FieldData = False
+    this.FieldMap.RemoveAll
 End Property
 
 
@@ -77,7 +81,7 @@ End Property
 '@Description "Extracts field names from 2D array with header."
 Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
 Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names from 2D array with header."
-    If this.FieldNamesUsable Then
+    If this.FieldData Then
         FieldNamesFrom2DArrayHeader = this.FieldNamesQ
         Exit Function
     End If
@@ -93,7 +97,7 @@ Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names fro
         FieldNames(FieldIndex) = SQLlib.QuoteSQLName(FieldName)
     Next FieldIndex
     this.FieldNamesQ = FieldNames
-    this.FieldNamesUsable = True
+    this.FieldData = True
     FieldNamesFrom2DArrayHeader = FieldNames
 End Function
 
@@ -106,7 +110,7 @@ End Function
 Public Function DefaultUPSERT(ByRef TableData As Variant) As String
 Attribute DefaultUPSERT.VB_Description = "Generates the INSERT OR IGNORE INTO VALUES query for bulk insert."
     Dim FieldNames() As String
-    If Not this.FieldNamesUsable Then
+    If Not this.FieldData Then
         FieldNames = FieldNamesFrom2DArrayHeader(TableData)
     Else
         FieldNames = this.FieldNamesQ
@@ -241,146 +245,145 @@ Attribute UpsertFrom2DArray.VB_Description = "Generates the INSERT OR UPDATE INT
 End Function
 
 
-'''' This routine splits a semicolon separated multi-statement SQL query into
-'''' subqueries. Since semicolons may be a part of a string value, direct
-'''' splitting cannot be used. The code scans the query and tracks single and
-'''' double quotation marks and square brackets. Only one of these can be
-'''' "opened" at any given position. Quotation marks may be escaped by doubling
-'''' or by a precedening odd number of backslashes. If quotation mark is escaped,
-'''' it is treated literally. When a semicolon is encountered, a split point is
-'''' added if all three tracked sets are closed. Otherwise, such a semicolon is
-'''' skipped.
+'''' Args:
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
+''''
+'@Description "Generates field map from 2D data array with header."
+Public Function MapFields(ByRef TableData As Variant) As Scripting.Dictionary
+    Dim FieldMap As Scripting.Dictionary
+    If Not this.FieldMap Is Nothing Then
+        If this.FieldMap.Count > 0 Then
+            Set MapFields = this.FieldMap
+            Exit Function
+        Else
+            Set FieldMap = this.FieldMap
+        End If
+    Else
+        Set FieldMap = New Scripting.Dictionary
+    End If
+    
+    Dim HeaderRowIndex As Long
+    HeaderRowIndex = LBound(TableData, 1)
+    Dim FieldIndex As Long
+    For FieldIndex = LBound(TableData, 2) To UBound(TableData, 2)
+        FieldMap(TableData(HeaderRowIndex, FieldIndex)) = FieldIndex
+    Next FieldIndex
+    Set MapFields = FieldMap
+End Function
+
+
+'''' Generates set membership test clause.
 ''''
 '''' Args:
-''''   SQLQuery (string):
-''''     SQL query to be split
+''''   TableData (array):
+''''     2D array with data and field names in the first row.
 ''''
-'''' Returns:
-''''   Array, containing individual subqueries
+''''   ColNames (array):
+''''     1D array of field names to be included. The order may be
+''''     important in terms of performance. When there is a corresponding
+''''     usable multi-field index, it is better to supply field names
+''''     according to their appearance in the index.
 ''''
-'''' '''' "SELECT 1; SELECT ';''\''; ;SELECT 2; SELECT ''';[""]'; SELECT "
+''''   RowIndices (array):
+''''     1D array of record indices. The 1st data row (2nd row in the
+''''     TableData array) has index of LBound(TableData, 2) (one is
+''''     added by the code.
 ''''
-'@Description "Splits multi-statement SQL query into subqueries."
-Public Function SplitMultiStatement(ByRef SQLQuery As String) As Variant
-Attribute SplitMultiStatement.VB_Description = "Splits multi-statement SQL query into subqueries."
-    Const SingleQuoteASCII As Byte = 39
-    Const DoubleQuoteASCII As Byte = 34
-    Const LeftBracketASCII As Byte = 91
-    Const RightBracketASCII As Byte = 93
-    Const BackSlashASCII As Byte = 92
-    Const SemicolonASCII As Byte = 59
+'''' Examples:
+''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country", "age"), Array(2, 3))
+''''   "(country, age) IN (VALUES
+''''       ('Kazakhstan', '62'),
+''''       ('Belarus', '26'))"
+''''
+''''   >>> ?SQLlib.TestSetMembership(SQLlib.People2D, Array("country"), Array(2, 3))
+''''   "country IN ('Kazakhstan', 'Belarus')"
+''''
+'@Description "Generates set (IN) condition."
+Public Function TestSetMembership(ByRef TableData As Variant, _
+                                  ByRef ColNames As Variant, _
+                                  ByRef RowIndices As Variant) As String
+    Dim RowIdxLow As Long
+    RowIdxLow = LBound(RowIndices)
+    Dim RowIdxHigh As Long
+    RowIdxHigh = UBound(RowIndices)
     
-    If SQLQuery = vbNullString Then
-        SplitMultiStatement = Array(vbNullString)
-        Exit Function
+    Dim ColIdxLow As Long
+    ColIdxLow = LBound(ColNames)
+    Dim ColIdxHigh As Long
+    ColIdxHigh = UBound(ColNames)
+    
+    '''' If there is one column only, strip unnecessary syntax
+    Dim LeftParen As String
+    Dim RightParen As String
+    If ColIdxLow = ColIdxHigh Then
+        LeftParen = vbNullString
+        RightParen = vbNullString
+    Else
+        LeftParen = "("
+        RightParen = ")"
     End If
     
-    Dim QueryChars() As Byte
-    QueryChars = StrConv(" " & SQLQuery & " ", vbFromUnicode)
+    Dim FieldMap As Scripting.Dictionary
+    Set FieldMap = MapFields(TableData)
+    Dim FieldName As String
+    Dim FieldNames As Variant
+    ReDim FieldNames(ColIdxLow To ColIdxHigh)
+    Dim ColIndices() As Long
+    ReDim ColIndices(ColIdxLow To ColIdxHigh)
+    Dim ColIdxIndex As Long
+    For ColIdxIndex = ColIdxLow To ColIdxHigh
+        FieldName = ColNames(ColIdxIndex)
+        Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
+            "SQLlib/VectorInValues", "Invalid field name: " & FieldName
+        ColIndices(ColIdxIndex) = FieldMap(FieldName)
+        FieldNames(ColIdxIndex) = SQLlib.QuoteSQLName(FieldName)
+    Next ColIdxIndex
+    FieldNames = LeftParen & Join(FieldNames, ", ") & RightParen
     
-    Dim SplitPositions As Scripting.Dictionary
-    Set SplitPositions = New Scripting.Dictionary
-    SplitPositions.CompareMode = TextCompare
+    Dim RowValues() As String
+    ReDim RowValues(RowIdxLow To RowIdxHigh)
+    Dim VectorValues() As String
+    ReDim VectorValues(ColIdxLow To ColIdxHigh)
     
-    Dim SQuoteOpen As Boolean
-    SQuoteOpen = False
-    Dim DQuoteOpen As Boolean
-    DQuoteOpen = False
-    Dim BracketOpen As Boolean
-    BracketOpen = False
-    
-    Dim BackSlashed As Boolean
-    
-    Dim CurChar As Byte
-    Dim ChrJ As Long
-    Dim CharIndex As Long
-    For CharIndex = 1 To Len(SQLQuery)
-        CurChar = QueryChars(CharIndex)
-        Select Case CurChar
-            Case LeftBracketASCII, RightBracketASCII
-                If Not (SQuoteOpen Or DQuoteOpen) Then _
-                    BracketOpen = Not BracketOpen
-            Case SingleQuoteASCII
-                '''' Bail immediately if the other quote or bracket is open
-                If Not (DQuoteOpen Or BracketOpen) Then
-                    '''' Char is backslashed if preceded by an odd number of "\".
-                    BackSlashed = False
-                    If QueryChars(CharIndex - 1) = BackSlashASCII Then
-                        ChrJ = CharIndex
-                        Do While QueryChars(ChrJ - 1) = BackSlashASCII
-                            ChrJ = ChrJ - 1
-                        Loop
-                        BackSlashed = CBool((CharIndex - ChrJ) Mod 2)
-                    End If
-                    
-                    '''' If quote is repeated, shift CharIndex to the last one
-                    '''' and flip the quote state if the total count is odd
-                    If Not BackSlashed Then
-                        ChrJ = CharIndex - 1
-                        Do While QueryChars(CharIndex + 1) = SingleQuoteASCII
-                            CharIndex = CharIndex + 1
-                        Loop
-                        If CBool((CharIndex - ChrJ) Mod 2) Then _
-                            SQuoteOpen = Not SQuoteOpen
-                    End If
-                End If
-            Case DoubleQuoteASCII
-                '''' Bail immediately if the other quote or bracket is open
-                If Not (SQuoteOpen Or BracketOpen) Then
-                    '''' Char is backslashed if preceded by an odd number of "\".
-                    BackSlashed = False
-                    If QueryChars(CharIndex - 1) = BackSlashASCII Then
-                        ChrJ = CharIndex
-                        Do While QueryChars(ChrJ - 1) = BackSlashASCII
-                            ChrJ = ChrJ - 1
-                        Loop
-                        BackSlashed = CBool((CharIndex - ChrJ) Mod 2)
-                    End If
-                    
-                    '''' If quote is repeated, shift CharIndex to the last one
-                    '''' and flip the quote state if the total count is odd
-                    If Not BackSlashed Then
-                        ChrJ = CharIndex - 1
-                        Do While QueryChars(CharIndex + 1) = DoubleQuoteASCII
-                            CharIndex = CharIndex + 1
-                        Loop
-                        If CBool((CharIndex - ChrJ) Mod 2) Then _
-                            DQuoteOpen = Not DQuoteOpen
-                    End If
-                End If
-            Case SemicolonASCII
-                If Not (SQuoteOpen Or DQuoteOpen Or BracketOpen) Then
-                    SplitPositions(SplitPositions.Count) = CharIndex
-                End If
-        End Select
-    Next CharIndex
-    If SplitPositions.Count = 0 Then
-        SplitPositions(0) = Len(SQLQuery) + 1
-    ElseIf SplitPositions(SplitPositions.Count - 1) < Len(SQLQuery) Then
-        SplitPositions(SplitPositions.Count) = Len(SQLQuery) + 1
+    Dim RowIdxIndex As Long
+    For RowIdxIndex = RowIdxLow To RowIdxHigh
+        For ColIdxIndex = ColIdxLow To ColIdxHigh
+            VectorValues(ColIdxIndex) = SQLlib.CStrSQL(TableData(RowIndices(RowIdxIndex) + 1, ColIndices(ColIdxIndex)))
+        Next ColIdxIndex
+        RowValues(RowIdxIndex) = LeftParen & Join(VectorValues, ", ") & RightParen
+    Next RowIdxIndex
+        
+    If ColIdxLow = ColIdxHigh Then
+        TestSetMembership = FieldNames & " IN (" & Join(RowValues, "," & " ") & ")"
+    Else
+        TestSetMembership = FieldNames & " IN (VALUES" & vbNewLine & _
+            "    " & Join(RowValues, "," & vbNewLine & "    ") & ")"
     End If
-    Dim SplitPosArr As Variant
-    SplitPosArr = SplitPositions.Items
-    
-    Dim SQLStmtStore As Scripting.Dictionary
-    Set SQLStmtStore = New Scripting.Dictionary
-    SQLStmtStore.CompareMode = TextCompare
-    
-    Dim LeftPos As Long
-    LeftPos = 1
-    Dim RightPos As Long
-    Dim SubStmt As String
-    
-    Dim SubStmtIndex As Long
-    For SubStmtIndex = LBound(SplitPosArr) To UBound(SplitPosArr)
-        RightPos = SplitPosArr(SubStmtIndex)
-        SubStmt = Mid$(SQLQuery, LeftPos, RightPos - LeftPos)
-        SubStmt = Trim$(Replace(SubStmt, ";" & vbNewLine, "; "))
-        If Len(SubStmt) > 0 Then
-            SQLStmtStore(SQLStmtStore.Count) = SubStmt
-        End If
-        LeftPos = RightPos + 1
-    Next SubStmtIndex
-    
-    SplitMultiStatement = SQLStmtStore.Items
+End Function
+
+
+'''' Args:
+''''   See TestSetMembership
+''''
+'@Description "Generates SELECT with set (IN) condition."
+Public Function SelectSetMembers(ByRef TableData As Variant, _
+                                 ByRef ColNames As Variant, _
+                                 ByRef RowIndices As Variant) As String
+    Guard.DefaultInstance Me
+    SelectSetMembers = "SELECT * FROM " & this.TableName & " WHERE " & _
+        TestSetMembership(TableData, ColNames, RowIndices)
+End Function
+
+
+'''' Args:
+''''   See TestSetMembership
+''''
+'@Description "Generates DELETE with set (IN) condition."
+Public Function DeleteSetMembers(ByRef TableData As Variant, _
+                                 ByRef ColNames As Variant, _
+                                 ByRef RowIndices As Variant) As String
+    Guard.DefaultInstance Me
+    DeleteSetMembers = "DELETE FROM " & this.TableName & " WHERE " & _
+        TestSetMembership(TableData, ColNames, RowIndices)
 End Function

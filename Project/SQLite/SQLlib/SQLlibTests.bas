@@ -312,25 +312,3 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
-
-
-'@TestMethod("Utils")
-Private Sub ztcMapFields_ValidatesFieldMap()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-Act:
-    Dim FieldMap As Scripting.Dictionary
-    Set FieldMap = SQLlib.MapFields(SQLlib.People2D)
-Assert:
-    Assert.AreEqual 8, FieldMap.Count, "FieldMap size mismatch."
-    Assert.IsTrue FieldMap.Exists("gender"), "Missing field."
-    Assert.AreEqual 4, FieldMap("gender"), "Wrong field index."
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-

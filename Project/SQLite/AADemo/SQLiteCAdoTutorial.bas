@@ -151,6 +151,10 @@ Private Sub InitDBQC()
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(DbStmtName)
     Set this.dbs = dbs
+    '''' Maximum capapacity of 100x10 = 1000 rows
+    dbs.DbExecutor.PageCount = 10
+    dbs.DbExecutor.PageSize = 100
+    
     Dim dbq As ILiteADO
     Set dbq = dbs
     If dbq Is Nothing Then
@@ -159,11 +163,7 @@ Private Sub InitDBQC()
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."
     End If
-    '''' Maximum capapacity of 100x10 = 1000 rows
-    dbs.DbExecutor.PageCount = 10
-    dbs.DbExecutor.PageSize = 100
     Set this.dbq = dbq
+    Debug.Print "Created blank db: " & this.dbq.MainDB
     Set this.dbl = LiteADOlib(this.dbq)
 End Sub
-
-
