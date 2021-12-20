@@ -318,6 +318,18 @@ Private Function ILiteADO_CloseDb() As Long
     On Error GoTo 0
 End Function
 
+Private Property Get ILiteADO_ConnectionClosed() As Boolean
+    If Not this.AdoConnection Is Nothing Then
+        If this.AdoConnection.State <> ADODB.ObjectStateEnum.adStateClosed Then
+            ILiteADO_ConnectionClosed = False
+        Else
+            ILiteADO_ConnectionClosed = True
+        End If
+    Else
+        ILiteADO_ConnectionClosed = True
+    End If
+End Property
+
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _
                            ) As Variant

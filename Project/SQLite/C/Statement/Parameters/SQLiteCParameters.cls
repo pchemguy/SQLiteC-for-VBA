@@ -234,10 +234,14 @@ End Function
 ''''     passed as an optional second argument.
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
     FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCParameters/BindDictOrArray"
-    If TypeName(ParamValues) = "Dictionary" Then
-        BindDictOrArray = BindDict(ParamValues)
+    If ParameterCount > 0 Then
+        If TypeName(ParamValues) = "Dictionary" Then
+            BindDictOrArray = BindDict(ParamValues)
+        Else
+            BindDictOrArray = BindArray(ParamValues)
+        End If
     Else
-        BindDictOrArray = BindArray(ParamValues)
+        BindDictOrArray = SQLITE_OK
     End If
 End Function
 

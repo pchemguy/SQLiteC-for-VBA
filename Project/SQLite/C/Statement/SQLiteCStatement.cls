@@ -579,6 +579,10 @@ Private Function ILiteADO_CloseDb() As Long
     ILiteADO_CloseDb = this.DbConn.CloseDb
 End Function
 
+Private Property Get ILiteADO_ConnectionClosed() As Boolean
+    ILiteADO_ConnectionClosed = (this.DbConn.DbHandle = 0)
+End Property
+
 Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
                            Optional ByVal QueryParameters As Variant = Empty _
                            ) As Variant

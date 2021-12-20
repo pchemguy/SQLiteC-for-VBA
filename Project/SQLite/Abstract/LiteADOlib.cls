@@ -155,17 +155,27 @@ Attribute DeleteSubsetFrom2D.VB_Description = "Deletes a subset of data rows."
 End Function
 
 
-''@Description "Updates selected rows."
-'Public Function UpdateFrom2D( _
-'                     ByVal TableName As String, _
-'                     ByVal TableData As Variant, _
-'            Optional ByVal DataRowIndices As Variant = Empty) As Long
-'    Guard.EmptyString TableName
-'    Guard.EmptyOrNullVariant TableData
-'    With this.SQLTool
-'        .TableName = TableName
-'        Dim SQLQuery As String
-'        SQLQuery = .UpdateTemplate(TableData, DataRowIndices)
-'    End With
-'    '= this.dbq.ExecuteNonQuery(SQLQuery)
-'End Function
+'@Description "Updates selected rows."
+Public Function UpdateFrom2D( _
+                     ByVal TableName As String, _
+                     ByVal TableData As Variant, _
+            Optional ByVal DataRowIndices As Variant = Empty) As Long
+    Guard.EmptyString TableName
+    Guard.EmptyOrNullVariant TableData
+    With this.SQLTool
+        .TableName = TableName
+        Dim SQLQuery As String
+        SQLQuery = .UpdateTemplate(TableData, DataRowIndices)
+    End With
+    With this.dbq
+        Dim HandleConnection As Boolean
+        If .ConnectionClosed Then HandleConnection = True
+        If HandleConnection Then .OpenDb
+        .Begin
+        Dim RecordJndex As Long
+        
+        .Commit
+        If HandleConnection Then .CloseDb
+    End With
+    '= this.dbq.ExecuteNonQuery(SQLQuery)
+End Function

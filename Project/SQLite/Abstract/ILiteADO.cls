@@ -28,6 +28,10 @@ Public Property Get ClassName() As String
 Attribute ClassName.VB_Description = "Implementing class name."
 End Property
 
+'@Description "Returns true if connection is closed."
+Public Property Get ConnectionClosed() As Boolean
+End Property
+
 '''' A variant error value may be returned in case of an issue
 Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
