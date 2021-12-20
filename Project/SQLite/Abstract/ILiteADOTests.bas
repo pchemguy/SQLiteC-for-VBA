@@ -51,6 +51,29 @@ End Sub
 '===================================================='
 
 
+'@TestMethod("Introspection")
+Private Sub ztcClassNameGet_VerifiesClassNameGetter()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim dbq As ILiteADO
+Act:
+Assert:
+    Set dbq = FixObjAdo.GetDbMem
+    Assert.AreEqual ":memory:", dbq.MainDB, "In-memory database path mismatch."
+    Assert.AreEqual "LiteADO", dbq.ClassName, "Implementing class name mismatch."
+    Set dbq = FixObjC.GetDBCMem.CreateStatement(vbNullString)
+    Assert.AreEqual ":memory:", dbq.MainDB, "In-memory database path mismatch."
+    Assert.AreEqual "SQLiteCStatement", dbq.ClassName, "Implementing class name mismatch."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
 '@TestMethod("INSERT")
 Private Sub ztcExecuteNonQuery_VerifiesInsertPlainITRB()
     On Error GoTo TestFail

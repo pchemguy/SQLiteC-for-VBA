@@ -76,7 +76,7 @@ Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     With this
         Set .DbStmt = DbStmt
         .RowCount = 0
-        .PageCount = 10
+        .PageCount = 100
         .PageSize = 100
         .MetaLoaded = False
     End With

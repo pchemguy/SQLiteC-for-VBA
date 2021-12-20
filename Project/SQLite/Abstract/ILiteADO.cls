@@ -23,6 +23,11 @@ Public Property Get ConnectionString() As String
 Attribute ConnectionString.VB_Description = "Connection string used by the implementing package."
 End Property
 
+'@Description "Implementing class name."
+Public Property Get ClassName() As String
+Attribute ClassName.VB_Description = "Implementing class name."
+End Property
+
 '''' A variant error value may be returned in case of an issue
 Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
@@ -32,10 +37,10 @@ Public Function GetAdoRecordset(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty) As ADODB.Recordset
 End Function
 
-'@Description "Returns RecordsAffected count"
+'@Description "Executes a modifying query, returning RecordsAffected count"
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
                        Optional ByVal QueryParameters As Variant = Empty) As Long
-Attribute ExecuteNonQuery.VB_Description = "Returns RecordsAffected count"
+Attribute ExecuteNonQuery.VB_Description = "Executes a modifying query, returning RecordsAffected count"
 End Function
 
 '@Description "Begins SQLite transaction."

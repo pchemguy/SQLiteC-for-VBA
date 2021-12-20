@@ -90,13 +90,14 @@ End Property
 ''''
 '@Description "Extracts field names from 2D array with header."
 Public Function FieldNamesFrom2DArrayHeader(ByRef TableData As Variant) As String()
+Attribute FieldNamesFrom2DArrayHeader.VB_Description = "Extracts field names from 2D array with header."
     Dim FieldNames() As String
     ReDim FieldNames(LBound(TableData, 2) To UBound(TableData, 2))
     Dim HeaderRowIndex As Long
     HeaderRowIndex = LBound(TableData, 1)
     Dim FieldIndex As Long
     For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
-        FieldNames(FieldIndex) = SQLlib.QuoteSQLName( _
+        FieldNames(FieldIndex) = SQLQuoter.QuoteSQLName( _
                                  TableData(HeaderRowIndex, FieldIndex))
     Next FieldIndex
     FieldNamesFrom2DArrayHeader = FieldNames
@@ -115,7 +116,7 @@ Attribute DefaultUPSERT.VB_Description = "Generates the INSERT OR IGNORE INTO VA
     Dim FieldName As String
     Dim FieldIndex As Long
     For FieldIndex = LBound(FieldNames) To UBound(FieldNames)
-        FieldName = SQLlib.QuoteSQLName(TableData(HeaderRowIndex, FieldIndex))
+        FieldName = SQLQuoter.QuoteSQLName(TableData(HeaderRowIndex, FieldIndex))
         FieldTerms(FieldIndex) = (FieldName & "=" & "excluded." & FieldName)
     Next FieldIndex
     DefaultUPSERT = "ON CONFLICT DO UPDATE SET" & vbNewLine & _
@@ -168,7 +169,7 @@ RECORD_LOOP:
     Dim FieldIndex As Long
     For FieldIndex = FieldLB To FieldUB
         FieldValue = TableData(RecordSrcIndex, FieldIndex)
-        FieldValues(FieldIndex) = SQLlib.CStrSQL(FieldValue)
+        FieldValues(FieldIndex) = SQLQuoter.CStrSQL(FieldValue)
     Next FieldIndex
     RecordValues(RecordDstIndex) = "(" & Join(FieldValues, ", ") & ")"
     Return
@@ -212,22 +213,6 @@ Attribute UpsertFrom2DArray.VB_Description = "Generates the INSERT OR UPDATE INT
 End Function
 
 
-'@Description "Generates field map from 2D data array with header."
-Public Function MapFields(ByRef TableData As Variant) As Scripting.Dictionary
-    Dim FieldMap As Scripting.Dictionary
-    Set FieldMap = New Scripting.Dictionary
-    FieldMap.CompareMode = TextCompare
-    
-    Dim HeaderRowIndex As Long
-    HeaderRowIndex = LBound(TableData, 1)
-    Dim FieldIndex As Long
-    For FieldIndex = LBound(TableData, 2) To UBound(TableData, 2)
-        FieldMap(TableData(HeaderRowIndex, FieldIndex)) = FieldIndex
-    Next FieldIndex
-    Set MapFields = FieldMap
-End Function
-
-
 '''' Generates set membership test clause.
 ''''
 '''' Examples:
@@ -266,7 +251,7 @@ Attribute TestSetMembership.VB_Description = "Generates set (IN) condition."
     End If
     
     Dim FieldMap As Scripting.Dictionary
-    Set FieldMap = MapFields(TableData)
+    Set FieldMap = LiteADOlib.MapFields(TableData)
     Dim FieldName As String
     Dim FieldNames As Variant
     ReDim FieldNames(ColIdxLow To ColIdxHigh)
@@ -278,7 +263,7 @@ Attribute TestSetMembership.VB_Description = "Generates set (IN) condition."
         Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
             "LiteSQLlib/VectorInValues", "Invalid field name: " & FieldName
         ColIndices(ColIdxIndex) = FieldMap(FieldName)
-        FieldNames(ColIdxIndex) = SQLlib.QuoteSQLName(FieldName)
+        FieldNames(ColIdxIndex) = SQLQuoter.QuoteSQLName(FieldName)
     Next ColIdxIndex
     FieldNames = LeftParen & Join(FieldNames, ", ") & RightParen
     
@@ -290,7 +275,7 @@ Attribute TestSetMembership.VB_Description = "Generates set (IN) condition."
     Dim RowIdxIndex As Long
     For RowIdxIndex = RowIdxLow To RowIdxHigh
         For ColIdxIndex = ColIdxLow To ColIdxHigh
-            VectorValues(ColIdxIndex) = SQLlib.CStrSQL( _
+            VectorValues(ColIdxIndex) = SQLQuoter.CStrSQL( _
                 TableData(DataRowIndices(RowIdxIndex) + 1, ColIndices(ColIdxIndex)))
         Next ColIdxIndex
         RowValues(RowIdxIndex) = LeftParen & Join(VectorValues, ", ") & RightParen
@@ -326,21 +311,22 @@ End Function
 
 
 '''' Examples:
-''''   >>> ?LiteSQLlib("people").GetUpdateTemplate(FixUtils.People2D, Array("age", "last_name"))
-''''   UPDATE people
-''''   SET (id, first_name, gender, email, country, domain) = (?0, ?1, ?4, ?5, ?6, ?7)
-''''   WHERE age = ?3, last_name = ?2
+''''   >>> ?LiteSQLlib("people").UpdateTemplate(FixUtils.People2D, Array("age", "last_name"))
+''''   Update people
+''''   SET (id, first_name, gender, email, country, domain) = (?1, ?2, ?5, ?6, ?7, ?8)
+''''   WHERE age = ?4, last_name = ?3
 ''''
-''''   >>> LiteSQLlib("people").GetUpdateTemplate(FixUtils.People2DSpacesInFieldNames, Array("age", "last name"))
-''''   UPDATE people
-''''   SET (id, "first name", gender, email, country, domain) = (?0, ?1, ?4, ?5, ?6, ?7)
-''''   WHERE age = ?3, "last name" = ?2
+''''   >>> LiteSQLlib("people").UpdateTemplate(FixUtils.People2DSpacesInFieldNames, Array("age", "last name"))
+''''   Update people
+''''   SET (id, "first name", gender, email, country, domain) = (?1, ?2, ?5, ?6, ?7, ?8)
+''''   WHERE age = ?4, "last name" = ?3
 ''''
 '@Description "Generates UPDATE template."
-Public Function GetUpdateTemplate(ByRef TableData As Variant, _
-                                  ByRef ColNames As Variant) As String
+Public Function UpdateTemplate(ByRef TableData As Variant, _
+                               ByRef ColNames As Variant) As String
+Attribute UpdateTemplate.VB_Description = "Generates UPDATE template."
     Dim SQLTerms(0 To 2) As String
-    SQLTerms(0) = "UPDATE " & SQLlib.QuoteSQLName(this.TableName)
+    SQLTerms(0) = "UPDATE " & SQLQuoter.QuoteSQLName(this.TableName)
     
     Dim ColNamesLB As Long
     ColNamesLB = LBound(ColNames)
@@ -348,7 +334,10 @@ Public Function GetUpdateTemplate(ByRef TableData As Variant, _
     ColNamesUB = UBound(ColNames)
         
     Dim FieldMap As Scripting.Dictionary
-    Set FieldMap = MapFields(TableData)
+    Set FieldMap = LiteADOlib.MapFields(TableData)
+    Dim BaseShift As Long
+    BaseShift = -LBound(TableData, 2) + 1
+    
     Dim FieldName As String
     Dim FieldNames As Variant
     ReDim FieldNames(ColNamesLB To ColNamesUB)
@@ -357,7 +346,7 @@ Public Function GetUpdateTemplate(ByRef TableData As Variant, _
         FieldName = ColNames(ColNameIndex)
         Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
             "LiteSQLlib/GetUpdateTemplate", "Invalid field name: " & FieldName
-        FieldNames(ColNameIndex) = SQLlib.QuoteSQLName(FieldName) & " = ?" & CStr(FieldMap(FieldName))
+        FieldNames(ColNameIndex) = SQLQuoter.QuoteSQLName(FieldName) & " = ?" & CStr(FieldMap(FieldName) + BaseShift)
         FieldMap.Remove FieldName
     Next ColNameIndex
     SQLTerms(2) = "WHERE " & Join(FieldNames, ", ")
@@ -367,8 +356,8 @@ Public Function GetUpdateTemplate(ByRef TableData As Variant, _
     FieldNames = FieldMap.Keys
     Dim NameIndex As Long
     For NameIndex = 0 To UBound(FieldNames)
-        FieldNames(NameIndex) = SQLlib.QuoteSQLName(FieldNames(NameIndex))
-        PlaceHolders(NameIndex) = "?" & CStr(PlaceHolders(NameIndex))
+        FieldNames(NameIndex) = SQLQuoter.QuoteSQLName(FieldNames(NameIndex))
+        PlaceHolders(NameIndex) = "?" & CStr(PlaceHolders(NameIndex) + BaseShift)
     Next NameIndex
     
     If UBound(FieldNames) = 0 Then
@@ -378,5 +367,5 @@ Public Function GetUpdateTemplate(ByRef TableData As Variant, _
                                      Join(PlaceHolders, ", ") & ")"
     End If
     
-    GetUpdateTemplate = Join(SQLTerms, vbNewLine)
+    UpdateTemplate = Join(SQLTerms, vbNewLine)
 End Function

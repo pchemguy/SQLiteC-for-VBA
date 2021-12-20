@@ -9,8 +9,6 @@ Option Private Module
 
 Private Const MODULE_NAME As String = "SQLiteCTests"
 Private TestCounter As Long
-'''' When >0, test runner will stop at every test, starting from #STOP_IN_TEST
-Private Const STOP_IN_TEST As Long = 0
 
 Private Const LITE_LIB As String = "SQLiteCAdo"
 Private Const PATH_SEP As String = "\"
@@ -65,10 +63,6 @@ End Sub
 Private Sub ztcSQLite3Version_VerifiesVersionInfo()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
     
 Arrange:
     Dim DllPath As String
@@ -105,12 +99,6 @@ End Sub
 Private Sub ztcSQLite3Version_VerifiesVersionInfoV2()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim DllPath As String
@@ -144,10 +132,6 @@ End Sub
 Private Sub ztcCreate_VerifiesDefaultManager()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -171,10 +155,6 @@ Private Sub ztcGetMainDbId_VerifiesIsNull()
     Exit Sub
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -198,10 +178,6 @@ End Sub
 Private Sub ztcGetDllMan_VerifiesIsSet()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -224,10 +200,6 @@ End Sub
 Private Sub ztcConnDb_VerifiesIsNotSet()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -250,10 +222,7 @@ End Sub
 Private Sub ztcCreate_ThrowsGivenWrongDllBitness()
     On Error Resume Next
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
+    
     Dim DllPath As String
     Dim DllNames As Variant
     #If Win64 Then
@@ -273,10 +242,7 @@ End Sub
 Private Sub ztcCreate_ThrowsOnInvalidDllPath()
     On Error Resume Next
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
+    
     Dim DllPath As String
     DllPath = "____INVALID PATH____"
     Dim dbm As SQLiteC
@@ -290,10 +256,6 @@ End Sub
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbc As SQLiteCConnection
@@ -317,10 +279,6 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbm As SQLiteC
@@ -350,10 +308,6 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     '''' In general, tests may reuse the db manager. This test verifies the
@@ -386,10 +340,6 @@ End Sub
 Private Sub ztcGetDbConn_VerifiesTempMainDb()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     '''' In general, tests may reuse the db manager. This test verifies the
@@ -421,10 +371,6 @@ End Sub
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyMemToTemp()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection
@@ -477,10 +423,6 @@ End Sub
 Private Sub ztcDupDbOnlineFull_VerifiesDbCopyTempToMem()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
-    If STOP_IN_TEST <> 0 And STOP_IN_TEST <= TestCounter Then
-        Debug.Print "TEST #: " & CStr(TestCounter)
-        Stop
-    End If
 
 Arrange:
     Dim dbcSrc As SQLiteCConnection

@@ -146,6 +146,16 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
     Set CreateConnection = DbConn
 End Function
 
+'@Description "Creates a new SQLiteCConnection instance."
+Public Function CreateILiteADO(ByVal DbPathName As String, _
+                      Optional ByVal AllowNonExistent As Variant = True _
+                      ) As ILiteADO
+Attribute CreateILiteADO.VB_Description = "Creates a new SQLiteCConnection instance."
+    Dim dbc As SQLiteCConnection
+    Set dbc = CreateConnection(DbPathName, AllowNonExistent)
+    Set CreateILiteADO = dbc.ExecADO
+End Function
+
 '''' vbNullString is an acceptable DbPathName (should resolve to anon temp db).
 '@Description "Returns an existing SQLiteCConnection instance or Nothing."
 Public Function ConnDb(Optional ByVal DbPathName As String = vbNullString _

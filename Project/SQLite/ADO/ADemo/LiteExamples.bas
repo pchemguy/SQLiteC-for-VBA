@@ -24,7 +24,7 @@ End Sub
 '@Description "Prints pathname of the created temp database."
 Private Sub CreateTmpDb()
 Attribute CreateTmpDb.VB_Description = "Prints pathname of the created temp database."
-    Debug.Print Replace(LiteMan(":tmp:").ExecADO.MainDB, Environ("Temp"), "%temp%")
+    Debug.Print Replace(LiteMan(":tmp:").ExecADO.MainDB, Environ$("Temp"), "%temp%")
 End Sub
 
 '''' Should create "Dest.db" clone of the test database in ThisWorkbook.Path
@@ -84,7 +84,7 @@ Private Sub ConnectSQLiteAdoCommandSourceFreezeWithBusyDb()
     Dim Driver As String
     Driver = "SQLite3 ODBC Driver"
     Dim Database As String
-    Database = Environ("Temp") & "\" & CStr(Format(Now, "yyyy-mm-dd_hh-mm-ss.")) _
+    Database = Environ$("Temp") & "\" & CStr(Format$(Now, "yyyy-mm-dd_hh-mm-ss.")) _
         & CStr((Timer * 10000) Mod 10000) & CStr(Round(Rnd * 10000, 0)) & ".db"
     Debug.Print Database
     Dim Options As String

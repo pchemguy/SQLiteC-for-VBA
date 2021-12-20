@@ -14,6 +14,7 @@ Attribute VB_Description = "Minimalistic ADODB wrapper used by SQLiteDB"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess, FunctionReturnValueDiscarded, ValueRequired
 Option Explicit
+Private Const MODULE_NAME As String = "LiteADO"
 
 Implements ILiteADO
 
@@ -295,6 +296,10 @@ End Property
 
 Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.ConnectionString
+End Property
+
+Private Property Get ILiteADO_ClassName() As String
+    ILiteADO_ClassName = MODULE_NAME
 End Property
 
 Private Function ILiteADO_OpenDb() As Long

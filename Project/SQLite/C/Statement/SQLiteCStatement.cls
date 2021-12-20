@@ -14,6 +14,7 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteCStatement"
 
 Implements ILiteADO
 
@@ -564,6 +565,10 @@ End Property
 '''' For SQLiteC, this is the same as MainDB
 Private Property Get ILiteADO_ConnectionString() As String
     ILiteADO_ConnectionString = this.DbConn.DbPathName
+End Property
+
+Private Property Get ILiteADO_ClassName() As String
+    ILiteADO_ClassName = MODULE_NAME
 End Property
 
 Private Function ILiteADO_OpenDb() As Long

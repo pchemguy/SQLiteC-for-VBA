@@ -143,7 +143,16 @@ Private Sub InitDBQC()
         Debug.Print "Database engine version functionality test failed."
     End If
     Set this.dbmC = dbm
-
+    
+    Dim dbq As ILiteADO
+    Set dbq = dbm.CreateILiteADO(this.DbPathName, AllowNonExistent:=True)
+    Set this.dbq = dbq
+    Debug.Print "Created blank db: " & dbq.MainDB
+    Set this.dbl = LiteADOlib(dbq)
+    Exit Sub
+    
+    '''' ============================================================= ''''
+    
     '---------------------------'
     '===== INIT CONNECTION ====='
     '---------------------------'
@@ -168,7 +177,6 @@ Private Sub InitDBQC()
     dbs.DbExecutor.PageCount = 10
     dbs.DbExecutor.PageSize = 100
     
-    Dim dbq As ILiteADO
     Set dbq = dbs
     If dbq Is Nothing Then
         Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _

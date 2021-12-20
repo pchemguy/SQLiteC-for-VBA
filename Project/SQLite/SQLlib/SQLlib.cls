@@ -245,69 +245,6 @@ Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single qu
 End Function
 
 
-'''' Examples:
-''''   >>> ?SQLlib.QuoteFieldName("file_name")
-''''   "file_name"
-''''
-''''   >>> ?SQLlib.QuoteFieldName("file name")
-''''   """file name"""
-''''
-''''   >>> ?SQLlib.QuoteFieldName("file_name", True)
-''''   "file_name"
-''''
-'@Description "Quotes field name."
-Public Function QuoteSQLName(ByVal FieldName As String, _
-                    Optional ByVal Force As Boolean = False) As String
-Attribute QuoteSQLName.VB_Description = "Quotes field name."
-    If InStr(FieldName, """") > 0 Or _
-       InStr(FieldName, "'") > 0 Or _
-       InStr(FieldName, "=") > 0 Then
-        Err.Raise ErrNo.InvalidParameterErr, "SQLlib/QuoteFieldName", _
-                  "Invalid char in fieldname: " & FieldName
-    End If
-    If Force Or InStr(FieldName, " ") > 0 Then
-        QuoteSQLName = """" & FieldName & """"
-    Else
-        QuoteSQLName = FieldName
-    End If
-End Function
-
-
-'''' Examples:
-''''   >>> ?SQLlib.CStrSQL(5.5)
-''''   "5.5"
-''''
-''''   >>> ?SQLlib.CStrSQL("Text")
-''''   "'Text'"
-''''
-''''   >>> ?SQLlib.CStrSQL(Empty)
-''''   "NULL"
-''''
-''''   >>> ?SQLlib.CStrSQL(Null)
-''''   "NULL"
-''''
-''''   >>> ?SQLlib.CStrSQL(True)
-''''   "'True'"
-''''
-'@Description "Converts a VBA Variant to SQL textual representation."
-Public Function CStrSQL(ByVal VariantVBA As Variant) As String
-Attribute CStrSQL.VB_Description = "Converts a VBA Variant to SQL textual representation."
-    Select Case VarType(VariantVBA)
-        Case vbString
-            CStrSQL = QuoteSQLString(VariantVBA)
-        Case vbLong, vbDouble, vbInteger, vbSingle, _
-             vbCurrency, vbByte, vbLongLong
-            CStrSQL = CStr(VariantVBA)
-        Case vbEmpty, vbNull, vbError
-            CStrSQL = "NULL"
-        Case vbBoolean
-            CStrSQL = QuoteSQLString(CStr(VariantVBA))
-        Case vbDate
-            CStrSQL = Format(VariantVBA, "YYYY-MM-DDTHH:MM:SS")
-    End Select
-End Function
-
-
 '@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String

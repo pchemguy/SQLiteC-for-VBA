@@ -54,8 +54,8 @@ Public Function EpochToString(Optional ByVal Epoch As Double = -1) As String
     End If
     Dim DateVal As Date
     DateVal = DateAdd("s", EpochValue, EpochRef)
-    EpochToString = Format(DateVal, "YYYY-MM-DD hh:mm:ss") & "." & _
-                    Format(Round((EpochValue - Int(EpochValue)) * 1000), "000")
+    EpochToString = Format$(DateVal, "YYYY-MM-DD hh:mm:ss") & "." & _
+                    Format$(Round((EpochValue - Int(EpochValue)) * 1000), "000")
 End Function
 
 Public Function GenerateGUID() As String

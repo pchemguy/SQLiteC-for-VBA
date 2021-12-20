@@ -236,6 +236,7 @@ End Function
 
 '@Description "Returns sample 2D array"
 Public Function People2D() As Variant
+Attribute People2D.VB_Description = "Returns sample 2D array"
     People2D = RowsToTable(Array( _
         Array("id", "first_name", "last_name", "age", "gender", "email", "country", "domain"), _
         Array(1, "Teresa", "Glover", 52, "male", "Teresa.Glover@bol.com.br", "Macedonia", "hiphopmyway.com"), _
@@ -252,8 +253,10 @@ Public Function People2D() As Variant
 End Function
 
 
+'@Ignore ProcedureNotUsed
 '@Description "Returns sample 2D array with some field names containing spaces"
 Public Function People2DSpacesInFieldNames() As Variant
+Attribute People2DSpacesInFieldNames.VB_Description = "Returns sample 2D array with some field names containing spaces"
     Dim TableData As Variant
     TableData = People2D
     TableData(0, 1) = "first name"
@@ -264,6 +267,7 @@ End Function
 
 '@Description "Converts 1D array of 1D arrays to 2D array"
 Public Function RowsToTable(ByRef TableRows As Variant) As Variant
+Attribute RowsToTable.VB_Description = "Converts 1D array of 1D arrays to 2D array"
     Guard.NotArray TableRows
     Guard.NotArray TableRows(LBound(TableRows))
     
