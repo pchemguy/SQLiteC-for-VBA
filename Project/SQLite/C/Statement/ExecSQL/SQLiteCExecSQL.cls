@@ -14,6 +14,7 @@ Attribute VB_Description = "Executes statement and retrieves data"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteCStatement"
 
 #If VBA7 Then
 Private Declare PtrSafe Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As LongPtr, ByVal pSource As LongPtr, ByVal Length As Long)
@@ -148,7 +149,7 @@ Friend Function ExecuteStepAPI() As SQLiteResultCodes
 Attribute ExecuteStepAPI.VB_Description = "Executes statement or moves the cursor forward to the next available row."
     With this.DbStmt
         If .StmtHandle = 0 Then Err.Raise ErrNo.StatementNotPreparedErr, _
-                                "SQLiteCExecSQL", "Statement is not prepared."
+            MODULE_NAME & "/ExecuteStepAPI", "Statement is not prepared."
         Dim ResultCode As SQLiteResultCodes
         ResultCode = sqlite3_step(.StmtHandle)
         If ResultCode <> SQLITE_ROW Then
@@ -167,7 +168,7 @@ End Function
 '@Description "Retrieves number of columns returned by the prepared statement."
 Public Function ColumnCountAPI() As Long
 Attribute ColumnCountAPI.VB_Description = "Retrieves number of columns returned by the prepared statement."
-    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/ColumnCountAPI"
+    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/ColumnCountAPI"
     this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     ColumnCountAPI = this.ColumnCount
 End Function
@@ -190,11 +191,9 @@ End Function
 '''' Reference: https://www.sqlite.org/c3ref/c_blob.html
 ''''
 '@Description "Retrieves a single column value from currently available row."
-Friend Function GetColumnValueAPI( _
-            Optional ByVal ColumnIndex As Long = 0, _
-            Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Friend Function GetColumnValueAPI(Optional ByVal ColumnIndex As Long = 0) As Variant
 Attribute GetColumnValueAPI.VB_Description = "Retrieves a single column value from currently available row."
-    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCExecSQL/GetColumnValueAPI"
+    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/GetColumnValueAPI"
     #If VBA7 Then
         Dim hStmt As LongPtr
         Dim RemoteBufPtr As LongPtr
@@ -212,7 +211,7 @@ Attribute GetColumnValueAPI.VB_Description = "Retrieves a single column value fr
     '''' For calculated columns, AffinityType is not defined and should not be used.
     Dim ColumnType As SQLiteDataType
     ColumnType = sqlite3_column_type(hStmt, ColumnIndex)
-    If this.MetaLoaded And ColumnType <> SQLITE_NULL And UseDeclaredTypes Then
+    If this.MetaLoaded And ColumnType <> SQLITE_NULL Then
         Dim AffinityType As SQLiteDataType
         AffinityType = this.TableMeta(ColumnIndex).AffinityType
         If AffinityType > SQLITE_NONE Then ColumnType = AffinityType
@@ -253,14 +252,13 @@ End Function
 
 
 '@Description "Retrieves currently available row."
-Public Function GetRow(ByVal ColumnCount As Long, _
-              Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Public Function GetRow(ByVal ColumnCount As Long) As Variant
 Attribute GetRow.VB_Description = "Retrieves currently available row."
     Dim ColumnIndex As Long
     Dim RowValues As Variant
     ReDim RowValues(0 To ColumnCount - 1)
     For ColumnIndex = 0 To ColumnCount - 1
-        RowValues(ColumnIndex) = GetColumnValueAPI(ColumnIndex, UseDeclaredTypes)
+        RowValues(ColumnIndex) = GetColumnValueAPI(ColumnIndex)
         If IsError(RowValues(ColumnIndex)) Then
             RowValues = RowValues(ColumnIndex)
             Exit Function
@@ -283,7 +281,8 @@ End Function
 '''' and IsEmpty(Page(RowIndex)) can be used to as While Loop conditions,
 '''' replacing the currently used For Loops).
 ''''
-Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = False _
+                              ) As Variant
     Dim ResultCode As SQLiteResultCodes
         
     Dim ColumnCount As Long
@@ -322,7 +321,7 @@ Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = Fals
             ResultCode = ExecuteStepAPI
             Select Case ResultCode
                 Case SQLITE_ROW
-                    RowValues = GetRow(ColumnCount, UseDeclaredTypes)
+                    RowValues = GetRow(ColumnCount)
                     If IsError(RowValues) Then
                         GetPagedRowSet = RowValues
                         Exit Function
@@ -374,14 +373,16 @@ Attribute GetRowSet2D.VB_Description = "Shapes/flattens the data returning a 2D 
     For PageIndex = 0 To this.FilledPagesCount - 1
         For RowIndex = 0 To this.PageSize - 1
             For ColumnIndex = 0 To this.ColumnCount - 1
-                RowSetArray(RecordIndex, ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
+                RowSetArray(RecordIndex, ColumnIndex) = _
+                    PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
             Next ColumnIndex
             RecordIndex = RecordIndex + 1
         Next RowIndex
     Next PageIndex
     For RowIndex = 0 To this.RowCount - this.FilledPagesCount * this.PageSize - 1
         For ColumnIndex = 0 To this.ColumnCount - 1
-            RowSetArray(RecordIndex, ColumnIndex) = PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
+            RowSetArray(RecordIndex, ColumnIndex) = _
+                PagedRowSet(PageIndex)(RowIndex)(ColumnIndex)
         Next ColumnIndex
         RecordIndex = RecordIndex + 1
     Next RowIndex

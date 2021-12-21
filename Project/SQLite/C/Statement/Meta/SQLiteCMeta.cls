@@ -13,6 +13,7 @@ Attribute VB_Description = "Retrieves prepared statement metadata."
 '@PredeclaredId
 '@Exposed
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteCMeta"
 
 #If VBA7 Then
 ' 0-based indices
@@ -99,7 +100,7 @@ End Function
 '@Description "Retrieves number of columns returned by the prepared statement."
 Public Function ColumnCountAPI() As Long
 Attribute ColumnCountAPI.VB_Description = "Retrieves number of columns returned by the prepared statement."
-    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCMeta/ColumnCountAPI"
+    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/ColumnCountAPI"
     this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
     ColumnCountAPI = this.ColumnCount
 End Function
@@ -164,7 +165,8 @@ Attribute ColumnMetaAPI.VB_Description = "Retrieves columns metadata."
     ResultCode = SQLITE_OK
     With ColumnInfo
         If .Initialized <> -1 Then Err.Raise ErrNo.InvalidParameterErr, _
-            "SQLiteCExecSQL", "Set .ColumnIndex and .Initialized=-1 before the call!"
+            MODULE_NAME & "/ColumnMetaAPI", _
+            "Set .ColumnIndex and .Initialized=-1 before the call!"
 
         Dim ColumnIndex As Long
         ColumnIndex = .ColumnIndex
@@ -254,7 +256,7 @@ End Function
 '@Description "Collects table metadata."
 Public Function TableMetaCollect() As SQLiteResultCodes
 Attribute TableMetaCollect.VB_Description = "Collects table metadata."
-    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCMeta/ColumnMetaAPI"
+    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/ColumnMetaAPI"
     
     Dim ColumnCount As Long
     ColumnCount = ColumnCountAPI

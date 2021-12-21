@@ -62,9 +62,10 @@ Arrange:
 Act:
 Assert:
     Assert.AreEqual "FirstName", SQLQuoter.QuoteSQLName("FirstName"), "Basic name quoting mismatch."
+    Assert.AreEqual "First_Name", SQLQuoter.QuoteSQLName("First_Name"), "Name with underscore quoting mismatch."
     Assert.AreEqual "FirstName", SQLQuoter.QuoteSQLName("[FirstName]"), "Quoted basic name quoting mismatch."
     Assert.AreEqual "FirstName", SQLQuoter.QuoteSQLName("""FirstName"""), "Quoted basic name quoting mismatch."
-    Assert.AreEqual "First_Name", SQLQuoter.QuoteSQLName("First_Name"), "Basic name quoting mismatch."
+    Assert.AreEqual """First""""Name""", SQLQuoter.QuoteSQLName("First""Name"), "Name with quote quoting mismatch."
     Assert.AreEqual """_First_Name""", SQLQuoter.QuoteSQLName("_First_Name"), "First char non-alpha quoting mismatch."
     Assert.AreEqual """1First_Name""", SQLQuoter.QuoteSQLName("1First_Name"), "First char non-alpha quoting mismatch."
     Assert.AreEqual """First Name""", SQLQuoter.QuoteSQLName("First Name"), "Space quoting mismatch."

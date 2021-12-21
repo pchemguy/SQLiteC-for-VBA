@@ -14,6 +14,7 @@ Attribute VB_Description = "Handles query parameters"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteCParameters"
 
 Public Enum SQLiteMemoryManagement
     SQLITE_STATIC = 0&
@@ -58,6 +59,8 @@ Private Declare Function sqlite3_clear_bindings Lib "SQLite3" (ByVal hStmt As Lo
 
 Private Type TSQLiteCParameters
     DbStmt As SQLiteCStatement
+    ParamMap As Scripting.Dictionary
+    ParameterCount As Long
 End Type
 Private this As TSQLiteCParameters
 
@@ -74,6 +77,7 @@ End Function
 Friend Sub Init(ByVal DbStmt As SQLiteCStatement)
     Guard.NullReference DbStmt
     Set this.DbStmt = DbStmt
+    Set this.ParamMap = New Scripting.Dictionary
 End Sub
 
 Friend Sub CleanUp()
@@ -86,7 +90,22 @@ End Sub
 '@Description "Retrieves parameter count."
 Public Property Get ParameterCount() As Long
 Attribute ParameterCount.VB_Description = "Retrieves parameter count."
-    ParameterCount = sqlite3_bind_parameter_count(this.DbStmt.StmtHandle)
+    #If VBA7 Then
+        Dim hStmt As LongPtr
+    #Else
+        Dim hStmt As Long
+    #End If
+    hStmt = this.DbStmt.StmtHandle
+    If hStmt <> 0 Then
+        this.ParameterCount = sqlite3_bind_parameter_count(hStmt)
+        ParameterCount = this.ParameterCount
+    Else
+        ParameterCount = 0
+    End If
+End Property
+
+Friend Property Get ParamMap() As Scripting.Dictionary
+    Set ParamMap = this.ParamMap
 End Property
 
 '''' Reference: https://www.sqlite.org/c3ref/bind_parameter_index.html
@@ -108,19 +127,36 @@ End Function
 '@Description "Retrieves named parameter name."
 Public Function NameFromIndex(ByVal ParamIndex As Long) As String
 Attribute NameFromIndex.VB_Description = "Retrieves named parameter name."
-    Guard.ExpressionErr ParamIndex > 0, InvalidParameterErr, "SQLiteCParameters", _
+    Guard.ExpressionErr ParamIndex > 0, InvalidParameterErr, MODULE_NAME, _
         "ParamIndex must be a positive integer"
     NameFromIndex = UTFlib.StrFromUTF8Ptr(sqlite3_bind_parameter_name( _
         this.DbStmt.StmtHandle, ParamIndex))
 End Function
 
+'@Description "Caches <ParamName>-><ParamIndex> map."
+Friend Sub MapParams()
+    If this.DbStmt.StmtHandle = 0 Then Exit Sub
+    With this.ParamMap
+        Dim ParamName As String
+        Dim ParamIndex As Long
+        For ParamIndex = 1 To this.ParameterCount
+            ParamName = NameFromIndex(ParamIndex)
+            If ParamName = vbNullString Then
+                .RemoveAll
+                Exit Sub
+            End If
+            .Item(ParamName) = ParamIndex
+        Next ParamIndex
+    End With
+End Sub
+
 '''' Reference: https://www.sqlite.org/c3ref/bind_blob.html
 ''''
 '@Description "Binds a single parameter. A particular interface is selected based on the value type."
-Public Function BindOne(ByVal ParamIndex As Long, ByVal Value As Variant) As SQLiteResultCodes
-Attribute BindOne.VB_Description = "Binds a single parameter. A particular interface is selected based on the value type."
+Public Function BindOne(ByVal ParamIndex As Long, ByVal Value As Variant _
+                       ) As SQLiteResultCodes
     '''' Place the Guard at higher level
-    '''' FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCParameters/BindOne"
+    '''' FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/BindOne"
     #If VBA7 Then
         Dim hStmt As LongPtr
     #Else
@@ -138,7 +174,8 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             ResultCode = sqlite3_bind_double(hStmt, ParamIndex, Value)
         Case vbString
             Length = Len(Value) * 2
-            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(Value), Length, SQLITE_TRANSIENT)
+            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(Value), _
+                                             Length, SQLITE_TRANSIENT)
         Case vbBoolean
             ResultCode = sqlite3_bind_int(hStmt, ParamIndex, Abs(Value))
         Case vbEmpty, vbNull
@@ -153,23 +190,27 @@ Attribute BindOne.VB_Description = "Binds a single parameter. A particular inter
             Dim LocalBuffer() As Byte
             LocalBuffer = Value
             Length = UBound(Value) - LBound(Value) + 1
-            ResultCode = sqlite3_bind_blob(hStmt, ParamIndex, VarPtr(LocalBuffer(0)), Length, SQLITE_TRANSIENT)
+            ResultCode = sqlite3_bind_blob(hStmt, ParamIndex, VarPtr(LocalBuffer(0)), _
+                                           Length, SQLITE_TRANSIENT)
         Case vbDecimal
             Dim DecValue As String
             DecValue = CStr(Value)
             Length = Len(DecValue) * 2
-            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(DecValue), Length, SQLITE_TRANSIENT)
+            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(DecValue), _
+                                             Length, SQLITE_TRANSIENT)
         Case vbObject, vbError, vbDataObject, vbUserDefinedType
-            Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+            Err.Raise ErrNo.InvalidParameterErr, MODULE_NAME & "/BindOne", _
                       "Unsupported value type: " & CStr(VarType(Value))
         Case Is < vbArray
-            Debug.Print "Unsupported value converted to String. Type: " & CStr(VarType(Value))
+            Debug.Print "Unsupported value converted to String. Type: " _
+                        & CStr(VarType(Value))
             Dim StrValue As String
             StrValue = CStr(Value)
             Length = Len(StrValue) * 2
-            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(StrValue), Length, SQLITE_TRANSIENT)
+            ResultCode = sqlite3_bind_text16(hStmt, ParamIndex, StrPtr(StrValue), _
+                                             Length, SQLITE_TRANSIENT)
         Case Is >= vbArray
-            Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+            Err.Raise ErrNo.InvalidParameterErr, MODULE_NAME & "/BindOne", _
                       "Unsupported array type: " & CStr(VarType(Value))
     End Select
     If ResultCode > SQLITE_ERROR Then
@@ -183,14 +224,14 @@ End Function
 Public Function BindArray(ByVal ValueArr As Variant) As SQLiteResultCodes
 Attribute BindArray.VB_Description = "Binds a set of parameter values provided as an array. Array size must match the number of available parameters."
     Guard.ExpressionErr VarType(ValueArr) >= vbArray, ErrNo.InvalidParameterErr, _
-            "SQLiteCParameters", "Expected an array parameter, received VarType: " _
-            & CStr(VarType(ValueArr))
+        MODULE_NAME & "/BindArray", "Expected an array parameter, received VarType: " _
+        & CStr(VarType(ValueArr))
     Dim ValueCount As Long
     ValueCount = UBound(ValueArr, 1) - LBound(ValueArr, 1) + 1
     Dim ParamCount As Long
     ParamCount = ParameterCount
     If ValueCount <> ParamCount Then
-        Err.Raise ErrNo.InvalidParameterErr, "SQLiteCParameters", _
+        Err.Raise ErrNo.InvalidParameterErr, MODULE_NAME & "/BindArray", _
         "Wrong number of parameter values:" & _
         vbNewLine & "Expected: " & CStr(ParamCount) & _
         vbNewLine & "Received: " & CStr(ValueCount)
@@ -211,19 +252,22 @@ End Function
 Public Function BindDict(ByVal ValueDict As Scripting.Dictionary) As SQLiteResultCodes
 Attribute BindDict.VB_Description = "Binds a set of parameter values provided as Name->Value map. Only parameters with matching names are bound."
     Guard.NullReference ValueDict
+    Guard.NullReference this.ParamMap
+    Guard.ExpressionErr this.ParamMap.Count > 0, ErrNo.InvalidParameterErr, _
+        MODULE_NAME & "/BindDict", "Dictionary provided to anonymous template."
     Dim ResultCode As SQLiteResultCodes
-    Dim ParamIndex As Long
     Dim ParamName As Variant
-    For Each ParamName In ValueDict.Keys
-        ParamIndex = IndexFromName(ParamName)
-        If ParamIndex > 0 Then
-            ResultCode = BindOne(ParamIndex, ValueDict(ParamName))
-            If ResultCode <> SQLITE_OK Then
-                BindDict = ResultCode
-                Exit Function
+    With this.ParamMap
+        For Each ParamName In ValueDict.Keys
+            If .Exists(ParamName) Then
+                ResultCode = BindOne(.Item(ParamName), ValueDict(ParamName))
+                If ResultCode <> SQLITE_OK Then
+                    BindDict = ResultCode
+                    Exit Function
+                End If
             End If
-        End If
-    Next ParamName
+        Next ParamName
+    End With
     BindDict = ResultCode
 End Function
 
@@ -233,8 +277,8 @@ End Function
 ''''   - dictionary, specifying type for each parameter (can be
 ''''     passed as an optional second argument.
 Public Function BindDictOrArray(ByVal ParamValues As Variant) As SQLiteResultCodes
-    FixGuard.StmtNotPrepared this.DbStmt, "SQLiteCParameters/BindDictOrArray"
-    If ParameterCount > 0 Then
+    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/BindDictOrArray"
+    If this.ParameterCount > 0 Then
         If TypeName(ParamValues) = "Dictionary" Then
             BindDictOrArray = BindDict(ParamValues)
         Else
@@ -254,6 +298,12 @@ Public Sub BindClear()
     If ResultCode <> SQLITE_OK Then this.DbStmt.DbConnection.ErrInfoRetrieve
 End Sub
 
+'@Description "Cleans up the state."
+Friend Sub Finalize()
+    BindClear
+    this.ParameterCount = 0
+    this.ParamMap.RemoveAll
+End Sub
 
 
 '#If VBA7 Then

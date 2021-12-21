@@ -77,7 +77,7 @@ Attribute QuoteSQLName.VB_Description = "Quotes field name."
     QuoteSQLName = CStr(Buffer)
     Exit Function
 QUOTE_NAME:
-    QuoteSQLName = """" & CStr(Buffer) & """"
+    QuoteSQLName = """" & Replace(CStr(Buffer), """", """""") & """"
 End Function
 
 '''' Examples:

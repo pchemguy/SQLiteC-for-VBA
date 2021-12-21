@@ -491,7 +491,7 @@ End Function
 ''''     SQL query to be split
 ''''
 '''' Returns:
-''''   Array, containing individual subqueries
+''''   Array (0-based), containing individual subqueries
 ''''
 '''' '''' "SELECT 1; SELECT ';''\''; ;SELECT 2; SELECT ''';[""]'; SELECT "
 ''''
