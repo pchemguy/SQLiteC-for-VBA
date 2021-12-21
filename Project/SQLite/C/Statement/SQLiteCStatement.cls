@@ -350,7 +350,7 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
             ErrMsg = "Blank query has been provided to an unprepared statement."
         End If
         Guard.ExpressionErr Len(ErrMsg) = 0, ErrNo.InvalidParameterErr, _
-                            MODULE_NAME & "/ExecuteSetup", ErrMsg
+            MODULE_NAME & "/ExecuteSetup", ErrMsg
     End If
         
     If LenSQL > 0 Then
@@ -358,20 +358,14 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
         SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
         ErrMsg = "Multistatement queries are only supported via ExecuteNonQuery."
         Guard.ExpressionErr UBound(SubQueries) = 0, ErrNo.InvalidParameterErr, _
-                            MODULE_NAME & "/ExecuteSetup", ErrMsg
+            MODULE_NAME & "/ExecuteSetup", ErrMsg
     
         If this.StmtHandle <> 0 Then
             ResultCode = Finalize
-            If ResultCode <> SQLITE_OK Then
-                ExecuteSetup = ResultCode
-                Exit Function
-            End If
+            If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
         End If
         ResultCode = Prepare16V2(SQLQuery)
-        If ResultCode <> SQLITE_OK Then
-            ExecuteSetup = ResultCode
-            Exit Function
-        End If
+        If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
     Else
         '''' LenSQL = 0 And this.StmtHandle <> 0 - the only remaining option,
         '''' because <both = 0> option raises an error above.
@@ -379,11 +373,9 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
         If ResultCode <> SQLITE_OK Then
             ResultCode = Finalize
             If ResultCode = SQLITE_OK Then
-                ExecuteSetup = ExecuteSetup(SQLQueryOriginal, QueryParameters)
-            Else
-                ExecuteSetup = ResultCode
+                ResultCode = ExecuteSetup(SQLQueryOriginal, QueryParameters)
             End If
-            Exit Function
+            GoTo EXIT_FUNCTION:
         End If
     End If
     
@@ -392,11 +384,12 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
         '''' this.DbPara is set in Prepare16V2
         ResultCode = this.DbPara.BindDictOrArray(QueryParameters)
         If ResultCode = SQLITE_OK Then
-            Debug.Print "Parameters are bound."
+            Logger.Logg "Parameters are bound.", , DEBUGLEVEL_INFO
         Else
             ResultCode = this.DbConn.ErrInfoRetrieve
         End If
     End If
+EXIT_FUNCTION:
     ExecuteSetup = ResultCode
 End Function
 
@@ -405,10 +398,6 @@ End Function
 '''' is not parameterized and can be executed via the exec API. In this case,
 '''' the command is relayed to DbConn.ExecuteNonQueryPlain, which can execute
 '''' commands containing multiple semicolon-separated SQL non-query statements.
-''''
-'''' TODO: parameterized semicolon-separated multi-statement commands can be
-''''       processed explicitly by the VBA code. This functionality might be
-''''       implemented in the future.
 ''''
 '@Description "Executes SQL statement not returning data."
 Public Function ExecuteNonQuery(ByVal SQLQuery As String, _
@@ -428,17 +417,10 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
     Dim SubQueryIndex As Long
     For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
         ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters)
-        If ResultCode <> SQLITE_OK Then
-            ExecuteNonQuery = ResultCode
-            Exit Function
-        End If
+        If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
         ResultCode = this.DbExec.ExecuteStepAPI
-        If Not (ResultCode = SQLITE_OK Or _
-                ResultCode = SQLITE_DONE Or _
-                ResultCode = SQLITE_ROW) Then
-            ExecuteNonQuery = ResultCode
-            Exit Function
-        End If
+        If Not (ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or _
+                ResultCode = SQLITE_ROW) Then GoTo EXIT_FUNCTION:
     Next SubQueryIndex
         
     If AffectedRows <> -2 Then
@@ -446,6 +428,7 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
     End If
     
     this.AffectedRowsCount = AffectedRows
+EXIT_FUNCTION:
     ExecuteNonQuery = ResultCode
 End Function
 
@@ -526,8 +509,8 @@ Attribute SQLQueryExpanded.VB_Description = "Returns SQL query supplied to the P
         Dim SQLQueryPtr As Long
     #End If
     SQLQueryPtr = sqlite3_expanded_sql(this.StmtHandle)
-    Guard.ExpressionErr SQLQueryPtr <> 0, ErrNo.OutOfMemoryErr, MODULE_NAME & _
-        "/SQLQueryExpanded", "SQLite DLL returned NULL pointer"
+    Guard.ExpressionErr SQLQueryPtr <> 0, ErrNo.OutOfMemoryErr, _
+        MODULE_NAME & "/SQLQueryExpanded", "SQLite DLL returned NULL pointer"
     Dim SQLQueryText As String
     SQLQueryText = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)
     sqlite3_free SQLQueryPtr
@@ -554,8 +537,8 @@ Attribute SQLQueryOriginal.VB_Description = "Returns original (optionally normal
     Else
         SQLQueryPtr = sqlite3_sql(this.StmtHandle)
     End If
-    Guard.ExpressionErr SQLQueryPtr <> 0, ErrNo.OutOfMemoryErr, MODULE_NAME & _
-        "/SQLQueryOriginal", "SQLite DLL returned NULL pointer"
+    Guard.ExpressionErr SQLQueryPtr <> 0, ErrNo.OutOfMemoryErr, _
+        MODULE_NAME & "/SQLQueryOriginal", "SQLite DLL returned NULL pointer"
     
     SQLQueryOriginal = UTFlib.StrFromUTF8Ptr(SQLQueryPtr)
 End Function
@@ -598,13 +581,13 @@ Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_GetScalar", _
-        "Failed to open db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_GetScalar", "Failed to open db."
     ILiteADO_GetScalar = GetScalar(SQLQuery, QueryParameters)
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_GetScalar", _
-        "Failed to close db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_GetScalar", "Failed to close db."
 End Function
 
 Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
@@ -614,15 +597,15 @@ Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_GetAdoRecordset", _
-        "Failed to open db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_GetAdoRecordset", "Failed to open db."
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = GetRecordset(SQLQuery, QueryParameters)
     Set ILiteADO_GetAdoRecordset = dbr.AdoRecordset
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_GetAdoRecordset", _
-        "Failed to close db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_GetAdoRecordset", "Failed to close db."
 End Function
 
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
@@ -632,9 +615,9 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_ExecuteNonQuery", _
-        "Failed to open db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_ExecuteNonQuery", "Failed to open db."
     Dim AffectedRows As Long: AffectedRows = 0 '''' RD Workaround
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteNonQuery(SQLQuery, QueryParameters, AffectedRows)
@@ -643,9 +626,9 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
     Else
         ILiteADO_ExecuteNonQuery = -1
     End If
-    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, MODULE_NAME & "/ILiteADO_ExecuteNonQuery", _
-        "Failed to close db."
+    If HandleConnection Then _
+        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+            MODULE_NAME & "/ILiteADO_ExecuteNonQuery", "Failed to close db."
 End Function
 
 Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)
