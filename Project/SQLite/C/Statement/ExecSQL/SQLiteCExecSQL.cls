@@ -25,7 +25,6 @@ Private Declare Sub RtlMoveMemory Lib "kernel32" (ByVal pDest As Long, ByVal pSo
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_step Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 ' 0-based indices
-Private Declare PtrSafe Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_column_type Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
 Private Declare PtrSafe Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As LongPtr ' PtrData
 Private Declare PtrSafe Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As LongPtr, ByVal iCol As Long) As Long
@@ -39,7 +38,6 @@ Private Declare PtrSafe Function sqlite3_column_text Lib "SQLite3" (ByVal hStmt 
 #Else
 Private Declare Function sqlite3_step Lib "SQLite3" (ByVal hStmt As Long) As Long
 ' 0-based indices
-Private Declare Function sqlite3_column_count Lib "SQLite3" (ByVal hStmt As Long) As Long
 Private Declare Function sqlite3_column_type Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
 Private Declare Function sqlite3_column_blob Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long ' PtrData
 Private Declare Function sqlite3_column_bytes Lib "SQLite3" (ByVal hStmt As Long, ByVal iCol As Long) As Long
@@ -142,6 +140,16 @@ Public Property Let PageSize(ByVal Value As Long)
 End Property
 
 
+Public Property Get ColumnCount() As Long
+    ColumnCount = this.ColumnCount
+End Property
+
+
+Public Property Let ColumnCount(ByVal Value As Long)
+    this.ColumnCount = Value
+End Property
+
+
 '''' Reference: https://www.sqlite.org/c3ref/step.html
 ''''
 '@Description "Executes statement or moves the cursor forward to the next available row."
@@ -160,17 +168,6 @@ Attribute ExecuteStepAPI.VB_Description = "Executes statement or moves the curso
         End If
     End With
     ExecuteStepAPI = ResultCode
-End Function
-
-
-'''' Reference: https://www.sqlite.org/c3ref/column_count.html
-''''
-'@Description "Retrieves number of columns returned by the prepared statement."
-Public Function ColumnCountAPI() As Long
-Attribute ColumnCountAPI.VB_Description = "Retrieves number of columns returned by the prepared statement."
-    FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/ColumnCountAPI"
-    this.ColumnCount = sqlite3_column_count(this.DbStmt.StmtHandle)
-    ColumnCountAPI = this.ColumnCount
 End Function
 
 
@@ -281,28 +278,15 @@ End Function
 '''' and IsEmpty(Page(RowIndex)) can be used to as While Loop conditions,
 '''' replacing the currently used For Loops).
 ''''
-Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = False _
-                              ) As Variant
+Public Function GetPagedRowSet() As Variant
     Dim ResultCode As SQLiteResultCodes
         
-    Dim ColumnCount As Long
-    ColumnCount = ColumnCountAPI
-    If ColumnCount = 0 Then
+    Dim ColumnCountLoc As Long
+    ColumnCountLoc = this.ColumnCount
+    If ColumnCountLoc = 0 Then
         Debug.Print "No data avaialable"
         GetPagedRowSet = CVErr(SQLITE_ERROR)
         Exit Function
-    End If
-    
-    If UseDeclaredTypes Then
-        Dim dbsm As SQLiteCMeta
-        Set dbsm = SQLiteCMeta(this.DbStmt)
-        ResultCode = dbsm.TableMetaCollect()
-        If ResultCode <> SQLITE_OK Then
-            Debug.Print "Failed to retrieve table metadata."
-            GetPagedRowSet = CVErr(ResultCode)
-            Exit Function
-        End If
-        Set dbsm = Nothing
     End If
     
     Dim Page As Variant
@@ -321,7 +305,7 @@ Public Function GetPagedRowSet(Optional ByVal UseDeclaredTypes As Boolean = Fals
             ResultCode = ExecuteStepAPI
             Select Case ResultCode
                 Case SQLITE_ROW
-                    RowValues = GetRow(ColumnCount)
+                    RowValues = GetRow(ColumnCountLoc)
                     If IsError(RowValues) Then
                         GetPagedRowSet = RowValues
                         Exit Function
@@ -350,10 +334,10 @@ End Function
 '''' reshaping the paged data set as a plain 0-based 2D array.
 ''''
 '@Description "Shapes/flattens the data returning a 2D variant array."
-Public Function GetRowSet2D(Optional ByVal UseDeclaredTypes As Boolean = False) As Variant
+Public Function GetRowSet2D() As Variant
 Attribute GetRowSet2D.VB_Description = "Shapes/flattens the data returning a 2D variant array."
     Dim PagedRowSet As Variant
-    PagedRowSet = GetPagedRowSet(UseDeclaredTypes)
+    PagedRowSet = GetPagedRowSet()
     If IsError(PagedRowSet) Then
         GetRowSet2D = PagedRowSet
         Exit Function
@@ -396,11 +380,10 @@ End Function
 '''' the ADODB based ILiteADO interface.
 ''''
 '@Description "Shapes/flattens the data returning a fabricated ADODB.Recordset object."
-Public Function GetFabRecordset(Optional ByVal UseDeclaredTypes As Boolean = False _
-                               ) As SQLiteCRecordsetADO
+Public Function GetFabRecordset() As SQLiteCRecordsetADO
 Attribute GetFabRecordset.VB_Description = "Shapes/flattens the data returning a fabricated ADODB.Recordset object."
     Dim PagedRowSet As Variant
-    PagedRowSet = GetPagedRowSet(UseDeclaredTypes)
+    PagedRowSet = GetPagedRowSet()
     If IsError(PagedRowSet) Then
         Set GetFabRecordset = Nothing
         Exit Function

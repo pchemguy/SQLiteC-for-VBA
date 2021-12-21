@@ -95,6 +95,15 @@ Public Function SQLiteTypeAffinityName(ByVal DataTypeAffinityCode As SQLiteTypeA
 End Function
 
 
+'''' @ClassMethod
+'''' This method can also be used on the default instance
+''''
+Public Sub ColumnCountLet(ByVal DbStmt As SQLiteCStatement)
+    FixGuard.StmtNotPrepared DbStmt, MODULE_NAME & "/ColumnCountLet"
+    DbStmt.DbExecutor.ColumnCount = sqlite3_column_count(DbStmt.StmtHandle)
+End Sub
+
+
 '''' Reference: https://www.sqlite.org/c3ref/column_count.html
 ''''
 '@Description "Retrieves number of columns returned by the prepared statement."

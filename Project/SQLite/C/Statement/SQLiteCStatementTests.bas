@@ -492,7 +492,7 @@ Assert:
     Assert.AreEqual 0, LBound(PagedRowSet(0)), "RowSet base mismatch"
     Assert.AreEqual PageSize - 1, UBound(PagedRowSet(0)), "RowSet size mismatch"
     Assert.AreEqual 0, LBound(PagedRowSet(0)(0)), "FieldSet base mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI - 1, UBound(PagedRowSet(0)(0)), "FieldSet size mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount - 1, UBound(PagedRowSet(0)(0)), "FieldSet size mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
@@ -586,7 +586,7 @@ Assert:
     Assert.AreEqual 0, LBound(RowSet2D, 1), "RowSet2D R-base mismatch"
     Assert.AreEqual 0, LBound(RowSet2D, 2), "RowSet2D C-base mismatch"
     Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
@@ -719,7 +719,7 @@ Assert:
     Assert.AreEqual 4, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
     Assert.AreEqual 5, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
     Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
@@ -763,7 +763,7 @@ Assert:
     Assert.AreEqual adUseClient, dbr.AdoRecordset.CursorLocation, "CursorLocation mismatch"
     Assert.AreEqual adOpenStatic, dbr.AdoRecordset.CursorType, "CursorType mismatch"
     Assert.AreEqual adLockBatchOptimistic, dbr.AdoRecordset.LockType, "LockType mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount, dbr.AdoRecordset.Fields.Count, "Fields.Count mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."
@@ -968,7 +968,7 @@ Assert:
     Assert.AreEqual 4, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
     Assert.AreEqual 5, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
     Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
     Assert.AreEqual 7, UBound(RowSet2D(0, 5)), "Blob size mismatch."
     Assert.AreEqual 79, FixUtils.XorElements(RowSet2D(0, 5)), "Blob XOR hash mismatch"
 CleanUp:
@@ -1028,7 +1028,7 @@ Assert:
     Assert.AreEqual 4, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
     Assert.AreEqual 5, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
     Assert.AreEqual dbs.DbExecutor.RowCount - 1, UBound(RowSet2D, 1), "RowSet2D R-size mismatch"
-    Assert.AreEqual dbs.DbExecutor.ColumnCountAPI - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
+    Assert.AreEqual dbs.DbExecutor.ColumnCount - 1, UBound(RowSet2D, 2), "RowSet2D C-size mismatch"
     Assert.AreEqual 14.4, RowSet2D(2, 4), "Control value mismatch."
 CleanUp:
     ResultCode = dbs.Finalize
@@ -1073,3 +1073,4 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+

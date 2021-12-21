@@ -54,6 +54,8 @@ Private Type TSQLiteCStatement
         StmtHandle As Long
     #End If
     AffectedRowsCount As Long
+    ParameterCount As Long
+    PrepareOnly As Boolean
 End Type
 Private this As TSQLiteCStatement
 
@@ -191,7 +193,9 @@ Attribute Prepare16V2.VB_Description = "Generates SQLite PSO."
                           "Failed to instantiate SQLiteCParameters."
             End If
         End If
-        If this.DbPara.ParameterCount > 0 Then this.DbPara.MapParams
+        '''' Retrieve parameter metadata
+        this.ParameterCount = this.DbPara.ParameterCount
+        If this.ParameterCount > 0 Then this.DbPara.MapParams
     End If
     Prepare16V2 = ResultCode
 End Function
@@ -331,9 +335,9 @@ End Function
 ''''
 '@Description "Prepares statement and/or binds parameters."
 Friend Function ExecuteSetup(ByVal SQLQuery As String, _
-                    Optional ByVal QueryParameters As Variant = Null _
+                    Optional ByVal QueryParameters As Variant = Null, _
+                    Optional ByVal UseDeclaredTypes As Boolean = False _
                     ) As SQLiteResultCodes
-Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds parameters."
     Dim ResultCode As SQLiteResultCodes
     Dim ErrMsg As String
     ErrMsg = vbNullString
@@ -366,6 +370,25 @@ Attribute ExecuteSetup.VB_Description = "Prepares statement and/or binds paramet
         End If
         ResultCode = Prepare16V2(SQLQuery)
         If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
+            
+        '''' Retrieves ColumnCount and sets it on DbExec
+        SQLiteCMeta.ColumnCountLet Me
+        If UseDeclaredTypes Then
+            '''' Retrieve parameter metadata
+            ResultCode = SQLiteCMeta(Me).TableMetaCollect()
+            If ResultCode <> SQLITE_OK Then
+                Debug.Print "Failed to retrieve table metadata."
+                GoTo EXIT_FUNCTION:
+            End If
+        Else
+            this.DbExec.MetaLoaded = False
+        End If
+        
+        '''' If query is parameterized, but no QueryParameters provided, do not
+        '''' execute the statement (expect parameters in subsequent queries).
+        this.PrepareOnly = this.ParameterCount > 0 And _
+            (IsEmpty(QueryParameters) Or IsNull(QueryParameters))
+        If this.PrepareOnly Then ResultCode = SQLITE_DONE
     Else
         '''' LenSQL = 0 And this.StmtHandle <> 0 - the only remaining option,
         '''' because <both = 0> option raises an error above.
@@ -416,9 +439,9 @@ Attribute ExecuteNonQuery.VB_Description = "Executes SQL statement not returning
     SubQueries = SQLlib.SplitMultiStatement(SQLQuery)
     Dim SubQueryIndex As Long
     For SubQueryIndex = LBound(SubQueries) To UBound(SubQueries)
-        ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters)
+        ResultCode = ExecuteSetup(SubQueries(SubQueryIndex), QueryParameters, False)
         If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
-        ResultCode = this.DbExec.ExecuteStepAPI
+        If Not this.PrepareOnly Then ResultCode = this.DbExec.ExecuteStepAPI
         If Not (ResultCode = SQLITE_OK Or ResultCode = SQLITE_DONE Or _
                 ResultCode = SQLITE_ROW) Then GoTo EXIT_FUNCTION:
     Next SubQueryIndex
@@ -438,7 +461,7 @@ Public Function GetScalar(ByVal SQLQuery As String, _
                  Optional ByVal QueryParameters As Variant = Empty) As Variant
 Attribute GetScalar.VB_Description = "Executes SQL statement returning a scalar value (possibly Empty or an error)."
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters, False)
     If ResultCode = SQLITE_OK Then
         GetScalar = this.DbExec.GetScalar
     Else
@@ -453,9 +476,9 @@ Public Function GetPagedRowSet(ByVal SQLQuery As String, _
                       Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
 Attribute GetPagedRowSet.VB_Description = "Executes SQL statement returning a set of rows."
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters, UseDeclaredTypes)
     If ResultCode = SQLITE_OK Then
-        GetPagedRowSet = this.DbExec.GetPagedRowSet(UseDeclaredTypes)
+        GetPagedRowSet = this.DbExec.GetPagedRowSet()
         If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Else
         GetPagedRowSet = ResultCode
@@ -467,9 +490,9 @@ Public Function GetRowSet2D(ByVal SQLQuery As String, _
                    Optional ByVal QueryParameters As Variant = Empty, _
                    Optional ByVal UseDeclaredTypes As Boolean = True) As Variant
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters, UseDeclaredTypes)
     If ResultCode = SQLITE_OK Then
-        GetRowSet2D = this.DbExec.GetRowSet2D(UseDeclaredTypes)
+        GetRowSet2D = this.DbExec.GetRowSet2D()
         If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Else
         GetRowSet2D = ResultCode
@@ -481,13 +504,13 @@ Public Function GetRecordset(ByVal SQLQuery As String, _
                     Optional ByVal QueryParameters As Variant = Empty, _
                     Optional ByVal UseDeclaredTypes As Boolean = True) As SQLiteCRecordsetADO
     Dim ResultCode As SQLiteResultCodes
-    ResultCode = ExecuteSetup(SQLQuery, QueryParameters)
+    ResultCode = ExecuteSetup(SQLQuery, QueryParameters, UseDeclaredTypes)
     If ResultCode <> SQLITE_OK Then
         Set GetRecordset = Nothing
         Exit Function
     End If
     Dim dbr As SQLiteCRecordsetADO
-    Set dbr = this.DbExec.GetFabRecordset(UseDeclaredTypes)
+    Set dbr = this.DbExec.GetFabRecordset()
     dbr.SQLQueryParamsSet QueryParameters
     If this.DbConn.ErrInfo.ErrorCode = SQLITE_DONE Then Reset
     Set GetRecordset = dbr
