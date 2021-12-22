@@ -42,7 +42,7 @@ Public Sub DbNotOpened(ByVal dbc As SQLiteCConnection, _
 Attribute DbNotOpened.VB_Description = "Raises a run-time error if the specified connection object is not opened."
     Dim Source As String
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
-        " / ", vbNullString) & ErrorSource
+                                   " / ", vbNullString) & ErrorSource
     
     Dim errorDetails As TError
     With errorDetails
@@ -75,7 +75,7 @@ Public Sub StmtNotPrepared(ByVal dbs As SQLiteCStatement, _
 Attribute StmtNotPrepared.VB_Description = "Raises a run-time error if the specified statement object is not prepared."
     Dim Source As String
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
-        " / ", vbNullString) & ErrorSource
+                                   " / ", vbNullString) & ErrorSource
     
     Dim errorDetails As TError
     With errorDetails

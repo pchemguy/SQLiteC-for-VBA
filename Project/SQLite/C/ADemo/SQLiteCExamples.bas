@@ -99,7 +99,7 @@ Attribute InitDBM.VB_Description = "Creates database manager (SQLiteC) instance 
     '@Ignore IndexedDefaultMemberAccess
     Set dbm = SQLiteC(DllPath, DllNames)
     If dbm Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteC instance."
     Else
         Debug.Print "Database manager instance (SQLiteC class) is ready"
@@ -127,7 +127,7 @@ Attribute InitDBC.VB_Description = "Creates connection object (SQLiteCConnection
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(DbPathName)
     If dbc Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCConnection instance."
     Else
         Debug.Print "Database SQLiteCConnection instance is ready."
@@ -147,7 +147,7 @@ Attribute InitDBS.VB_Description = "Creates statement object (SQLiteCStatement).
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(DbStmtName)
     If dbs Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."
@@ -165,7 +165,7 @@ Attribute OpenDb.VB_Description = "Opens database connection."
     
     ResultCode = dbc.OpenDb
     If ResultCode <> SQLITE_OK Or dbc.DbHandle = 0 Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ConnectionOpenErr, "SQLiteCExamples", _
                   "Failed to open db connection."
     Else
         Debug.Print "Database connection is ready."
@@ -182,7 +182,7 @@ Attribute CloseDb.VB_Description = "Opens database connection."
     
     ResultCode = dbc.CloseDb
     If ResultCode <> SQLITE_OK Or dbc.DbHandle <> 0 Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ConnectionCloseErr, "SQLiteCExamples", _
                   "Failed to close db connection."
     Else
         Debug.Print "Database connection is closed."
@@ -933,7 +933,7 @@ Private Sub DupInMemoryToTempOnline()
     Dim dbsSrc As SQLiteCStatement
     Set dbsSrc = dbcSrc.CreateStatement(DbStmtName)
     If dbsSrc Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."
@@ -969,7 +969,7 @@ Private Sub DupInMemoryToTempVacuum()
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(DbStmtName)
     If dbs Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."
@@ -1020,7 +1020,7 @@ Private Sub AttachDetach()
     Dim dbs As SQLiteCStatement
     Set dbs = dbc.CreateStatement(DbStmtName)
     If dbs Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."

@@ -139,7 +139,7 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
     End If
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(FilePathName)
-    If DbConn Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+    If DbConn Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, _
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
     Set this.Connections(FilePathName) = DbConn
     If IsNull(this.MainDB) Then this.MainDB = FilePathName

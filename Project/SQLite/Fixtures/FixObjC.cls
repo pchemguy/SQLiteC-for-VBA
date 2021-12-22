@@ -71,7 +71,7 @@ Attribute GetDBM.VB_Description = "Loads SQLite dll and returns DbManager (SQLit
     
     If this.dbm Is Nothing Then
         Set this.dbm = SQLiteC(DllPath)
-        If this.dbm Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+        If this.dbm Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, _
             "FixObjC", "Failed to create an SQLiteC instance."
     End If
     Set GetDBM = this.dbm
@@ -85,7 +85,7 @@ Attribute GetDBC.VB_Description = "Given database path, obtains a DbManager refe
     Set dbm = GetDBM()
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(DbPathName, AllowNonExistent)
-    If dbc Is Nothing Then Err.Raise ErrNo.UnknownClassErr, _
+    If dbc Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, _
         "FixObjC", "Failed to create an SQLiteCConnection instance."
     Set GetDBC = dbc
 End Function
@@ -138,7 +138,7 @@ Attribute GetDBCMem.VB_Description = "Returns a connection (SQLiteCConnection) o
     Set dbc = GetDBC(DbPathName, AllowNonExistent)
     If OpenDb Then
         Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-            ErrNo.UnknownClassErr, "FixObjC", "Failed to open db."
+            ErrNo.ObjectCreateErr, "FixObjC", "Failed to open db."
     End If
     Set GetDBCMem = dbc
 End Function
@@ -197,7 +197,7 @@ Attribute CreateFunctionsTableWithData.VB_Description = "Given SQLiteCConnection
     Dim AffectedRows As Long
     AffectedRows = -2
     If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, "FixObjC", "Failed to open db."
+        ErrNo.ConnectionOpenErr, "FixObjC", "Failed to open db."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Guard.ExpressionTrueErr ResultCode <> SQLITE_OK, ErrNo.UnknownClassErr, _
@@ -206,7 +206,7 @@ Attribute CreateFunctionsTableWithData.VB_Description = "Given SQLiteCConnection
     LogMsg = "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
     Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, "FixObjC", "Failed to close db."
+        ErrNo.ConnectionCloseErr, "FixObjC", "Failed to close db."
     CreateFunctionsTableWithData = AffectedRows
 End Function
 
@@ -221,7 +221,7 @@ Attribute CreateITRBTableWithData.VB_Description = "Given SQLiteCConnection obje
     Dim AffectedRows As Long
     AffectedRows = -2
     If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, "FixObjC", "Failed to open db."
+        ErrNo.ConnectionOpenErr, "FixObjC", "Failed to open db."
     Dim ResultCode As SQLiteResultCodes
     ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
     Guard.ExpressionTrueErr ResultCode <> SQLITE_OK, ErrNo.UnknownClassErr, _
@@ -230,7 +230,7 @@ Attribute CreateITRBTableWithData.VB_Description = "Given SQLiteCConnection obje
     LogMsg = "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
     Logger.Logg LogMsg, , DEBUGLEVEL_INFO
     If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
-        ErrNo.UnknownClassErr, "FixObjC", "Failed to close db."
+        ErrNo.ConnectionCloseErr, "FixObjC", "Failed to close db."
     CreateITRBTableWithData = AffectedRows
 End Function
 
@@ -274,13 +274,13 @@ Attribute GetDBCTmpFuncWithData.VB_Description = "Returns a connection (SQLiteCC
         If CreateFunctionsTableWithData(dbc) <= 0 Then Set dbc = Nothing
     End If
     If UserVersion Or ApplicationId Then
-        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.ConnectionOpenErr, _
             "FixObjC", "Failed to open db."
         Dim dbs As SQLiteCStatement
         Set dbs = dbc.CreateStatement(vbNullString)
         If UserVersion <> 0 Then dbs.UserVersion = UserVersion
         If ApplicationId <> 0 Then dbs.ApplicationId = ApplicationId
-        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
+        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.ConnectionCloseErr, _
             "FixObjC", "Failed to close db."
     End If
     Set GetDBCTmpFuncWithData = dbc

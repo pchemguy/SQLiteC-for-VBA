@@ -139,7 +139,7 @@ Private Sub InitDBQC()
     '@Ignore IndexedDefaultMemberAccess
     Set dbm = SQLiteC(DllPath, DllNames)
     If dbm Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteC instance."
     Else
         Debug.Print "Database manager instance (SQLiteC class) is ready"
@@ -159,7 +159,7 @@ Private Sub InitDBQC()
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(this.DbPathName, AllowNonExistent:=True)
     If dbc Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCConnection instance."
     Else
         Debug.Print "Database SQLiteCConnection instance is ready."
@@ -176,7 +176,7 @@ Private Sub InitDBQC()
     Dim dbq As ILiteADO
     Set dbq = dbs
     If dbq Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."

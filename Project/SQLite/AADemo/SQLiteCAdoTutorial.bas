@@ -46,6 +46,7 @@ Private Sub MainC()
     InitDBQC
     
     SQLILiteADOCommon
+    UpdateParametricSQLiteC
     
     CleanUp
 End Sub
@@ -112,6 +113,22 @@ Private Sub SQLILiteADOCommon()
 End Sub
 
 
+Private Sub UpdateParametricSQLiteC()
+    Dim TableName As String
+    TableName = "people"
+    Dim TableData As Variant
+    TableData = ThisWorkbook.Worksheets("FixPeopleData").UsedRange.Value2
+    Dim DataRowIndices As Variant
+    DataRowIndices = Array(2, 3, 5, 7, 18)
+
+    Dim AffectedRows As Long
+    Dim FieldNameSelectors As Variant
+    FieldNameSelectors = Array("id")
+    AffectedRows = this.dbl.UpdateFrom2D(TableName, TableData, FieldNameSelectors, DataRowIndices)
+
+End Sub
+
+
 Private Sub InitDBQC()
     '------------------------'
     '===== INIT MANAGER ====='
@@ -130,7 +147,7 @@ Private Sub InitDBQC()
     '@Ignore IndexedDefaultMemberAccess
     Set dbm = SQLiteC(DllPath, DllNames)
     If dbm Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteC instance."
     Else
         Debug.Print "Database manager instance (SQLiteC class) is ready"
@@ -159,7 +176,7 @@ Private Sub InitDBQC()
     Dim dbc As SQLiteCConnection
     Set dbc = dbm.CreateConnection(this.DbPathName, AllowNonExistent:=True)
     If dbc Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCConnection instance."
     Else
         Debug.Print "Database SQLiteCConnection instance is ready."
@@ -179,7 +196,7 @@ Private Sub InitDBQC()
     
     Set dbq = dbs
     If dbq Is Nothing Then
-        Err.Raise ErrNo.UnknownClassErr, "SQLiteCExamples", _
+        Err.Raise ErrNo.ObjectCreateErr, "SQLiteCExamples", _
                   "Failed to create an SQLiteCStatement instance."
     Else
         Debug.Print "Database SQLiteCStatement instance is ready."

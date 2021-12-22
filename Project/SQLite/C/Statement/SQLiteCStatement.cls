@@ -363,7 +363,7 @@ Friend Function ExecuteSetup(ByVal SQLQuery As String, _
         ErrMsg = "Multistatement queries are only supported via ExecuteNonQuery."
         Guard.ExpressionErr UBound(SubQueries) = 0, ErrNo.InvalidParameterErr, _
             MODULE_NAME & "/ExecuteSetup", ErrMsg
-    
+        
         If this.StmtHandle <> 0 Then
             ResultCode = Finalize
             If ResultCode <> SQLITE_OK Then GoTo EXIT_FUNCTION:
@@ -604,13 +604,13 @@ Private Function ILiteADO_GetScalar(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_GetScalar", "Failed to open db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.ConnectionOpenErr, MODULE_NAME & "/ILiteADO_GetScalar", _
+        "Failed to open db."
     ILiteADO_GetScalar = GetScalar(SQLQuery, QueryParameters)
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_GetScalar", "Failed to close db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.ConnectionCloseErr, MODULE_NAME & "/ILiteADO_GetScalar", _
+        "Failed to close db."
 End Function
 
 Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
@@ -620,15 +620,15 @@ Private Function ILiteADO_GetAdoRecordset(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_GetAdoRecordset", "Failed to open db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.ConnectionOpenErr, MODULE_NAME & "/ILiteADO_GetAdoRecordset", _
+        "Failed to open db."
     Dim dbr As SQLiteCRecordsetADO
     Set dbr = GetRecordset(SQLQuery, QueryParameters)
     Set ILiteADO_GetAdoRecordset = dbr.AdoRecordset
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_GetAdoRecordset", "Failed to close db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.ConnectionCloseErr, MODULE_NAME & "/ILiteADO_GetAdoRecordset", _
+        "Failed to close db."
 End Function
 
 Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
@@ -638,9 +638,9 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
     Set dbc = this.DbConn
     Dim HandleConnection As Boolean
     HandleConnection = (dbc.DbHandle = 0)
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_ExecuteNonQuery", "Failed to open db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.ConnectionOpenErr, MODULE_NAME & "/ILiteADO_ExecuteNonQuery", _
+        "Failed to open db."
     Dim AffectedRows As Long: AffectedRows = 0 '''' RD Workaround
     Dim ResultCode As SQLiteResultCodes
     ResultCode = ExecuteNonQuery(SQLQuery, QueryParameters, AffectedRows)
@@ -649,9 +649,9 @@ Private Function ILiteADO_ExecuteNonQuery(ByVal SQLQuery As String, _
     Else
         ILiteADO_ExecuteNonQuery = -1
     End If
-    If HandleConnection Then _
-        Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, ErrNo.UnknownClassErr, _
-            MODULE_NAME & "/ILiteADO_ExecuteNonQuery", "Failed to close db."
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.ConnectionCloseErr, MODULE_NAME & "/ILiteADO_ExecuteNonQuery", _
+        "Failed to close db."
 End Function
 
 Private Sub ILiteADO_Begin(Optional ByVal Mode As SQLiteTxnType = SQLITE_TXN_DEFERRED)

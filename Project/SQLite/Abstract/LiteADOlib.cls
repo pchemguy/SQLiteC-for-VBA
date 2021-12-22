@@ -32,6 +32,7 @@ Attribute VB_Description = "Provides common database operations via the ILiteADO
 ''''     added by the code.
 
 Option Explicit
+Private Const MODULE_NAME As String = "LiteADOlib"
 
 Private Type TObjectState
     dbq As ILiteADO
@@ -155,27 +156,57 @@ Attribute DeleteSubsetFrom2D.VB_Description = "Deletes a subset of data rows."
 End Function
 
 
-'@Description "Updates selected rows."
+'@Description "Updates selected rows using parameterized queries."
 Public Function UpdateFrom2D( _
                      ByVal TableName As String, _
                      ByVal TableData As Variant, _
-            Optional ByVal DataRowIndices As Variant = Empty) As Long
+                     ByRef KeyColNames As Variant, _
+                     ByVal DataRowIndices As Variant) As Long
     Guard.EmptyString TableName
     Guard.EmptyOrNullVariant TableData
     With this.SQLTool
         .TableName = TableName
         Dim SQLQuery As String
-        SQLQuery = .UpdateTemplate(TableData, DataRowIndices)
+        SQLQuery = .UpdateTemplate(TableData, KeyColNames)
     End With
-    With this.dbq
-        Dim HandleConnection As Boolean
-        If .ConnectionClosed Then HandleConnection = True
-        If HandleConnection Then .OpenDb
-        .Begin
-        Dim RecordJndex As Long
-        
-        .Commit
-        If HandleConnection Then .CloseDb
-    End With
-    '= this.dbq.ExecuteNonQuery(SQLQuery)
+    Dim QueryParameters As Scripting.Dictionary
+    Set QueryParameters = New Scripting.Dictionary
+    QueryParameters.CompareMode = TextCompare
+    Dim dbq As ILiteADO
+    Set dbq = this.dbq
+    
+    Dim HandleConnection As Boolean
+    If dbq.ConnectionClosed Then HandleConnection = True
+    If HandleConnection Then Guard.ExpressionTrueErr dbq.OpenDb <> 0, _
+        ErrNo.ConnectionOpenErr, MODULE_NAME & "/UpdateFrom2D", _
+        "Failed to open db."
+    
+    Dim TotalAffectedRows As Long
+    TotalAffectedRows = 0
+    Dim AffectedRows As Long
+    AffectedRows = dbq.ExecuteNonQuery(SQLQuery)
+    TotalAffectedRows = TotalAffectedRows + AffectedRows
+    
+    dbq.Begin
+    Dim ColumnLB As Long
+    ColumnLB = LBound(TableData, 2)
+    Dim ParamName As String
+    Dim ColumnIndex As Long
+    Dim RecordIndex As Long
+    Dim RecordJndex As Long
+    For RecordJndex = LBound(DataRowIndices) To UBound(DataRowIndices)
+        For ColumnIndex = ColumnLB To UBound(TableData, 2)
+            ParamName = "?" & CStr(ColumnIndex - ColumnLB + 1)
+            RecordIndex = DataRowIndices(RecordJndex) + 1
+            QueryParameters(ParamName) = TableData(RecordIndex, ColumnIndex)
+        Next ColumnIndex
+        AffectedRows = dbq.ExecuteNonQuery(vbNullString, QueryParameters)
+        If AffectedRows > 0 Then TotalAffectedRows = TotalAffectedRows + AffectedRows
+    Next RecordJndex
+    dbq.Commit
+    If HandleConnection Then Guard.ExpressionTrueErr dbq.CloseDb <> 0, _
+        ErrNo.ConnectionCloseErr, MODULE_NAME & "/UpdateFrom2D", _
+        "Failed to open db."
+    
+    UpdateFrom2D = TotalAffectedRows
 End Function
