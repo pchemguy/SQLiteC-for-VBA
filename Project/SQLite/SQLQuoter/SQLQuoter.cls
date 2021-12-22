@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Handles SQLite name quoting."
-'@Folder "SQLite.NameQuoter"
+'@Folder "SQLite.SQLQuoter"
 '@ModuleDescription "Handles SQLite name quoting."
 '@PredeclaredId
 '@IgnoreModule IndexedDefaultMemberAccess
@@ -44,6 +44,18 @@ Friend Sub Init()
     InitKeywordMap
     InitCharMap
 End Sub
+
+'''' Examples:
+''''   >>> ?SQLlib.QuoteSQLString("Abc")
+''''   "'Abc'"
+''''
+''''   >>> ?SQLlib.QuoteSQLString("A'b'c")
+''''   "'A''b''c'"
+''''
+'@Description "Quotes SQL string, doubling single quotes."
+Public Function QuoteSQLString(ByVal SQLString As String) As String
+    QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
+End Function
 
 '''' Examples:
 ''''   >>> ?SQLQuoter.QuoteSQLName("file_name")
@@ -97,20 +109,20 @@ End Function
 ''''   'True'
 ''''
 '@Description "Converts a VBA Variant to SQL textual representation."
-Public Function CStrSQL(ByVal VariantVBA As Variant) As String
+Public Function CStrSQL(ByVal VariantValue As Variant) As String
 Attribute CStrSQL.VB_Description = "Converts a VBA Variant to SQL textual representation."
-    Select Case VarType(VariantVBA)
+    Select Case VarType(VariantValue)
         Case vbString
-            CStrSQL = SQLlib.QuoteSQLString(VariantVBA)
+            CStrSQL = QuoteSQLString(VariantValue)
         Case vbLong, vbDouble, vbInteger, vbSingle, _
              vbCurrency, vbByte, vbLongLong
-            CStrSQL = CStr(VariantVBA)
+            CStrSQL = CStr(VariantValue)
         Case vbEmpty, vbNull, vbError
             CStrSQL = "NULL"
         Case vbBoolean
-            CStrSQL = SQLlib.QuoteSQLString(CStr(VariantVBA))
+            CStrSQL = QuoteSQLString(CStr(VariantValue))
         Case vbDate
-            CStrSQL = Format$(VariantVBA, "YYYY-MM-DDTHH:MM:SS")
+            CStrSQL = Format$(VariantValue, "YYYY-MM-DDTHH:MM:SS")
     End Select
 End Function
 
@@ -215,3 +227,11 @@ Friend Sub InitCharMap()
     CharMap(AscB("_")) = 0
     this.AlphaExNumChar = CharMap
 End Sub
+
+
+'''' NOTES
+''''
+''''   TimeZone info:
+''''     REGISTRY:
+''''       [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation]
+''''       "ActiveTimeBias"=dword:xxxxxxxx

@@ -305,6 +305,40 @@ Friend Sub Finalize()
     this.ParamMap.RemoveAll
 End Sub
 
+'''' Converts DateTime and Boolean to String and adjust numeric type if necessary.
+'@Description "Adjusts a VBA variable type for SQLite parameter binding."
+Public Function MapVBATypeToSQLite(ByVal VariantValue As Variant) As Variant
+    Select Case VarType(VariantValue)
+        Case vbDouble, vbSingle
+            If VariantValue = 0 Then
+                #If Win64 Then
+                    MapVBATypeToSQLite = CLngLng(0)
+                #Else
+                    MapVBATypeToSQLite = CLng(0)
+                #End If
+            ElseIf Abs(VariantValue - Round(VariantValue)) < 10 ^ (-10) _
+                   And Abs(VariantValue) > 1 Then
+                #If Win64 Then
+                    MapVBATypeToSQLite = CLngLng(VariantValue)
+                #Else
+                    If Abs(VariantValue) < 2 ^ 31 Then
+                        MapVBATypeToSQLite = CLng(VariantValue)
+                    ElseIf Abs(VariantValue) <= 2@ ^ 49 + 2@ ^ 48 Then
+                        MapVBATypeToSQLite = CCur(VariantValue)
+                    Else
+                        MapVBATypeToSQLite = VariantValue
+                    End If
+                #End If
+            End If
+        Case vbBoolean
+            MapVBATypeToSQLite = CStr(VariantValue)
+        Case vbDate
+            MapVBATypeToSQLite = Format$(VariantValue, "YYYY-MM-DDTHH:MM:SS")
+        Case Else
+            MapVBATypeToSQLite = VariantValue
+    End Select
+End Function
+
 
 '#If VBA7 Then
 '' 1-based indices

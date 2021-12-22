@@ -132,33 +132,28 @@ Attribute RecordValuesFrom2DArray.VB_Description = "Generates an array of record
         Err.Raise ErrNo.InvalidParameterErr, "SQLlib/RecordValuesFrom2DArray", _
                   "The second argument should be array or Empty/missing."
     End If
-    Dim FieldUB As Long
-    FieldUB = UBound(TableData, 2)
-    Dim FieldLB As Long
-    FieldLB = LBound(TableData, 2)
-    Dim RecordUB As Long
-    RecordUB = UBound(TableData, 1)
-    Dim RecordLB As Long
-    '''' +1 due to the header row
-    RecordLB = LBound(TableData, 1)
+    Dim HeaderOffest As Long
+    HeaderOffest = 1
     
-    Dim FieldValues() As String
-    ReDim FieldValues(FieldLB To FieldUB)
     Dim RecordValues() As String
-    Dim FieldValue As Variant
-    
+    Dim RecordLB As Long
+    Dim RecordUB As Long
     Dim RecordSrcIndex As Long
     Dim RecordDstIndex As Long
     If IsEmpty(DataRowIndices) Then
-        ReDim RecordValues(RecordLB To RecordUB - 1)
-        For RecordDstIndex = RecordLB To RecordUB - 1
-            RecordSrcIndex = RecordDstIndex + 1
+        RecordLB = LBound(TableData, 1)
+        RecordUB = UBound(TableData, 1) - HeaderOffest
+        ReDim RecordValues(RecordLB To RecordUB)
+        For RecordDstIndex = RecordLB To RecordUB
+            RecordSrcIndex = RecordDstIndex + HeaderOffest
             GoSub RECORD_LOOP
         Next RecordDstIndex
     Else
-        ReDim RecordValues(LBound(DataRowIndices) To UBound(DataRowIndices))
-        For RecordDstIndex = LBound(DataRowIndices) To UBound(DataRowIndices)
-            RecordSrcIndex = RecordLB + DataRowIndices(RecordDstIndex)
+        RecordLB = LBound(DataRowIndices)
+        RecordUB = UBound(DataRowIndices)
+        ReDim RecordValues(RecordLB To RecordUB)
+        For RecordDstIndex = RecordLB To RecordUB
+            RecordSrcIndex = DataRowIndices(RecordDstIndex) + HeaderOffest
             GoSub RECORD_LOOP
         Next RecordDstIndex
     End If
@@ -166,6 +161,13 @@ Attribute RecordValuesFrom2DArray.VB_Description = "Generates an array of record
 
     Exit Function
 RECORD_LOOP:
+    Dim FieldUB As Long
+    FieldUB = UBound(TableData, 2)
+    Dim FieldLB As Long
+    FieldLB = LBound(TableData, 2)
+    Dim FieldValues() As String
+    ReDim FieldValues(FieldLB To FieldUB)
+    Dim FieldValue As Variant
     Dim FieldIndex As Long
     For FieldIndex = FieldLB To FieldUB
         FieldValue = TableData(RecordSrcIndex, FieldIndex)
@@ -346,7 +348,8 @@ Attribute UpdateTemplate.VB_Description = "Generates UPDATE template."
         FieldName = ColNames(ColNameIndex)
         Guard.ExpressionErr FieldMap.Exists(FieldName), InvalidParameterErr, _
             "LiteSQLlib/GetUpdateTemplate", "Invalid field name: " & FieldName
-        FieldNames(ColNameIndex) = SQLQuoter.QuoteSQLName(FieldName) & " = ?" & CStr(FieldMap(FieldName) + BaseShift)
+        FieldNames(ColNameIndex) = SQLQuoter.QuoteSQLName(FieldName) & " = ?" _
+            & CStr(FieldMap(FieldName) + BaseShift)
         FieldMap.Remove FieldName
     Next ColNameIndex
     SQLTerms(2) = "WHERE " & Join(FieldNames, ", ")

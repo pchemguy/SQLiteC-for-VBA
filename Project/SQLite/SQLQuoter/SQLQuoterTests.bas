@@ -1,5 +1,5 @@
 Attribute VB_Name = "SQLQuoterTests"
-'@Folder "SQLite.NameQuoter"
+'@Folder "SQLite.SQLQuoter"
 '@TestModule
 '@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
 Option Explicit

@@ -75,9 +75,9 @@ Public Function SelectConcat(Optional ByVal TextA As Variant = Empty, _
                              Optional ByVal TextB As Variant = Empty) As String
 Attribute SelectConcat.VB_Description = "Produces 'SELECT <Concat>;' statement."
     Dim TermA As String
-    TermA = IIf(IsEmpty(TextA), "?", SQLlib.QuoteSQLString(CStr(TextA)))
+    TermA = IIf(IsEmpty(TextA), "?", SQLQuoter.QuoteSQLString(CStr(TextA)))
     Dim TermB As String
-    TermB = IIf(IsEmpty(TextB), "?", SQLlib.QuoteSQLString(CStr(TextB)))
+    TermB = IIf(IsEmpty(TextB), "?", SQLQuoter.QuoteSQLString(CStr(TextB)))
     SelectConcat = "SELECT " & TermA & " || " & TermB & ";"
 End Function
 

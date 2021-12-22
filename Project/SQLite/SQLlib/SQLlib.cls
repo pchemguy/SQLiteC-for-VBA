@@ -231,20 +231,6 @@ Attribute SelectAllAsText.VB_Description = "Generates a SELECT FROM clause, havi
 End Function
 
 
-'''' Examples:
-''''   >>> ?SQLlib.QuoteSQLString("Abc")
-''''   "'Abc'"
-''''
-''''   >>> ?SQLlib.QuoteSQLString("A'b'c")
-''''   "'A''b''c'"
-''''
-'@Description "Quotes SQL string, doubling single quotes."
-Public Function QuoteSQLString(ByVal SQLString As String) As String
-Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single quotes."
-    QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
-End Function
-
-
 '@Ignore ProcedureNotUsed
 '@Description "Wraps a non-CTE SELECT query to yield SQL returning RecordCount for the original query."
 Public Function CountSelectNoCTE(ByVal SQLQuery As String) As String
@@ -321,7 +307,7 @@ Public Function AttachedDbPaths( _
 Attribute AttachedDbPaths.VB_Description = "SQL for retrieving a single column containing attached databases paths or the path of the alias."
     Dim WhereClause As String
     If Len(SchemaAlias) > 0 Then
-        WhereClause = " WHERE name = " & SQLlib.QuoteSQLString(SchemaAlias)
+        WhereClause = " WHERE name = " & SQLQuoter.QuoteSQLString(SchemaAlias)
     Else
         WhereClause = vbNullString
     End If

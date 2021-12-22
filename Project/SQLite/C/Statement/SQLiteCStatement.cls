@@ -356,7 +356,8 @@ Friend Function ExecuteSetup(ByVal SQLQuery As String, _
         Guard.ExpressionErr Len(ErrMsg) = 0, ErrNo.InvalidParameterErr, _
             MODULE_NAME & "/ExecuteSetup", ErrMsg
     End If
-        
+    this.PrepareOnly = False
+    
     If LenSQL > 0 Then
         Dim SubQueries As Variant
         SubQueries = SQLlib.SplitMultiStatement(SQLQuery)

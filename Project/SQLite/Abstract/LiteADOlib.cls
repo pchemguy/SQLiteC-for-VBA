@@ -191,6 +191,7 @@ Public Function UpdateFrom2D( _
     Dim ColumnLB As Long
     ColumnLB = LBound(TableData, 2)
     Dim ParamName As String
+    Dim Value As Variant
     Dim ColumnIndex As Long
     Dim RecordIndex As Long
     Dim RecordJndex As Long
@@ -198,7 +199,8 @@ Public Function UpdateFrom2D( _
         For ColumnIndex = ColumnLB To UBound(TableData, 2)
             ParamName = "?" & CStr(ColumnIndex - ColumnLB + 1)
             RecordIndex = DataRowIndices(RecordJndex) + 1
-            QueryParameters(ParamName) = TableData(RecordIndex, ColumnIndex)
+            Value = TableData(RecordIndex, ColumnIndex)
+            QueryParameters(ParamName) = SQLiteCParameters.MapVBATypeToSQLite(Value)
         Next ColumnIndex
         AffectedRows = dbq.ExecuteNonQuery(vbNullString, QueryParameters)
         If AffectedRows > 0 Then TotalAffectedRows = TotalAffectedRows + AffectedRows
