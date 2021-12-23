@@ -14,24 +14,6 @@ Attribute VB_Description = "Handles SQLite name quoting."
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
 
-Private Const SQLITE_N_KEYWORD As Long = 147
-
-#If VBA7 Then
-Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As LongPtr)
-#Else
-Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Destination As Any, ByVal Source As Any, ByVal Length As Long)
-#End If
-
-#If VBA7 Then
-Private Declare PtrSafe Function sqlite3_keyword_count Lib "SQLite3" () As Long
-Private Declare PtrSafe Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As LongPtr, ByVal nName As Long) As Long
-Private Declare PtrSafe Function sqlite3_keyword_name Lib "SQLite3" (ByVal kwi As Long, ByRef pzName As LongPtr, ByRef pnName As Long) As Long
-#Else
-Private Declare Function sqlite3_keyword_count Lib "SQLite3" () As Long
-Private Declare Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As Long, ByVal nName As Long) As Long
-Private Declare Function sqlite3_keyword_name Lib "SQLite3" (ByVal kwi As Long, ByRef pzName As Long, ByRef pnName As Long) As Long
-#End If
-
 Private Type TObjectState
     SQLiteKeywords As Scripting.Dictionary
     AlphaChar() As Byte
@@ -45,11 +27,14 @@ Friend Sub Init()
     InitCharMap
 End Sub
 
+
+''''
+''''
 '''' Examples:
-''''   >>> ?SQLlib.QuoteSQLString("Abc")
+''''   >>> ?SQLQuoter.QuoteSQLString("Abc")
 ''''   "'Abc'"
 ''''
-''''   >>> ?SQLlib.QuoteSQLString("A'b'c")
+''''   >>> ?SQLQuoter.QuoteSQLString("A'b'c")
 ''''   "'A''b''c'"
 ''''
 '@Description "Quotes SQL string, doubling single quotes."
@@ -57,6 +42,12 @@ Public Function QuoteSQLString(ByVal SQLString As String) As String
     QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
 End Function
 
+
+'''' Quotes SQL name if necessary. If second parameter is True, quoting is forced.
+'''' If a quoted input is provided (using either double quotes or brackets), it
+'''' is returned unchanged (so it must be valid overall, no validation is
+'''' attempted here). A multipart name must be provided unquoted.
+''''
 '''' Examples:
 ''''   >>> ?SQLQuoter.QuoteSQLName("file_name")
 ''''   file_name
@@ -67,9 +58,19 @@ End Function
 ''''   >>> ?SQLQuoter.QuoteSQLName("group")
 ''''   "group"
 ''''
-'@Description "Quotes field name."
-Public Function QuoteSQLName(ByVal FieldName As String) As String
-Attribute QuoteSQLName.VB_Description = "Quotes field name."
+''''   >>> ?SQLQuoter.QuoteSQLName("main.people.id")
+''''   main.people.id
+''''
+''''   >>> ?SQLQuoter.QuoteSQLName("main.users.group")
+''''   "main"."users"."group"
+''''
+'@Description "Quotes SQL name."
+Public Function QuoteSQLName(ByVal FieldName As String, _
+                    Optional ByVal Force As Boolean = False) As String
+    If Len(FieldName) = 0 Then
+        QuoteSQLName = vbNullString
+        Exit Function
+    End If
     If this.SQLiteKeywords Is Nothing Then Init
     Dim Buffer() As Byte
     Buffer = FieldName
@@ -77,9 +78,31 @@ Attribute QuoteSQLName.VB_Description = "Quotes field name."
     NameLen = Len(FieldName)
     If Buffer(0) = AscB("""") And Buffer(NameLen * 2 - 2) = AscB("""") Or _
        Buffer(0) = AscB("[") And Buffer(NameLen * 2 - 2) = AscB("]") Then
-        NameLen = NameLen - 2
-        Buffer = Mid$(FieldName, 2, NameLen)
+        QuoteSQLName = FieldName
+        Exit Function
     End If
+    If Force Then GoTo QUOTE_NAME:
+        
+    Dim DotCount As Long
+    DotCount = Len(FieldName) - Len(Replace(FieldName, ".", vbNullString))
+    If DotCount >= 1 And DotCount <= 3 And Not InStr(FieldName, "..") Then
+        Dim NameParts As Variant
+        NameParts = Split(FieldName, ".")
+        Dim PartIndex As Long
+        For PartIndex = 0 To UBound(NameParts)
+            NameParts(PartIndex) = QuoteSQLName(NameParts(PartIndex))
+        Next PartIndex
+        Dim Result As String
+        Result = Join(NameParts, ".")
+        If InStr(Result, """") > 0 Then
+            For PartIndex = 0 To UBound(NameParts)
+                NameParts(PartIndex) = QuoteSQLName(NameParts(PartIndex), True)
+            Next PartIndex
+        End If
+        QuoteSQLName = Join(NameParts, ".")
+        Exit Function
+    End If
+    
     If this.AlphaChar(Buffer(0)) = 1 Then GoTo QUOTE_NAME:
     Dim CharIndex As Long
     For CharIndex = 2 To NameLen * 2 - 2 Step 2
@@ -91,6 +114,7 @@ Attribute QuoteSQLName.VB_Description = "Quotes field name."
 QUOTE_NAME:
     QuoteSQLName = """" & Replace(CStr(Buffer), """", """""") & """"
 End Function
+
 
 '''' Examples:
 ''''   >>> ?SQLQuoter.CStrSQL(5.5)
@@ -126,30 +150,6 @@ Attribute CStrSQL.VB_Description = "Converts a VBA Variant to SQL textual repres
     End Select
 End Function
 
-Friend Function KeywordCount() As Long
-    KeywordCount = sqlite3_keyword_count()
-End Function
-
-Friend Function NthKeyword(ByVal KeywordIndex As Long) As String
-    #If VBA7 Then
-        Dim KeywordPtr As LongPtr
-    #Else
-        Dim KeywordPtr As Long
-    #End If
-    KeywordPtr = 0
-    Dim KeywordLength As Long
-    KeywordLength = 0
-    Dim ResultCode As SQLiteResultCodes
-    ResultCode = sqlite3_keyword_name(KeywordIndex, KeywordPtr, KeywordLength)
-    If ResultCode <> SQLITE_OK Or KeywordPtr = 0 Or KeywordLength = 0 Then
-        NthKeyword = vbNullString
-    Else
-        Dim KeywordBuffer() As Byte
-        ReDim KeywordBuffer(0 To KeywordLength - 1)
-        CopyMemory KeywordBuffer(0), KeywordPtr, KeywordLength
-        NthKeyword = StrConv(KeywordBuffer, vbUnicode)
-    End If
-End Function
 
 Friend Sub InitKeywordMap()
     If this.SQLiteKeywords Is Nothing Then
@@ -157,18 +157,8 @@ Friend Sub InitKeywordMap()
         this.SQLiteKeywords.CompareMode = TextCompare
         CachedKeywordsSet
     End If
-    If KeywordCount() > SQLITE_N_KEYWORD Then
-        Dim KeywordIndex As Long
-        KeywordIndex = 0
-        Dim Keyword As String
-        Keyword = NthKeyword(KeywordIndex)
-        Do While Keyword <> vbNullString
-            this.SQLiteKeywords(Keyword) = KeywordIndex
-            KeywordIndex = KeywordIndex + 1
-            Keyword = NthKeyword(KeywordIndex)
-        Loop
-    End If
 End Sub
+
 
 Friend Sub CachedKeywordsSet()
     Dim CachedKeywords As Variant
@@ -196,10 +186,11 @@ Friend Sub CachedKeywordsSet()
         "UPDATE", "USING", "VACUUM", "VALUES", "VIEW", "VIRTUAL", "WHEN", _
         "WHERE", "WINDOW", "WITH", "WITHOUT")
     Dim KeywordIndex As Long
-    For KeywordIndex = 0 To SQLITE_N_KEYWORD - 1
+    For KeywordIndex = 0 To UBound(CachedKeywords)
         this.SQLiteKeywords(CachedKeywords(KeywordIndex)) = KeywordIndex
     Next KeywordIndex
 End Sub
+
 
 Friend Sub InitCharMap()
     Dim CharMap(0 To 255) As Byte
