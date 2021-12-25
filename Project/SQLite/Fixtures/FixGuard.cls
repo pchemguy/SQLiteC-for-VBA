@@ -44,8 +44,8 @@ Attribute DbNotOpened.VB_Description = "Raises a run-time error if the specified
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
                                    " / ", vbNullString) & ErrorSource
     
-    Dim errorDetails As TError
-    With errorDetails
+    Dim ErrorDetails As TError
+    With ErrorDetails
         .Trapped = dbc Is Nothing
         If .Trapped Then
             .Name = "ObjectNotSetErr"
@@ -53,7 +53,7 @@ Attribute DbNotOpened.VB_Description = "Raises a run-time error if the specified
             .Source = Source
             .Message = "SQLiteCConnection object is not set."
             .Description = .Message & " Source: " & .Source
-            Guard.RaiseError errorDetails
+            Guard.RaiseError ErrorDetails
         End If
         
         .Trapped = (dbc.DbHandle = 0)
@@ -63,7 +63,7 @@ Attribute DbNotOpened.VB_Description = "Raises a run-time error if the specified
             .Source = Source
             .Message = "SQLiteCConnection object is not opened."
             .Description = .Message & " Source: " & .Source
-            Guard.RaiseError errorDetails
+            Guard.RaiseError ErrorDetails
         End If
     End With
 End Sub
@@ -77,8 +77,8 @@ Attribute StmtNotPrepared.VB_Description = "Raises a run-time error if the speci
     Source = this.ModuleName & IIf(Len(this.ModuleName) > 0 And Len(ErrorSource) > 0, _
                                    " / ", vbNullString) & ErrorSource
     
-    Dim errorDetails As TError
-    With errorDetails
+    Dim ErrorDetails As TError
+    With ErrorDetails
         .Trapped = dbs Is Nothing
         If .Trapped Then
             .Name = "ObjectNotSetErr"
@@ -86,7 +86,7 @@ Attribute StmtNotPrepared.VB_Description = "Raises a run-time error if the speci
             .Source = Source
             .Message = "SQLiteCStatement object is not set."
             .Description = .Message & " Source: " & .Source
-            Guard.RaiseError errorDetails
+            Guard.RaiseError ErrorDetails
         End If
         
         .Trapped = (dbs.StmtHandle = 0)
@@ -96,7 +96,7 @@ Attribute StmtNotPrepared.VB_Description = "Raises a run-time error if the speci
             .Source = Source
             .Message = "SQLiteCStatement object is not prepared."
             .Description = .Message & " Source: " & .Source
-            Guard.RaiseError errorDetails
+            Guard.RaiseError ErrorDetails
         End If
     End With
 End Sub

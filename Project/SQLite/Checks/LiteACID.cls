@@ -31,6 +31,10 @@ Attribute VB_Description = "This module provides ACID related functionality"
 '''' should use the primary Connection object and for this reason should not
 '''' be a part of this module.
 ''''
+'''' TODO: Switch to TError
+'''' TODO: Cleanup using SQLiteCRC (but keep in mind that this class is also
+''''       used via ADODB/SQLiteODBC.
+''''
 Option Explicit
 
 Private Const JOURNAL_MODES As String = "| DELETE | TRUNCATE | WAL |"

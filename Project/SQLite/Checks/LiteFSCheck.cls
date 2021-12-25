@@ -33,6 +33,8 @@ Attribute VB_Description = "Provides access and integrity check functionality"
 '''' PathExistsAccessible can be skipped. Otherwise, PathExistsAccessible
 '''' will fail and is executed to narrow down the cause of the issue.
 ''''
+'''' TODO: Switch to TError
+''''
 Option Explicit
 
 Private Type TLiteFSCheck
@@ -53,7 +55,7 @@ Private this As TLiteFSCheck
 '''' Args:
 ''''   Database (string):
 ''''     Absolute or relative database file pathname or a special name
-''''       (":mem:, ":memory:", ":temp:", ":tmp:", ":blank:").
+''''       (":mem:, ":memory:", ":temp:", ":tmp:", ":blank:", "", "file:" URI).
 ''''
 ''''   AllowNonExistent (variant, optional, Empty):
 ''''     Controls additional path preprocessing and creatability
@@ -246,8 +248,9 @@ End Function
 ''''   DbPathName (string):
 ''''     String describing the target database:
 ''''       * relative or absolute file pathname
+''''       * 'file:'-prefixed URI
 ''''       * ':memory:' - anonymous in-memory database
-''''       * ':temp:'/':tmp:' - file db in the Temp folder with random name
+''''       * ':temp:'/':tmp:'/"" - file db in the Temp folder with random name
 ''''       * ':blank:' - anonymous file-based db
 ''''
 ''''   AllowNonExistent (variant, optional, Empty):
@@ -267,22 +270,23 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
     Dim FilePathName As String
     FilePathName = LCase$(DbPathName)
     '''' Check for special names
+    this.IsSpecial = True
     Select Case FilePathName
         Case ":memory:", ":mem:"
-            this.IsSpecial = True
             ExistsAccesibleValid = ":memory:"
-            Exit Function
-        Case ":temp:", ":tmp:"
-            this.IsSpecial = True
+        Case ":temp:", ":tmp:", vbNullString
             ExistsAccesibleValid = Environ$("TEMP") & Application.PathSeparator & _
                 Format$(Now, "yyyy_mm_dd-hh_mm_ss-") & Left$(GenerateGUID, 8) & ".db"
-            Exit Function
         Case ":blank:"
-            this.IsSpecial = True
             ExistsAccesibleValid = vbNullString
-            Exit Function
+        Case Else
+            If LCase$(Left$(FilePathName, 5)) = "file:" Then
+                ExistsAccesibleValid = FilePathName
+            Else
+                this.IsSpecial = False
+            End If
     End Select
-    this.IsSpecial = False
+    If this.IsSpecial Then Exit Function
     
     Dim EnableResolve As Boolean
     EnableResolve = (VarType(AllowNonExistent) = vbBoolean)
@@ -324,14 +328,19 @@ Attribute ExistsAccesibleValid.VB_Description = "Runs SQLite database access and
         End If
         
         '''' Verify that a new file can be created
-        Dim TextFile As Scripting.TextStream
-        this.ErrSource = " LiteFSCheck"
-        this.ErrDescription = vbNewLine & "Cannot create a new file."
-        Set TextFile = fso.CreateTextFile(FilePathName)
-        this.ErrSource = vbNullString
-        this.ErrDescription = vbNullString
-        TextFile.Close
-        fso.DeleteFile FilePathName, True
+        With this
+            Dim TextFile As Scripting.TextStream
+            .ErrSource = " LiteFSCheck"
+            .ErrDescription = vbNewLine & "Cannot create a new file."
+            '''' Error details above are set and used in case the following
+            '''' check raises an error.
+            Set TextFile = fso.CreateTextFile(FilePathName)
+            TextFile.Close
+            fso.DeleteFile FilePathName, True
+            '''' If test succeeded and no error is raised above, reset error info.
+            .ErrSource = vbNullString
+            .ErrDescription = vbNullString
+        End With
         
         ExistsAccesibleValid = FilePathName
     End If

@@ -336,39 +336,6 @@ TestFail:
 End Sub
 
 
-'@TestMethod("Path checking")
-Private Sub ztcCreate_FailsOnEmptyPath()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-    FilePathName = vbNullString
-    ErrNumber = ErrNo.PathNotFoundErr
-    ErrSource = "LiteFSCheck"
-    ErrDescription = "Database path (folder) is not found. Expected " & _
-                     "absolute path. Check ACL settings. Enable path " & _
-                     "resolution feature, if necessary." & _
-                     vbNewLine & "Source: " & FilePathName
-    ErrStack = "ExistsAccesibleValid" & vbNewLine & _
-               "PathExistsAccessible" & vbNewLine
-Act:
-    Set PathCheck = LiteFSCheck(FilePathName)
-Assert:
-    With PathCheck
-        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
-        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
-        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
-        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
-        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
-    End With
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
 '@TestMethod("Path resolution")
 Private Sub ztcCreate_ResolvesRelativePath()
     On Error GoTo TestFail
@@ -391,7 +358,7 @@ TestFail:
 End Sub
 
 
-'@TestMethod("PathCheck")
+'@TestMethod("Path checking")
 Private Sub ztcVerifyOrGetDefaultPath_ValidatesResolvingLibPath()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
@@ -411,36 +378,6 @@ Act:
     Actual = VerifyOrGetDefaultPath(ThisWorkbook.VBProject.Name, Array("sqlite", "db"))
 Assert:
     Assert.AreEqual Expected, Actual, "CheckPath failed to resolve lib path"
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Path resolution")
-Private Sub ztcCreate_FailsResolveCreatableWithEmptyPath()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-    FilePathName = vbNullString
-    ErrNumber = ErrNo.FileNotFoundErr
-    ErrSource = "CommonRoutines"
-    ErrDescription = "File <> not found!" & vbNewLine & _
-                     "Source: " & FilePathName
-    ErrStack = "ExistsAccesibleValid" & vbNewLine
-Act:
-    Set PathCheck = LiteFSCheck(FilePathName, True)
-Assert:
-    With PathCheck
-        Assert.AreEqual 0, Len(.DatabasePathName), "Database should not be set"
-        Assert.AreEqual ErrNumber, .ErrNumber, "ErrNumber mismatch"
-        Assert.AreEqual ErrSource, .ErrSource, "ErrSource mismatch"
-        Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
-        Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
-    End With
 
 CleanExit:
     Exit Sub
@@ -503,27 +440,6 @@ Assert:
         Assert.AreEqual ErrDescription, .ErrDescription, "ErrDescription mismatch"
         Assert.AreEqual ErrStack, .ErrStack, "ErrStack mismatch"
     End With
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
-'@TestMethod("Path resolution")
-Private Sub ztcCreate_FailsResolvingBlankNoCreatePath()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-    
-Arrange:
-    FilePathName = vbNullString
-    Dim Expected As String
-    Expected = FixObjAdo.DefaultDbPathName
-Act:
-    Set PathCheck = LiteFSCheck(FilePathName, False)
-Assert:
-    Assert.AreEqual ErrNo.FileNotFoundErr, PathCheck.ErrNumber, "Unexpected error occured"
 
 CleanExit:
     Exit Sub
@@ -605,6 +521,34 @@ Private Sub ztcCreate_ResolvesTemp()
 
 Arrange:
     FilePathName = ":temp:"
+    Dim Actual As String
+    Dim Prefix As String
+    Dim SuffixPattern As String
+Act:
+    Set PathCheck = LiteFSCheck(FilePathName, True)
+    Prefix = Environ$("TEMP") & PATH_SEP & Format$(Now, "yyyy_mm_dd-hh_mm_")
+    SuffixPattern = "ss-12345678.db"
+    Actual = PathCheck.DatabasePathName
+Assert:
+    Assert.AreEqual 0, PathCheck.ErrNumber, "Unexpected error occured"
+    Assert.AreEqual Prefix, Left$(Actual, Len(Prefix)), "Resolved path mismatch"
+    Assert.AreEqual ".db", Right$(Actual, 3), "Resolved path mismatch"
+    Assert.AreEqual Len(Prefix) + Len(SuffixPattern), Len(Actual), "Resolved path mismatch"
+    
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("Path resolution")
+Private Sub ztcCreate_ResolvesBlankPath()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    FilePathName = vbNullString
     Dim Actual As String
     Dim Prefix As String
     Dim SuffixPattern As String

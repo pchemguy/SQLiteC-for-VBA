@@ -13,13 +13,22 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 '@PredeclaredId
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
-
+''''
+'''' TODO: Extend CreateConnection/SQLiteCConnection:
+''''         Define pass additional options to set appropriate OPEN_FLAGS
+''''         AllowNonExistent = false - remove creatable flag
+''''         Add OpenReadOnly, open in memory (?), cache control
+''''         https://www.sqlite.org/uri.html
+''''         https://www.sqlite.org/c3ref/open.html#urifilenamesinsqlite3open
+''''
 Option Explicit
 
 #If VBA7 Then
 '''' Engine test, no db is necessary
 Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
+'''' Cache sharing, no db is necessary
+Private Declare PtrSafe Function sqlite3_enable_shared_cache Lib "SQLite3" (ByVal Enable As Long) As Long
 '''' Backup
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, _
     ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As LongPtr
@@ -31,6 +40,8 @@ Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBac
 '''' Engine test, no db is necessary
 Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
+'''' Cache sharing, no db is necessary
+Private Declare Function sqlite3_enable_shared_cache Lib "SQLite3" (ByVal Enable As Long) As Long
 '''' Backup
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, _
     ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
@@ -120,7 +131,7 @@ Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
 End Property
 
-'''' vbNullString is an acceptable StmtName.
+'''' vbNullString is an acceptable DbPathName.
 '''' Raises an error if DbPathName (or resolved value) has already been used.
 '@Description "Creates a new SQLiteCConnection instance."
 Public Function CreateConnection(ByVal DbPathName As String, _
@@ -236,6 +247,14 @@ Attribute Version.VB_Description = "Returns SQLite version. No database is neces
     Else
         Version = UTFlib.StrFromUTF8Ptr(sqlite3_libversion())
     End If
+End Function
+
+'''' Reference: https://www.sqlite.org/sharedcache.html
+'''' Reference: https://www.sqlite.org/c3ref/enable_shared_cache.html
+''''
+'@Description "Enables and disables shared cache (process-wide)."
+Public Function SetSharedCacheState(ByVal Enable As Boolean) As SQLiteResultCodes
+    SetSharedCacheState = sqlite3_enable_shared_cache(IIf(Enable, 1, 0))
 End Function
 
 

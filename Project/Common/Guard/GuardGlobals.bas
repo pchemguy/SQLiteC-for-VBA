@@ -68,6 +68,7 @@ Public Type TError
     Name As String
     Source As String
     Message As String
+    Stack As String
     Description As String
     Trapped As Boolean
 End Type
