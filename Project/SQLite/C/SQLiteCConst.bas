@@ -18,6 +18,8 @@ Public Enum SQLiteDataType
     SQLITE_NULL = 5&
 End Enum
 
+Public Const SQLITE_DEFAULT_MMAP_SIZE As Long = &H8000000
+
 '''' Reference: https://www.sqlite.org/datatype3.html
 ''''
 '''' ---------------- Mapping SQLiteTypeAffinity -> SQLiteType ------------ ''''

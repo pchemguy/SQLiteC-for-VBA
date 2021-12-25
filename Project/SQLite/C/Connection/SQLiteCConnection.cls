@@ -14,6 +14,7 @@ Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteCConnection"
 
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
@@ -113,6 +114,7 @@ Private Type TSQLiteCConnection
     #End If
     Statements As Scripting.Dictionary
     ErrInfo As SQLiteCErr
+    MappedMemorySize As Long                ' Amount of memory allocated for memory mapping database files
 End Type
 Private this As TSQLiteCConnection
 
@@ -130,6 +132,7 @@ Friend Sub Init(ByVal DbPathName As String)
     this.DbPathName = DbPathName
     Set this.Statements = New Scripting.Dictionary
     this.Statements.CompareMode = TextCompare
+    this.MappedMemorySize = 0
 End Sub
 
 Friend Sub CleanUp()
@@ -199,7 +202,11 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
         End If
         ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     End If
-    If ResultCode <> SQLITE_OK Then ResultCode = ErrInfoRetrieve
+    If ResultCode <> SQLITE_OK Then
+        ResultCode = ErrInfoRetrieve
+    Else
+        Me.MappedMemorySize = SQLITE_DEFAULT_MMAP_SIZE
+    End If
     Dim LogMsg As String
     LogMsg = "Open db status: <" & SQLiteCRC.CodeToName(ResultCode) & ">"
     Logger.Logg LogMsg, , DEBUGLEVEL_INFO
@@ -236,10 +243,37 @@ Public Property Get ErrInfo() As SQLiteCErr
     ErrInfo = this.ErrInfo
 End Property
 
+'''' Reference: https://www.sqlite.org/pragma.html#pragma_mmap_size
+''''
+'@Description "Returns memory size used for mapping database files."
+Public Property Get MappedMemorySize() As Long
+    MappedMemorySize = this.MappedMemorySize
+End Property
+
+'''' Reference: https://www.sqlite.org/pragma.html#pragma_mmap_size
+''''
+'@Description "Returns memory size used for mapping database files."
+Public Property Let MappedMemorySize(ByVal Value As Long)
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/MappedMemorySize"
+    Dim ValueStr As String
+    ValueStr = CStr(Value)
+    Dim SQLQuery As String
+    SQLQuery = "PRAGMA main.mmap_size=" & ValueStr & ";" & _
+               "PRAGMA mmap_size=" & ValueStr
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = ExecuteNonQueryPlain(SQLQuery)
+    If ResultCode <> SQLITE_OK Then
+        Err.Raise ResultCode, MODULE_NAME & "/MappedMemorySize", _
+        "Failed to set mapped memory size."
+    Else
+        this.MappedMemorySize = Value
+    End If
+End Property
+
 '''' Reference: https://www.sqlite.org/c3ref/errcode.html
 ''''
 Public Sub GetErr()
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/GetErr"
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/GetErr"
     With this.ErrInfo
         .ErrorCode = sqlite3_errcode(this.DbHandle)
         .ErrorCodeName = SQLiteCRC.CodeToName(.ErrorCode)
@@ -282,7 +316,7 @@ End Function
 Public Function AttachedDbPathName(Optional ByVal SchemaAlias As String = "main" _
                                   ) As String
 Attribute AttachedDbPathName.VB_Description = "Retrieves database path for SchemaAlias."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/AttachedDbPathName"
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/AttachedDbPathName"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AttachedDbPathName = UTFlib.StrFromUTF8Ptr( _
@@ -295,7 +329,7 @@ End Function
 Public Function AccessMode(Optional ByVal SchemaAlias As String = "main" _
                           ) As SQLiteDbAccess
 Attribute AccessMode.VB_Description = "Queries database access mode."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/AccessMode"
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/AccessMode"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     AccessMode = sqlite3_db_readonly(this.DbHandle, VarPtr(SchemaUTF8(0)))
@@ -307,7 +341,7 @@ End Function
 '@Description "Queries the number of changes occured during the last executed statement or since the DBO creation."
 Public Function ChangesCount(Optional ByVal Total As Boolean = False) As Long
 Attribute ChangesCount.VB_Description = "Queries the number of changes occured during the last executed statement or since the DBO creation."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/ChangesCount"
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/ChangesCount"
     If Total Then
         ChangesCount = sqlite3_total_changes(this.DbHandle)
     Else
@@ -329,8 +363,8 @@ Public Function ExecuteNonQueryPlain(ByVal SQLQuery As String, _
             Optional ByRef AffectedRows As Long = -1) As SQLiteResultCodes
 Attribute ExecuteNonQueryPlain.VB_Description = "Executes a plain-text non-query via a convenience shortcut."
     Guard.ExpressionErr Len(SQLQuery) > 0, InvalidParameterErr, _
-        "SQLiteCConnection/ExecuteNonQueryPlain", "Query string is empty."
-    FixGuard.DbNotOpened Me, "SQLiteCConnection/ExecuteNonQueryPlain"
+        MODULE_NAME & "/ExecuteNonQueryPlain", "Query string is empty."
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/ExecuteNonQueryPlain"
     If AffectedRows <> -1 Then AffectedRows = ChangesCount(True)
     Dim SQLQueryUTF8() As Byte
     SQLQueryUTF8 = UTFlib.UTF8BytesFromStr(SQLQuery)
@@ -381,13 +415,13 @@ Attribute Vacuum.VB_Description = "Vacuums a database in-place or into a new fil
         Dim PathCheck As LiteFSCheck
         Set PathCheck = LiteFSCheck(DstDbPathName, True)
         Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, ErrNo.UnknownClassErr, _
-            "SQLiteCConnection/Vacuum", "Failed to resolve db path."
+            MODULE_NAME & "/Vacuum", "Failed to resolve db path."
         FilePathName = PathCheck.DatabasePathName
         '@Ignore SelfAssignedDeclaration
         Dim fso As New Scripting.FileSystemObject
         If fso.FileExists(FilePathName) Then
             Guard.ExpressionTrueErr fso.GetFile(FilePathName).Size > 0, _
-                ErrNo.FileAlreadyExistsErr, "SQLiteCConnection/Vacuum", _
+                ErrNo.FileAlreadyExistsErr, MODULE_NAME & "/Vacuum", _
                 "Non-empty file already exists."
         End If
     End If
@@ -402,11 +436,11 @@ End Function
 Public Function CreateStatement(ByVal StmtName As String) As SQLiteCStatement
 Attribute CreateStatement.VB_Description = "Creates a new SQLiteCStatement instance."
     Guard.ExpressionTrueErr this.Statements.Exists(StmtName), _
-        ErrNo.KeyAlreadyExistsErr, "SQLiteCConnection/CreateStatement", _
+        ErrNo.KeyAlreadyExistsErr, MODULE_NAME & "/CreateStatement", _
         "Statement name already exists!"
     Dim DbStmt As SQLiteCStatement
     Set DbStmt = SQLiteCStatement(Me)
-    Guard.NullReference DbStmt, "SQLiteCConnection/CreateStatement", _
+    Guard.NullReference DbStmt, MODULE_NAME & "/CreateStatement", _
         "Failed to create an SQLiteCStatement instance."
     Set this.Statements(StmtName) = DbStmt
     Set CreateStatement = DbStmt
@@ -477,6 +511,7 @@ End Function
 Public Function TxnState(Optional ByVal SchemaAlias As String = "main" _
                         ) As SQLiteTxnState
 Attribute TxnState.VB_Description = "Queries transaction status for the current SQLite DBO."
+    FixGuard.DbNotOpened Me, MODULE_NAME & "/TxnState"
     Dim SchemaUTF8() As Byte
     SchemaUTF8 = UTFlib.UTF8BytesFromStr(SchemaAlias)
     TxnState = sqlite3_txn_state(this.DbHandle, VarPtr(SchemaUTF8(0)))

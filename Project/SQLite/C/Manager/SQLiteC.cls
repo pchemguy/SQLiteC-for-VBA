@@ -22,8 +22,12 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 ''''         https://www.sqlite.org/c3ref/open.html#urifilenamesinsqlite3open
 ''''
 Option Explicit
+Private Const MODULE_NAME As String = "SQLiteC"
 
 #If VBA7 Then
+'''' Init and shutdown, no db is necessary
+Private Declare PtrSafe Function sqlite3_initialize Lib "SQLite3" () As Long
+Private Declare PtrSafe Function sqlite3_shutdown Lib "SQLite3" () As Long
 '''' Engine test, no db is necessary
 Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr ' PtrUtf8String
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
@@ -37,6 +41,9 @@ Private Declare PtrSafe Function sqlite3_backup_remaining Lib "SQLite3" (ByVal h
 Private Declare PtrSafe Function sqlite3_backup_pagecount Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 Private Declare PtrSafe Function sqlite3_backup_finish Lib "SQLite3" (ByVal hBackup As LongPtr) As Long
 #Else
+'''' Init and shutdown, no db is necessary
+Private Declare Function sqlite3_initialize Lib "SQLite3" () As Long
+Private Declare Function sqlite3_shutdown Lib "SQLite3" () As Long
 '''' Engine test, no db is necessary
 Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8String
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
@@ -121,6 +128,10 @@ Private Sub Class_Terminate()
         .Connections.RemoveAll
         Set .Connections = Nothing
     End With
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = Shutdown()
+    If ResultCode <> SQLITE_OK Then Err.Raise ResultCode, _
+        MODULE_NAME & "/Class_Terminate", "Shutdown error."
 End Sub
 
 Public Property Get MainDbId() As Variant
@@ -130,6 +141,20 @@ End Property
 Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
 End Property
+
+'''' Reference: https://www.sqlite.org/c3ref/initialize.html
+''''
+'@Description "Initializes the library. No connection is necessary."
+Public Function Initialize() As SQLiteResultCodes
+    Initialize = sqlite3_initialize()
+End Function
+
+'''' Reference: https://www.sqlite.org/c3ref/initialize.html
+''''
+'@Description "Shuts down the library. No connection is necessary."
+Public Function Shutdown() As SQLiteResultCodes
+    Shutdown = sqlite3_shutdown()
+End Function
 
 '''' vbNullString is an acceptable DbPathName.
 '''' Raises an error if DbPathName (or resolved value) has already been used.
@@ -239,7 +264,7 @@ End Function
 
 '''' Reference: https://www.sqlite.org/c3ref/libversion.html
 ''''
-'@Description "Returns SQLite version. No database is necessary."
+'@Description "Returns SQLite version. No connection is necessary."
 Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
 Attribute Version.VB_Description = "Returns SQLite version. No database is necessary."
     If Numeric Then
