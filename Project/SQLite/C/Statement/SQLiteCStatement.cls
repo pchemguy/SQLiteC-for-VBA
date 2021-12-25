@@ -53,6 +53,7 @@ Private Type TSQLiteCStatement
     #Else
         StmtHandle As Long
     #End If
+    PragmaOptions As Scripting.Dictionary
     AffectedRowsCount As Long
     ParameterCount As Long
     PrepareOnly As Boolean
@@ -73,6 +74,8 @@ Friend Sub Init(ByVal DbConn As SQLiteCConnection)
     Guard.NullReference DbConn
     Set this.DbConn = DbConn
     Set this.DbExec = SQLiteCExecSQL(Me)
+    Set this.PragmaOptions = New Scripting.Dictionary
+    this.PragmaOptions.CompareMode = TextCompare
 End Sub
 
 Friend Sub CleanUp()
@@ -684,3 +687,37 @@ Private Sub ILiteADO_Rollback(Optional ByVal SavePointName As String = vbNullStr
     ResultCode = this.DbConn.Rollback(SavePointName)
     Debug.Assert ResultCode = SQLITE_OK
 End Sub
+
+'@Description "Caches PragmaOptions queries."
+Private Function PragmaOptionsDict(ByVal PragmaName As String) As Scripting.Dictionary
+    Dim PragmaOptions As Scripting.Dictionary
+    With this.PragmaOptions
+        If .Exists(PragmaName) Then
+            Set PragmaOptions = .Item(PragmaName)
+        Else
+            Set PragmaOptions = LiteMetaADO(Me).PragmaOptionsDict(PragmaName)
+            Set .Item(PragmaName) = PragmaOptions
+        End If
+    End With
+    Set PragmaOptionsDict = PragmaOptions
+End Function
+
+'@Description "Returns a dictionary with keys set to available SQLite functions."
+Private Property Get ILiteADO_Functions() As Scripting.Dictionary
+    Set ILiteADO_Functions = PragmaOptionsDict("function_list")
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite pragmas."
+Private Property Get ILiteADO_Pragmas() As Scripting.Dictionary
+    Set ILiteADO_Pragmas = PragmaOptionsDict("pragma_list")
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite modules."
+Private Property Get ILiteADO_Modules() As Scripting.Dictionary
+    Set ILiteADO_Modules = PragmaOptionsDict("module_list")
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite compile options."
+Private Property Get ILiteADO_CompileOptions() As Scripting.Dictionary
+    Set ILiteADO_CompileOptions = PragmaOptionsDict("compile_options")
+End Property

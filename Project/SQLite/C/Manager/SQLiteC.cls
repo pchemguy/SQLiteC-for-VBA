@@ -64,6 +64,10 @@ Private Type TSQLiteC
     '''' The first created connection is designated as the main db, MainDB and
     '''' is set to this connection's ID, which is the pathname of its 'main' db.
     MainDB As Variant
+    Functions As Scripting.Dictionary
+    Modules As Scripting.Dictionary
+    Pragmas As Scripting.Dictionary
+    CompileOptions As Scripting.Dictionary
 End Type
 Private this As TSQLiteC
 
@@ -142,6 +146,46 @@ Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
 End Property
 
+'@Description "Returns a dictionary with keys set to available SQLite functions."
+Public Property Get Functions() As Scripting.Dictionary
+    If this.Functions Is Nothing Then
+        With LiteMetaADO(CreateILiteADO(":mem:"))
+            Set this.Functions = .PragmaOptionsDict("function_list")
+        End With
+    End If
+    Set Functions = this.Functions
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite pragmas."
+Public Property Get Pragmas() As Scripting.Dictionary
+    If this.Pragmas Is Nothing Then
+        With LiteMetaADO(CreateILiteADO(":mem:"))
+            Set this.Pragmas = .PragmaOptionsDict("pragma_list")
+        End With
+    End If
+    Set Pragmas = this.Pragmas
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite modules."
+Public Property Get Modules() As Scripting.Dictionary
+    If this.Modules Is Nothing Then
+        With LiteMetaADO(CreateILiteADO(":mem:"))
+            Set this.Modules = .PragmaOptionsDict("module_list")
+        End With
+    End If
+    Set Modules = this.Modules
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite compile options."
+Public Property Get CompileOptions() As Scripting.Dictionary
+    If this.CompileOptions Is Nothing Then
+        With LiteMetaADO(CreateILiteADO(":mem:"))
+            Set this.CompileOptions = .PragmaOptionsDict("compile_options")
+        End With
+    End If
+    Set CompileOptions = this.CompileOptions
+End Property
+
 '''' Reference: https://www.sqlite.org/c3ref/initialize.html
 ''''
 '@Description "Initializes the library. No connection is necessary."
@@ -188,20 +232,17 @@ Public Function CreateILiteADO(ByVal DbPathName As String, _
                       ) As ILiteADO
 Attribute CreateILiteADO.VB_Description = "Creates a new SQLiteCConnection instance."
     Dim dbc As SQLiteCConnection
-    Set dbc = CreateConnection(DbPathName, AllowNonExistent)
+    Set dbc = ConnDb(DbPathName)
+    If dbc Is Nothing Then Set dbc = CreateConnection(DbPathName, AllowNonExistent)
     Set CreateILiteADO = dbc.ExecADO
 End Function
 
 '''' vbNullString is an acceptable DbPathName (should resolve to anon temp db).
 '@Description "Returns an existing SQLiteCConnection instance or Nothing."
-Public Function ConnDb(Optional ByVal DbPathName As String = vbNullString _
-                      ) As SQLiteCConnection
+Public Function ConnDb(ByVal DbPathName As String) As SQLiteCConnection
 Attribute ConnDb.VB_Description = "Returns an existing SQLiteCConnection instance or Nothing."
-    '''' SQLiteCConnection is responsible for DbPathName validation/resolution
     If this.Connections.Exists(DbPathName) Then
         Set ConnDb = this.Connections(DbPathName)
-    ElseIf Len(DbPathName) = 0 And this.Connections.Exists(this.MainDB) Then
-        Set ConnDb = this.Connections(this.MainDB)
     Else
         Set ConnDb = Nothing
     End If

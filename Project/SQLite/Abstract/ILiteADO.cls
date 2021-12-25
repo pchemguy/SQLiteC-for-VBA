@@ -83,3 +83,19 @@ End Function
 Public Function CloseDb() As Long
 Attribute CloseDb.VB_Description = "Closes database connection"
 End Function
+
+'@Description "Returns a dictionary with keys set to available SQLite functions."
+Public Property Get Functions() As Scripting.Dictionary
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite pragmas."
+Public Property Get Pragmas() As Scripting.Dictionary
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite modules."
+Public Property Get Modules() As Scripting.Dictionary
+End Property
+
+'@Description "Returns a dictionary with keys set to available SQLite compile options."
+Public Property Get CompileOptions() As Scripting.Dictionary
+End Property

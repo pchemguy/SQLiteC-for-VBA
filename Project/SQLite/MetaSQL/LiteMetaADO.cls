@@ -36,7 +36,6 @@ End Function
 
 Friend Sub Init(ByVal ExecADO As ILiteADO)
     Guard.NullReference ExecADO
-    
     Set this.ExecADO = ExecADO
     Set this.MetaSQL = LiteMetaSQL.Create("main")
 End Sub
@@ -240,3 +239,29 @@ Attribute IndexSchema.VB_Description = "Retrieves index schema"
     
     Set IndexSchema = SchemaDic
 End Property
+
+
+Public Function PragmaOptionsDict(ByVal PragmaName As String) As Scripting.Dictionary
+    Dim ValueArray As Variant
+    ValueArray = this.ExecADO.GetAdoRecordset( _
+        this.MetaSQL.PragmaOptionsList(PragmaName)).GetRows
+    Dim ValueDict As Scripting.Dictionary
+    Set ValueDict = New Scripting.Dictionary
+    ValueDict.CompareMode = TextCompare
+    Dim FieldIndex As Long
+    FieldIndex = LBound(ValueArray, 1)
+    Dim OptionItem As Variant
+    Dim EqPos As Long
+    Dim RecordIndex As Long
+    For RecordIndex = LBound(ValueArray, 2) To UBound(ValueArray, 2)
+        OptionItem = ValueArray(FieldIndex, RecordIndex)
+        EqPos = InStr(OptionItem, "=")
+        If EqPos = 0 Then
+            ValueDict(OptionItem) = True
+        Else
+            ValueDict(Left$(OptionItem, EqPos - 1)) = _
+                Right$(OptionItem, Len(OptionItem) - EqPos)
+        End If
+    Next RecordIndex
+    Set PragmaOptionsDict = ValueDict
+End Function

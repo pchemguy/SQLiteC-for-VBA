@@ -186,7 +186,6 @@ End Property
 
 '@Description "Generates query returning available SQLite functions count"
 Public Property Get FunctionsCount() As String
-Attribute FunctionsCount.VB_Description = "Generates query returning available SQLite functions count"
     FunctionsCount = "SELECT count(*) As counter FROM pragma_function_list()"
 End Property
 
@@ -207,3 +206,16 @@ Public Property Get Version() As String
 Attribute Version.VB_Description = "Generates query returning SQLite version"
     Version = "SELECT sqlite_version() AS version"
 End Property
+
+'@Description "Generates query returning the list of reflective pragma options."
+Public Function PragmaOptionsList(ByVal PragmaName As String) As String
+    Dim FieldName As String
+    Select Case LCase$(PragmaName)
+        Case "compile_options"
+            FieldName = "compile_options AS name"
+        Case Else
+            FieldName = "name"
+    End Select
+    PragmaOptionsList = "SELECT " & FieldName & " FROM pragma_" & _
+        PragmaName & " GROUP BY name ORDER BY name"
+End Function
