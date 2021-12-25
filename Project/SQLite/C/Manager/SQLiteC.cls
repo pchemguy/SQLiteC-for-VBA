@@ -64,10 +64,6 @@ Private Type TSQLiteC
     '''' The first created connection is designated as the main db, MainDB and
     '''' is set to this connection's ID, which is the pathname of its 'main' db.
     MainDB As Variant
-    Functions As Scripting.Dictionary
-    Modules As Scripting.Dictionary
-    Pragmas As Scripting.Dictionary
-    CompileOptions As Scripting.Dictionary
 End Type
 Private this As TSQLiteC
 
@@ -144,46 +140,6 @@ End Property
 
 Public Property Get DllMan() As DllManager
     Set DllMan = this.DllMan
-End Property
-
-'@Description "Returns a dictionary with keys set to available SQLite functions."
-Public Property Get Functions() As Scripting.Dictionary
-    If this.Functions Is Nothing Then
-        With LiteMetaADO(CreateILiteADO(":mem:"))
-            Set this.Functions = .PragmaOptionsDict("function_list")
-        End With
-    End If
-    Set Functions = this.Functions
-End Property
-
-'@Description "Returns a dictionary with keys set to available SQLite pragmas."
-Public Property Get Pragmas() As Scripting.Dictionary
-    If this.Pragmas Is Nothing Then
-        With LiteMetaADO(CreateILiteADO(":mem:"))
-            Set this.Pragmas = .PragmaOptionsDict("pragma_list")
-        End With
-    End If
-    Set Pragmas = this.Pragmas
-End Property
-
-'@Description "Returns a dictionary with keys set to available SQLite modules."
-Public Property Get Modules() As Scripting.Dictionary
-    If this.Modules Is Nothing Then
-        With LiteMetaADO(CreateILiteADO(":mem:"))
-            Set this.Modules = .PragmaOptionsDict("module_list")
-        End With
-    End If
-    Set Modules = this.Modules
-End Property
-
-'@Description "Returns a dictionary with keys set to available SQLite compile options."
-Public Property Get CompileOptions() As Scripting.Dictionary
-    If this.CompileOptions Is Nothing Then
-        With LiteMetaADO(CreateILiteADO(":mem:"))
-            Set this.CompileOptions = .PragmaOptionsDict("compile_options")
-        End With
-    End If
-    Set CompileOptions = this.CompileOptions
 End Property
 
 '''' Reference: https://www.sqlite.org/c3ref/initialize.html
