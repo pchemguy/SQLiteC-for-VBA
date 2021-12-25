@@ -64,6 +64,7 @@ Private Type TSQLiteC
     '''' The first created connection is designated as the main db, MainDB and
     '''' is set to this connection's ID, which is the pathname of its 'main' db.
     MainDB As Variant
+    URIAvailable As Variant
 End Type
 Private this As TSQLiteC
 
@@ -101,6 +102,7 @@ Friend Sub Init(ByVal DllPath As String, _
     Set this.Connections = New Scripting.Dictionary
     this.Connections.CompareMode = TextCompare
     this.MainDB = Null
+    this.URIAvailable = CreateILiteADO(vbNullString).FeatureAvailable("URI")
 End Sub
 
 '''' SQLiteC class hierarchy includes multiple instances of circular references,
@@ -121,8 +123,10 @@ Private Sub Class_Terminate()
         Dim DbConn As SQLiteCConnection
         Dim ConnName As Variant
         For Each ConnName In .Connections.Keys
-            Set DbConn = .Connections(ConnName)
-            DbConn.CleanUp
+            If IsObject(.Connections(ConnName)) Then
+                Set DbConn = .Connections(ConnName)
+                DbConn.CleanUp
+            End If
         Next ConnName
         Set DbConn = Nothing
         .Connections.RemoveAll
@@ -178,7 +182,7 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
     If DbConn Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, _
         "SQLiteC", "Failed to create an SQLiteCConnection instance."
     Set this.Connections(FilePathName) = DbConn
-    If IsNull(this.MainDB) Then this.MainDB = FilePathName
+    If IsNull(this.MainDB) And Len(FilePathName) > 0 Then this.MainDB = FilePathName
     Set CreateConnection = DbConn
 End Function
 

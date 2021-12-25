@@ -236,10 +236,9 @@ Arrange:
     Dim SQL As SQLlib
     Set SQL = zfxGetSQL
     Dim DbPathName As String
-    DbPathName = ThisWorkbook.Path & Application.PathSeparator & _
-                 ThisWorkbook.VBProject.Name & ".db"
+    DbPathName = "C:\Some.db"
     Dim Expected As String
-    Expected = "ATTACH '" & DbPathName & "' AS [" & ThisWorkbook.VBProject.Name & "]"
+    Expected = "ATTACH '" & DbPathName & "' AS Some"
 Act:
     Dim Actual As String
     Actual = SQL.Attach(DbPathName)

@@ -331,7 +331,7 @@ End Function
 ''''
 '''' Examples:
 ''''   >>> ?SQLlib.Attach(":memory:", "memory")
-''''   "ATTACH ':memory:' AS [memory]"
+''''   ATTACH ':memory:' AS memory
 ''''
 '@Description "Generates SQLite ATTACH statement"
 Public Function Attach(ByVal Database As String, _
@@ -347,7 +347,9 @@ Attribute Attach.VB_Description = "Generates SQLite ATTACH statement"
     Else
         Alias = fso.GetBaseName(Database)
     End If
-    Attach = "ATTACH '" & Replace(Database, "'", "''") & "' AS [" & Alias & "]"
+    With SQLQuoter
+        Attach = "ATTACH " & .QuoteSQLString(Database) & " AS " & .QuoteSQLName(Alias)
+    End With
 End Function
 
 
@@ -356,12 +358,12 @@ End Function
 ''''
 '''' Examples:
 ''''   >>> ?SQLlib.Detach("SQLiteDB")
-''''   "DETACH [SQLiteDB]"
+''''   DETACH SQLiteDB
 ''''
 '@Description "Generates SQLite DETACH statement"
 Public Function Detach(ByVal DatabaseName As String) As String
 Attribute Detach.VB_Description = "Generates SQLite DETACH statement"
-    Detach = "DETACH [" & DatabaseName & "]"
+    Detach = "DETACH " & SQLQuoter.QuoteSQLName(DatabaseName)
 End Function
 
 

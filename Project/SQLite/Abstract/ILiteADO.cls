@@ -99,3 +99,7 @@ End Property
 '@Description "Returns a dictionary with keys set to available SQLite compile options."
 Public Property Get CompileOptions() As Scripting.Dictionary
 End Property
+
+'@Description "Checks if a particular feature is available."
+Public Function FeatureAvailable(ByVal FeatureName As String) As Boolean
+End Function

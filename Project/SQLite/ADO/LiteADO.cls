@@ -433,3 +433,23 @@ End Property
 Private Property Get ILiteADO_CompileOptions() As Scripting.Dictionary
     Set ILiteADO_CompileOptions = PragmaOptionsDict("compile_options")
 End Property
+
+'@Description "Checks if a particular feature is available."
+Private Function ILiteADO_FeatureAvailable(ByVal FeatureName As String) As Boolean
+    Guard.EmptyString FeatureName
+    Dim CompileOption As String
+    Select Case UCase$(FeatureName)
+        Case "JSON", "JSON1"
+            CompileOption = "ENABLE_JSON1"
+        Case "URI"
+            CompileOption = "USE_URI"
+        Case Else
+            CompileOption = "ENABLE_" & FeatureName
+    End Select
+    Dim Status As Boolean
+    Status = False
+    With PragmaOptionsDict("compile_options")
+        If .Exists(CompileOption) Then Status = CBool(.Item(CompileOption))
+    End With
+    ILiteADO_FeatureAvailable = Status
+End Function

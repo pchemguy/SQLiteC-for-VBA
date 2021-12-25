@@ -114,6 +114,7 @@ Private Type TSQLiteCConnection
     #End If
     Statements As Scripting.Dictionary
     ErrInfo As SQLiteCErr
+    URIAvailable As Variant
     MappedMemorySize As Long                ' Amount of memory allocated for memory mapping database files
 End Type
 Private this As TSQLiteCConnection
@@ -133,6 +134,7 @@ Friend Sub Init(ByVal DbPathName As String)
     Set this.Statements = New Scripting.Dictionary
     this.Statements.CompareMode = TextCompare
     this.MappedMemorySize = 0
+    this.URIAvailable = Null
 End Sub
 
 Friend Sub CleanUp()
@@ -164,6 +166,14 @@ End Property
 
 Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
+End Property
+
+Public Property Get URIAvailable() As Variant
+    URIAvailable = this.URIAvailable
+End Property
+
+Public Property Let URIAvailable(ByVal Value As Variant)
+    this.URIAvailable = Value
 End Property
 
 '''' Reference: https://www.sqlite.org/c3ref/open.html

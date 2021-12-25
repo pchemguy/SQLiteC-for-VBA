@@ -337,7 +337,7 @@ End Sub
 
 ''' Crashes Excel on exit when run with other tests. Works fine when run alone
 '@TestMethod("Connection")
-Private Sub ztcGetDbConn_VerifiesTempMainDb()
+Private Sub ztcGetDbConn_VerifiesMainDbNotSetToTempAnon()
     On Error GoTo TestFail
     TestCounter = TestCounter + 1
 
@@ -353,8 +353,8 @@ Arrange:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.AreEqual vbNullString, dbm.MainDbId, "dbm.MainDbId mismatch"
-    Assert.AreSame DbConn, dbm.ConnDb(vbNullString), "Connection reference mismatch"
+    Assert.IsTrue IsNull(dbm.MainDbId), "dbm.MainDbId mismatch"
+    Assert.IsFalse dbm.ConnDb(vbNullString) Is Nothing, "SQLiteCConnection is not in the dbm collection."
 
 CleanExit:
     Exit Sub
