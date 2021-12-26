@@ -192,7 +192,7 @@ Public Function Load(ByVal DllName As String, _
     #End If
     DllHandle = LoadLibrary(FilePathName)
     If DllHandle <> 0 Then
-        this.Dlls(FileName) = DllHandle
+        this.Dlls(LCase$(FileName)) = DllHandle
         LogMsg = "<" & DllName & "> loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_INFO
         Load = LOAD_OK
@@ -216,7 +216,7 @@ Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
     Dim LogMsg As String
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
-    FileName = fso.GetFileName(DllName)
+    FileName = LCase$(fso.GetFileName(DllName))
     Dim Result As Long
     If this.Dlls Is Nothing Then Exit Function
     If Not this.Dlls.Exists(FileName) Then
@@ -280,7 +280,9 @@ End Function
 
 Public Function GetDllPath(ByVal DllName As String) As String
     Guard.EmptyString DllName
-    If Not this.Dlls.Exists(DllName) Then
+    Dim DllNameLC As String
+    DllNameLC = LCase$(DllName)
+    If Not this.Dlls.Exists(DllNameLC) Then
         GetDllPath = vbNullString
         Exit Function
     End If
@@ -288,7 +290,7 @@ Public Function GetDllPath(ByVal DllName As String) As String
     Dim PathName As String
     PathName = Space$(MAX_PATH + 1)
     Dim PathLength As Long
-    PathLength = GetModuleFileName(this.Dlls(DllName), StrPtr(PathName), MAX_PATH)
+    PathLength = GetModuleFileName(this.Dlls(DllNameLC), StrPtr(PathName), MAX_PATH)
     If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, MODULE_NAME, _
                            "Failed to obtain Dll path."
     GetDllPath = PathName
