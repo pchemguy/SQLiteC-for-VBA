@@ -251,7 +251,6 @@ Private Sub ztcCreate_ThrowsOnInvalidDllPath()
 End Sub
 
 
-''' Crashes Excel on exit when run with other tests. Works fine when run alone
 '@TestMethod("Connection")
 Private Sub ztcCreateConnection_VerifiesSQLiteCConnectionWithValidDbPath()
     On Error GoTo TestFail
@@ -274,7 +273,6 @@ TestFail:
 End Sub
 
 
-''' Crashes Excel on exit when run with other tests. Works fine when run alone
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesSavedConnectionReference()
     On Error GoTo TestFail
@@ -289,8 +287,7 @@ Arrange:
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
     Assert.IsFalse DbConn Is Nothing, "Default SQLiteCConnection is not set."
-    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
-    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
+    Assert.IsTrue DbConn Is dbm.ConnDb(DbPathName), "Connection reference mismatch"
 
 CleanExit:
     Exit Sub
@@ -303,7 +300,6 @@ TestFail:
 End Sub
 
 
-''' Crashes Excel on exit when run with other tests. Works fine when run alone
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesMemoryMainDb()
     On Error GoTo TestFail
@@ -321,8 +317,8 @@ Arrange:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.AreEqual DbPathName, dbm.MainDbId, "dbm.MainDbId mismatch"
-    Assert.AreSame DbConn, dbm.ConnDb(DbPathName), "Connection reference mismatch"
+    Assert.AreEqual DbPathName, dbm.MainDbId, "MainDbId mismatch."
+    Assert.IsTrue DbConn Is dbm.ConnDb(DbPathName), "Connection reference mismatch"
 
 CleanExit:
     Exit Sub
@@ -335,7 +331,6 @@ TestFail:
 End Sub
 
 
-''' Crashes Excel on exit when run with other tests. Works fine when run alone
 '@TestMethod("Connection")
 Private Sub ztcGetDbConn_VerifiesMainDbNotSetToTempAnon()
     On Error GoTo TestFail
@@ -353,7 +348,7 @@ Arrange:
     Dim DbConn As SQLiteCConnection
     Set DbConn = dbm.CreateConnection(DbPathName)
 Assert:
-    Assert.IsTrue IsNull(dbm.MainDbId), "dbm.MainDbId mismatch"
+    Assert.IsTrue IsNull(dbm.MainDbId), "MainDbId should be null."
     Assert.IsFalse dbm.ConnDb(vbNullString) Is Nothing, "SQLiteCConnection is not in the dbm collection."
 
 CleanExit:
@@ -464,3 +459,49 @@ TestFail:
         Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
     End If
 End Sub
+
+
+'@TestMethod("Reflection")
+Private Sub ztcCompileOptionGet_VerifiesReturnsNonBlank()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = FixObjC.GetDBM()
+Assert:
+    Assert.IsTrue Len(dbm.CompileOptionGet(0)) > 0, "Returned blank compile option."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
+
+
+'@TestMethod("Reflection")
+Private Sub ztcCompileOptionUsed_VerifiesCompileOptionUsed()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim dbm As SQLiteC
+    Set dbm = FixObjC.GetDBM()
+Assert:
+    Assert.IsTrue dbm.CompileOptionUsed(dbm.CompileOptionGet(0)), "CompileOptionUsed returned false with valid option."
+    Assert.IsFalse dbm.CompileOptionUsed("ABCDEFGHIJ"), "CompileOptionUsed returned true with invalid option."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
+

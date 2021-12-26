@@ -168,14 +168,6 @@ Public Property Get DbPathName() As String
     DbPathName = this.DbPathName
 End Property
 
-Public Property Get URIAvailable() As Variant
-    URIAvailable = this.URIAvailable
-End Property
-
-Public Property Let URIAvailable(ByVal Value As Variant)
-    this.URIAvailable = Value
-End Property
-
 '''' Reference: https://www.sqlite.org/c3ref/open.html
 '''' Reference: https://www.sqlite.org/vfs.html
 ''''
@@ -257,6 +249,7 @@ End Property
 ''''
 '@Description "Returns memory size used for mapping database files."
 Public Property Get MappedMemorySize() As Long
+Attribute MappedMemorySize.VB_Description = "Returns memory size used for mapping database files."
     MappedMemorySize = this.MappedMemorySize
 End Property
 
@@ -264,6 +257,7 @@ End Property
 ''''
 '@Description "Returns memory size used for mapping database files."
 Public Property Let MappedMemorySize(ByVal Value As Long)
+Attribute MappedMemorySize.VB_Description = "Returns memory size used for mapping database files."
     FixGuard.DbNotOpened Me, MODULE_NAME & "/MappedMemorySize"
     Dim ValueStr As String
     ValueStr = CStr(Value)

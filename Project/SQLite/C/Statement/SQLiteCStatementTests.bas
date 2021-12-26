@@ -68,7 +68,7 @@ Assert:
     Assert.IsFalse dbs.DbExecutor Is Nothing, "Executor object not set."
     Assert.IsTrue dbs.DbParameters Is Nothing, "Parameters object should not be set."
     Assert.AreEqual 0, dbs.StmtHandle, "StmtHandle should be zero."
-    Assert.AreSame dbc, dbs.DbConnection, "Connection object mismatch."
+    Assert.IsTrue dbc Is dbs.DbConnection, "Connection object mismatch."
 
 CleanExit:
     Exit Sub

@@ -323,11 +323,7 @@ End Function
 
 Private Property Get ILiteADO_ConnectionClosed() As Boolean
     If Not this.AdoConnection Is Nothing Then
-        If this.AdoConnection.State <> ADODB.ObjectStateEnum.adStateClosed Then
-            ILiteADO_ConnectionClosed = False
-        Else
-            ILiteADO_ConnectionClosed = True
-        End If
+        ILiteADO_ConnectionClosed = (Not this.AdoConnection.State <> adStateClosed)
     Else
         ILiteADO_ConnectionClosed = True
     End If
@@ -402,6 +398,7 @@ End Sub
 
 '@Description "Caches PragmaOptions queries."
 Private Function PragmaOptionsDict(ByVal PragmaName As String) As Scripting.Dictionary
+Attribute PragmaOptionsDict.VB_Description = "Caches PragmaOptions queries."
     Dim PragmaOptions As Scripting.Dictionary
     With this.PragmaOptions
         If .Exists(PragmaName) Then
@@ -416,27 +413,31 @@ End Function
 
 '@Description "Returns a dictionary with keys set to available SQLite functions."
 Private Property Get ILiteADO_Functions() As Scripting.Dictionary
+Attribute ILiteADO_Functions.VB_Description = "Returns a dictionary with keys set to available SQLite functions."
     Set ILiteADO_Functions = PragmaOptionsDict("function_list")
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite pragmas."
 Private Property Get ILiteADO_Pragmas() As Scripting.Dictionary
+Attribute ILiteADO_Pragmas.VB_Description = "Returns a dictionary with keys set to available SQLite pragmas."
     Set ILiteADO_Pragmas = PragmaOptionsDict("pragma_list")
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite modules."
 Private Property Get ILiteADO_Modules() As Scripting.Dictionary
+Attribute ILiteADO_Modules.VB_Description = "Returns a dictionary with keys set to available SQLite modules."
     Set ILiteADO_Modules = PragmaOptionsDict("module_list")
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite compile options."
 Private Property Get ILiteADO_CompileOptions() As Scripting.Dictionary
+Attribute ILiteADO_CompileOptions.VB_Description = "Returns a dictionary with keys set to available SQLite compile options."
     Set ILiteADO_CompileOptions = PragmaOptionsDict("compile_options")
 End Property
 
 '@Description "Checks if a particular feature is available."
 Private Function ILiteADO_FeatureAvailable(ByVal FeatureName As String) As Boolean
-    Guard.EmptyString FeatureName
+Attribute ILiteADO_FeatureAvailable.VB_Description = "Checks if a particular feature is available."
     Dim CompileOption As String
     Select Case UCase$(FeatureName)
         Case "JSON", "JSON1"
@@ -447,6 +448,7 @@ Private Function ILiteADO_FeatureAvailable(ByVal FeatureName As String) As Boole
             CompileOption = "ENABLE_" & FeatureName
     End Select
     Dim Status As Boolean
+    '@Ignore AssignmentNotUsed: False positive
     Status = False
     With PragmaOptionsDict("compile_options")
         If .Exists(CompileOption) Then Status = CBool(.Item(CompileOption))

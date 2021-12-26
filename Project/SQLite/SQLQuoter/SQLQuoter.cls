@@ -14,6 +14,8 @@ Attribute VB_Description = "Handles SQLite name quoting."
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
 
+Private Const SQLITE_N_KEYWORD As Long = 147
+
 Private Type TObjectState
     SQLiteKeywords As Scripting.Dictionary
     AlphaChar() As Byte
@@ -22,10 +24,15 @@ End Type
 Private this As TObjectState
 
 
-Friend Sub Init()
+Private Sub Class_Initialize()
     InitKeywordMap
     InitCharMap
 End Sub
+
+
+Friend Property Get SQLiteKeywords() As Scripting.Dictionary
+    Set SQLiteKeywords = this.SQLiteKeywords
+End Property
 
 
 ''''
@@ -39,6 +46,7 @@ End Sub
 ''''
 '@Description "Quotes SQL string, doubling single quotes."
 Public Function QuoteSQLString(ByVal SQLString As String) As String
+Attribute QuoteSQLString.VB_Description = "Quotes SQL string, doubling single quotes."
     QuoteSQLString = "'" & Replace(SQLString, "'", "''") & "'"
 End Function
 
@@ -67,11 +75,11 @@ End Function
 '@Description "Quotes SQL name."
 Public Function QuoteSQLName(ByVal FieldName As String, _
                     Optional ByVal Force As Boolean = False) As String
+Attribute QuoteSQLName.VB_Description = "Quotes SQL name."
     If Len(FieldName) = 0 Then
         QuoteSQLName = vbNullString
         Exit Function
     End If
-    If this.SQLiteKeywords Is Nothing Then Init
     Dim Buffer() As Byte
     Buffer = FieldName
     Dim NameLen As Long
@@ -152,15 +160,15 @@ End Function
 
 
 Friend Sub InitKeywordMap()
-    If this.SQLiteKeywords Is Nothing Then
-        Set this.SQLiteKeywords = New Scripting.Dictionary
-        this.SQLiteKeywords.CompareMode = TextCompare
-        CachedKeywordsSet
+    If SQLiteCKeyword.KeywordCount > SQLITE_N_KEYWORD Then
+        Set this.SQLiteKeywords = SQLiteCKeyword.Create().SQLiteKeywords
+    Else
+        Set this.SQLiteKeywords = CachedKeywordsGet
     End If
 End Sub
 
 
-Friend Sub CachedKeywordsSet()
+Friend Function CachedKeywordsGet() As Scripting.Dictionary
     Dim CachedKeywords As Variant
     CachedKeywords = Array( _
         "ABORT", "ACTION", "ADD", "AFTER", "ALL", "ALTER", "ALWAYS", "ANALYZE", _
@@ -185,11 +193,15 @@ Friend Sub CachedKeywordsSet()
         "TIES", "TO", "TRANSACTION", "TRIGGER", "UNBOUNDED", "UNION", "UNIQUE", _
         "UPDATE", "USING", "VACUUM", "VALUES", "VIEW", "VIRTUAL", "WHEN", _
         "WHERE", "WINDOW", "WITH", "WITHOUT")
+    Dim SQLiteKeywordsDict As Scripting.Dictionary
+    Set SQLiteKeywordsDict = New Scripting.Dictionary
+    SQLiteKeywordsDict.CompareMode = TextCompare
     Dim KeywordIndex As Long
     For KeywordIndex = 0 To UBound(CachedKeywords)
-        this.SQLiteKeywords(CachedKeywords(KeywordIndex)) = KeywordIndex
+        SQLiteKeywordsDict(CachedKeywords(KeywordIndex)) = KeywordIndex
     Next KeywordIndex
-End Sub
+    Set CachedKeywordsGet = SQLiteKeywordsDict
+End Function
 
 
 Friend Sub InitCharMap()

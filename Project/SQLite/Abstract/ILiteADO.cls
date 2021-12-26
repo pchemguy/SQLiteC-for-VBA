@@ -30,6 +30,7 @@ End Property
 
 '@Description "Returns true if connection is closed."
 Public Property Get ConnectionClosed() As Boolean
+Attribute ConnectionClosed.VB_Description = "Returns true if connection is closed."
 End Property
 
 '''' A variant error value may be returned in case of an issue
@@ -86,20 +87,25 @@ End Function
 
 '@Description "Returns a dictionary with keys set to available SQLite functions."
 Public Property Get Functions() As Scripting.Dictionary
+Attribute Functions.VB_Description = "Returns a dictionary with keys set to available SQLite functions."
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite pragmas."
 Public Property Get Pragmas() As Scripting.Dictionary
+Attribute Pragmas.VB_Description = "Returns a dictionary with keys set to available SQLite pragmas."
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite modules."
 Public Property Get Modules() As Scripting.Dictionary
+Attribute Modules.VB_Description = "Returns a dictionary with keys set to available SQLite modules."
 End Property
 
 '@Description "Returns a dictionary with keys set to available SQLite compile options."
 Public Property Get CompileOptions() As Scripting.Dictionary
+Attribute CompileOptions.VB_Description = "Returns a dictionary with keys set to available SQLite compile options."
 End Property
 
 '@Description "Checks if a particular feature is available."
 Public Function FeatureAvailable(ByVal FeatureName As String) As Boolean
+Attribute FeatureAvailable.VB_Description = "Checks if a particular feature is available."
 End Function

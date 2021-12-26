@@ -162,6 +162,7 @@ Public Function UpdateFrom2D( _
                      ByVal TableData As Variant, _
                      ByRef KeyColNames As Variant, _
                      ByVal DataRowIndices As Variant) As Long
+Attribute UpdateFrom2D.VB_Description = "Updates selected rows using parameterized queries."
     Guard.EmptyString TableName
     Guard.EmptyOrNullVariant TableData
     With this.SQLTool

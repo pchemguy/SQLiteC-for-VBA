@@ -20,6 +20,11 @@ End Enum
 
 Public Const SQLITE_DEFAULT_MMAP_SIZE As Long = &H8000000
 
+Public Enum SQLiteFeatureVersion
+    '''' https://www.sqlite.org/src/info/4374b7e83ea0a3fb
+    SQLITE_MIN_VERSION_URI = 3007007
+End Enum
+
 '''' Reference: https://www.sqlite.org/datatype3.html
 ''''
 '''' ---------------- Mapping SQLiteTypeAffinity -> SQLiteType ------------ ''''

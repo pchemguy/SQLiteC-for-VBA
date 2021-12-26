@@ -80,3 +80,21 @@ CleanExit:
 TestFail:
     Assert.Fail "Error: " & Err.Number & " - " & Err.Description
 End Sub
+
+
+'@TestMethod("Factory")
+Private Sub ztcInit_VerifiesKeywordCount()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+Act:
+Assert:
+    Assert.AreEqual SQLiteCKeyword.KeywordCount, SQLQuoter.SQLiteKeywords.Count, "Keyword count mismatch."
+CleanUp:
+
+CleanExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+End Sub

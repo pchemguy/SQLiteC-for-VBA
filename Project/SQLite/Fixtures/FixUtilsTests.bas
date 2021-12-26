@@ -343,7 +343,7 @@ Assert:
     Assert.IsTrue IsEmpty(KeyValMap("Empty")), "'Empty' value mismatch."
     Assert.IsTrue IsNull(KeyValMap("Null")), "'Null' value mismatch."
     Assert.IsTrue IsObject(KeyValMap("Object")), "'Object' value mismatch."
-    Assert.AreSame ThisWorkbook, KeyValMap("Object"), "'Object' value mismatch."
+    Assert.IsTrue ThisWorkbook Is KeyValMap("Object"), "'Object' value mismatch."
     Assert.IsTrue IsArray(KeyValMap("Array")), "'Array' value mismatch."
     Assert.AreEqual 1, KeyValMap("Array")(0), "'Array' value mismatch."
     Assert.IsTrue IsError(KeyValMap("Error")), "'Error' value mismatch."

@@ -8,9 +8,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Wraps SQLite C keywords API."
+'@Folder "SQLite.SQLQuoter"
 '@ModuleDescription "Wraps SQLite C keywords API."
 '@PredeclaredId
-'@Folder "SQLite.SQLQuoter"
 Option Explicit
 
 Private Const SQLITE_N_KEYWORD As Long = 147
@@ -23,11 +23,9 @@ Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Desti
 
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_keyword_count Lib "SQLite3" () As Long
-Private Declare PtrSafe Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As LongPtr, ByVal nName As Long) As Long
 Private Declare PtrSafe Function sqlite3_keyword_name Lib "SQLite3" (ByVal kwi As Long, ByRef pzName As LongPtr, ByRef pnName As Long) As Long
 #Else
 Private Declare Function sqlite3_keyword_count Lib "SQLite3" () As Long
-Private Declare Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As Long, ByVal nName As Long) As Long
 Private Declare Function sqlite3_keyword_name Lib "SQLite3" (ByVal kwi As Long, ByRef pzName As Long, ByRef pnName As Long) As Long
 #End If
 
@@ -35,6 +33,7 @@ Private Type TObjectState
     DllMan As DllManager
     SQLiteKeywords As Scripting.Dictionary
 End Type
+'@Ignore MoveFieldCloserToUsage
 Private this As TObjectState
 
 
@@ -67,6 +66,7 @@ Friend Sub Init(Optional ByVal DllMan As DllManager = Nothing)
         Dim Keyword As String
         Keyword = NthKeyword(KeywordIndex)
         Do While Keyword <> vbNullString
+            '@Ignore IndexedDefaultMemberAccess
             this.SQLiteKeywords(Keyword) = KeywordIndex
             KeywordIndex = KeywordIndex + 1
             Keyword = NthKeyword(KeywordIndex)
@@ -74,10 +74,18 @@ Friend Sub Init(Optional ByVal DllMan As DllManager = Nothing)
     End If
 End Sub
 
+Public Property Get SQLiteKeywords() As Scripting.Dictionary
+    Set SQLiteKeywords = this.SQLiteKeywords
+End Property
+
+'''' Reference: https://www.sqlite.org/c3ref/keyword_check.html
+''''
 Friend Function KeywordCount() As Long
     KeywordCount = sqlite3_keyword_count()
 End Function
 
+'''' Reference: https://www.sqlite.org/c3ref/keyword_check.html
+''''
 Friend Function NthKeyword(ByVal KeywordIndex As Long) As String
     #If VBA7 Then
         Dim KeywordPtr As LongPtr
@@ -99,3 +107,6 @@ Friend Function NthKeyword(ByVal KeywordIndex As Long) As String
     End If
 End Function
 
+
+''''    Private Declare PtrSafe Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As LongPtr, ByVal nName As Long) As Long
+''''    Private Declare Function sqlite3_keyword_check Lib "SQLite3" (ByVal zName As Long, ByVal nName As Long) As Long

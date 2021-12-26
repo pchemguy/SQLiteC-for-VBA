@@ -1,7 +1,8 @@
 Attribute VB_Name = "SQLiteCParametersTests"
 '@Folder "SQLite.C.Statement.Parameters"
 '@TestModule
-'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed, UnhandledOnErrorResumeNext
+'@IgnoreModule AssignmentNotUsed, LineLabelNotUsed, VariableNotUsed, ProcedureNotUsed
+'@IgnoreModule UnhandledOnErrorResumeNext, IndexedDefaultMemberAccess
 Option Explicit
 Option Private Module
 

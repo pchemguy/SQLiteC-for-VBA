@@ -240,8 +240,8 @@ Act:
     Set DbStmt = dbc.CreateStatement(vbNullString)
 Assert:
     Assert.IsFalse DbStmt Is Nothing, "DbStmt is not set."
-    Assert.AreSame DbStmt, dbc.StmtDb(vbNullString), "Statement object mismatch"
-    Assert.AreSame DbStmt, dbc.StmtDb, "Statement object mismatch (default name)"
+    Assert.IsTrue DbStmt Is dbc.StmtDb(vbNullString), "Statement object mismatch"
+    Assert.IsTrue DbStmt Is dbc.StmtDb, "Statement object mismatch (default name)"
 
 CleanExit:
     Exit Sub

@@ -33,6 +33,9 @@ Private Declare PtrSafe Function sqlite3_libversion Lib "SQLite3" () As LongPtr 
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Cache sharing, no db is necessary
 Private Declare PtrSafe Function sqlite3_enable_shared_cache Lib "SQLite3" (ByVal Enable As Long) As Long
+'''' Compile options, no db is necessary
+Private Declare PtrSafe Function sqlite3_compileoption_get Lib "SQLite3" (ByVal OptionN As Long) As LongPtr
+Private Declare PtrSafe Function sqlite3_compileoption_used Lib "SQLite3" (ByVal pzOptName As LongPtr) As Long
 '''' Backup
 Private Declare PtrSafe Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As LongPtr, _
     ByVal zDestName As LongPtr, ByVal hDbSource As LongPtr, ByVal zSourceName As LongPtr) As LongPtr
@@ -49,6 +52,9 @@ Private Declare Function sqlite3_libversion Lib "SQLite3" () As Long ' PtrUtf8St
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Cache sharing, no db is necessary
 Private Declare Function sqlite3_enable_shared_cache Lib "SQLite3" (ByVal Enable As Long) As Long
+'''' Compile options, no db is necessary
+Private Declare Function sqlite3_compileoption_get Lib "SQLite3" (ByVal OptionN As Long) As Long
+Private Declare Function sqlite3_compileoption_used Lib "SQLite3" (ByVal pzOptName As Long) As Long
 '''' Backup
 Private Declare Function sqlite3_backup_init Lib "SQLite3" (ByVal hDbDest As Long, _
     ByVal zDestName As Long, ByVal hDbSource As Long, ByVal zSourceName As Long) As Long
@@ -64,6 +70,8 @@ Private Type TSQLiteC
     '''' The first created connection is designated as the main db, MainDB and
     '''' is set to this connection's ID, which is the pathname of its 'main' db.
     MainDB As Variant
+    SQLITE_VERSION_NUMBER As Long
+    CompileOptions As Scripting.Dictionary
     URIAvailable As Variant
 End Type
 Private this As TSQLiteC
@@ -102,8 +110,17 @@ Friend Sub Init(ByVal DllPath As String, _
     Set this.Connections = New Scripting.Dictionary
     this.Connections.CompareMode = TextCompare
     this.MainDB = Null
-    this.URIAvailable = CreateILiteADO(vbNullString).FeatureAvailable("URI")
+    Set this.CompileOptions = CompileOptionGetAll()
+    this.URIAvailable = FeatureAvailable("URI")
+    this.SQLITE_VERSION_NUMBER = Version(Numeric:=True)
 End Sub
+
+'@Ignore ProcedureNotUsed: Guard.DefaultInstance
+'@Description "Returns class reference"
+Public Property Get Class() As SQLiteC
+Attribute Class.VB_Description = "Returns class reference"
+    Set Class = SQLiteC
+End Property
 
 '''' SQLiteC class hierarchy includes multiple instances of circular references,
 '''' (parent object holding references to its children and children keeping a
@@ -150,6 +167,7 @@ End Property
 ''''
 '@Description "Initializes the library. No connection is necessary."
 Public Function Initialize() As SQLiteResultCodes
+Attribute Initialize.VB_Description = "Initializes the library. No connection is necessary."
     Initialize = sqlite3_initialize()
 End Function
 
@@ -157,6 +175,7 @@ End Function
 ''''
 '@Description "Shuts down the library. No connection is necessary."
 Public Function Shutdown() As SQLiteResultCodes
+Attribute Shutdown.VB_Description = "Shuts down the library. No connection is necessary."
     Shutdown = sqlite3_shutdown()
 End Function
 
@@ -267,7 +286,7 @@ End Function
 ''''
 '@Description "Returns SQLite version. No connection is necessary."
 Public Function Version(Optional ByVal Numeric As Boolean = True) As Variant
-Attribute Version.VB_Description = "Returns SQLite version. No database is necessary."
+Attribute Version.VB_Description = "Returns SQLite version. No connection is necessary."
     If Numeric Then
         Version = sqlite3_libversion_number()
     Else
@@ -280,7 +299,77 @@ End Function
 ''''
 '@Description "Enables and disables shared cache (process-wide)."
 Public Function SetSharedCacheState(ByVal Enable As Boolean) As SQLiteResultCodes
+Attribute SetSharedCacheState.VB_Description = "Enables and disables shared cache (process-wide)."
     SetSharedCacheState = sqlite3_enable_shared_cache(IIf(Enable, 1, 0))
+End Function
+
+'''' https://www.sqlite.org/c3ref/compileoption_get.html
+''''
+'@Description "Checks if particular compile option was used."
+Public Function CompileOptionUsed(ByVal OptionName As String) As Boolean
+Attribute CompileOptionUsed.VB_Description = "Checks if particular compile option was used."
+    Guard.EmptyString OptionName
+    '@Ignore UseMeaningfulName
+    Dim OptionNameUTF8() As Byte
+    OptionNameUTF8 = UTFlib.UTF8BytesFromStr(OptionName)
+    CompileOptionUsed = sqlite3_compileoption_used(VarPtr(OptionNameUTF8(0)))
+End Function
+
+'''' https://www.sqlite.org/c3ref/compileoption_get.html
+''''
+'@Description "Retrieves a specified compile option."
+Public Function CompileOptionGet(ByVal OptionIndex As Long) As String
+Attribute CompileOptionGet.VB_Description = "Retrieves a specified compile option."
+    CompileOptionGet = UTFlib.StrFromUTF8Ptr(sqlite3_compileoption_get(OptionIndex))
+End Function
+
+
+'@Description "Retrieves all compile options."
+Public Function CompileOptionGetAll() As Scripting.Dictionary
+Attribute CompileOptionGetAll.VB_Description = "Retrieves all compile options."
+    Dim CompileOptions As Scripting.Dictionary
+    Set CompileOptions = New Scripting.Dictionary
+    CompileOptions.CompareMode = TextCompare
+    Dim OptionIndex As Long
+    OptionIndex = 0
+    Dim EqPos As Long
+    Dim OptionItem As String
+    Do
+        OptionItem = UTFlib.StrFromUTF8Ptr(sqlite3_compileoption_get(OptionIndex))
+        EqPos = InStr(OptionItem, "=")
+        If EqPos > 0 Then
+            CompileOptions(Left$(OptionItem, EqPos - 1)) = _
+                Right$(OptionItem, Len(OptionItem) - EqPos)
+        Else
+            CompileOptions(OptionItem) = True
+        End If
+        OptionIndex = OptionIndex + 1
+    Loop While Len(OptionItem) > 0
+    CompileOptions.Remove vbNullString
+    Set CompileOptionGetAll = CompileOptions
+End Function
+
+
+'@Description "Checks if a particular feature is available."
+Public Function FeatureAvailable(ByVal FeatureName As String) As Boolean
+Attribute FeatureAvailable.VB_Description = "Checks if a particular feature is available."
+    Guard.DefaultInstance Me
+    Dim CompileOption As String
+    Select Case UCase$(FeatureName)
+        Case "JSON", "JSON1"
+            CompileOption = "ENABLE_JSON1"
+        Case "URI"
+            CompileOption = "USE_URI"
+        Case Else
+            CompileOption = "ENABLE_" & FeatureName
+    End Select
+    Dim Status As Boolean
+    '@Ignore AssignmentNotUsed: False positive
+    Status = False
+    With this.CompileOptions
+        If .Exists(CompileOption) Then Status = CBool(.Item(CompileOption))
+    End With
+    FeatureAvailable = Status
 End Function
 
 

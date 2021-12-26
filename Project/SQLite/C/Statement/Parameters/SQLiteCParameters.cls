@@ -135,6 +135,7 @@ End Function
 
 '@Description "Caches <ParamName>-><ParamIndex> map."
 Friend Sub MapParams()
+Attribute MapParams.VB_Description = "Caches <ParamName>-><ParamIndex> map."
     If this.DbStmt.StmtHandle = 0 Then Exit Sub
     With this.ParamMap
         Dim ParamName As String
@@ -155,6 +156,7 @@ End Sub
 '@Description "Binds a single parameter. A particular interface is selected based on the value type."
 Public Function BindOne(ByVal ParamIndex As Long, ByVal Value As Variant _
                        ) As SQLiteResultCodes
+Attribute BindOne.VB_Description = "Binds a single parameter. A particular interface is selected based on the value type."
     '''' Place the Guard at higher level
     '''' FixGuard.StmtNotPrepared this.DbStmt, MODULE_NAME & "/BindOne"
     #If VBA7 Then
@@ -300,6 +302,7 @@ End Sub
 
 '@Description "Cleans up the state."
 Friend Sub Finalize()
+Attribute Finalize.VB_Description = "Cleans up the state."
     BindClear
     this.ParameterCount = 0
     this.ParamMap.RemoveAll
@@ -308,6 +311,7 @@ End Sub
 '''' Converts DateTime and Boolean to String and adjust numeric type if necessary.
 '@Description "Adjusts a VBA variable type for SQLite parameter binding."
 Public Function MapVBATypeToSQLite(ByVal VariantValue As Variant) As Variant
+Attribute MapVBATypeToSQLite.VB_Description = "Adjusts a VBA variable type for SQLite parameter binding."
     Select Case VarType(VariantValue)
         Case vbDouble, vbSingle
             If VariantValue = 0 Then
