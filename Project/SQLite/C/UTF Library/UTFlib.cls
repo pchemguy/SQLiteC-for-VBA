@@ -34,6 +34,10 @@ Public Function StrFromUTF8Ptr(ByVal UTF8Ptr As LongPtr) As String
 #Else
 Public Function StrFromUTF8Ptr(ByVal UTF8Ptr As Long) As String
 #End If
+    If UTF8Ptr = 0 Then
+        StrFromUTF8Ptr = vbNullString
+        Exit Function
+    End If
     Dim Buffer As String
     Dim Length As Long
     Length = MultiByteToWideChar(CP_UTF8, 0, UTF8Ptr, -1, 0, 0)
@@ -75,6 +79,10 @@ Public Function StrFromUTF16Ptr(ByVal UTF16Ptr As LongPtr) As String
 #Else
 Public Function StrFromUTF16Ptr(ByVal UTF16Ptr As Long) As String
 #End If
+    If UTF16Ptr = 0 Then
+        StrFromUTF16Ptr = vbNullString
+        Exit Function
+    End If
     Dim Length As Long
     Length = lstrlenW(UTF16Ptr)
     StrFromUTF16Ptr = String(Length, " ")
