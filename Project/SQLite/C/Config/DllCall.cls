@@ -1,0 +1,221 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "DllCall"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_Description = "Call dll routine via dll/routine names."
+'@Folder "SQLite.C.Config"
+'@ModuleDescription "Call dll routine via dll/routine names."
+'@PredeclaredId
+Option Explicit
+
+Private Const MODULE_NAME As String = "DllCall"
+
+'''' https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.comtypes.callconv
+Public Enum CALLCONV
+    CC_CDECL = 1&
+    CC_MSCPASCAL = 2&
+    CC_PASCAL = 2&
+    CC_MACPASCAL = 3&
+    CC_STDCALL = 4&
+    CC_RESERVED = 5&
+    CC_SYSCALL = 6&
+    CC_MPWCDECL = 7&
+    CC_MPWPASCAL = 8&
+    CC_MAX = 9&
+End Enum
+
+Public Enum HRESULT
+    S_OK = &H0&                 '''' Operation successful
+    E_ABORT = &H80004004        '''' Operation aborted
+    E_ACCESSDENIED = &H80070005 '''' General access denied error
+    E_FAIL = &H80004005         '''' Unspecified failure
+    E_HANDLE = &H80070006       '''' Handle that is not valid
+    E_INVALIDARG = &H80070057   '''' One or more arguments are not valid
+    E_NOINTERFACE = &H80004002  '''' No such interface supported
+    E_NOTIMPL = &H80004001      '''' Not implemented
+    E_OUTOFMEMORY = &H8007000E  '''' Failed to allocate necessary memory
+    E_POINTER = &H80004003      '''' Pointer that is not valid
+    E_UNEXPECTED = &H8000FFFF   '''' Unexpected failure
+End Enum
+
+#If VBA7 Then
+    Private Declare PtrSafe Function DispCallFunc Lib "OleAut32" ( _
+        ByVal pvInstance As LongPtr, _
+        ByVal oVft As LongPtr, _
+        ByVal cc As CALLCONV, _
+        ByVal vtReturn As Integer, _
+        ByVal cActuals As Long, _
+        ByVal prgvt As LongPtr, _
+        ByVal prgpvarg As LongPtr, _
+        ByVal pvargResult As LongPtr _
+    ) As Long
+    Private Declare PtrSafe Function GetProcAddress Lib "kernel32" ( _
+        ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
+#Else
+    Private Declare Function DispCallFunc Lib "OleAut32" ( _
+        ByVal pvInstance As Long, _
+        ByVal oVft As Long, _
+        ByVal CC As CALLCONV, _
+        ByVal vtReturn As Integer, _
+        ByVal cActuals As Long, _
+        ByVal prgvt As Long, _
+        ByVal prgpvarg As Long, _
+        ByVal pvargResult As Long _
+    ) As Long
+    Private Declare Function GetProcAddress Lib "kernel32" ( _
+        ByVal hModule As Long, ByVal lpProcName As String) As Long
+#End If
+
+Private Type TObjectState
+    DllMan As DllManager
+    ProcPtrCache As Scripting.Dictionary
+End Type
+Private this As TObjectState
+
+
+'@DefaultMember
+Public Function Create(ByVal DllMan As DllManager) As DllCall
+Attribute Create.VB_UserMemId = 0
+    Dim Instance As DllCall
+    Set Instance = New DllCall
+    Instance.Init DllMan
+    Set Create = Instance
+End Function
+
+
+Friend Sub Init(ByVal DllMan As DllManager)
+    Guard.NullReference DllMan
+    Set this.DllMan = DllMan
+    Set this.ProcPtrCache = New Scripting.Dictionary
+    this.ProcPtrCache.CompareMode = TextCompare
+End Sub
+
+
+#If VBA7 Then
+Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, _
+                                                    ByVal ProcPtr As LongPtr)
+#Else
+Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, _
+                                                    ByVal ProcPtr As Long)
+#End If
+    '@Ignore IndexedDefaultMemberAccess
+    this.ProcPtrCache(ModuleName & "." & ProcName) = ProcPtr
+End Sub
+
+
+#If VBA7 Then
+Friend Function ProcAddressGet(ByVal DllName As String, _
+                               ByVal ProcName As String) As LongPtr
+    Dim DllPtr As LongPtr
+    Dim ProcPtr As LongPtr
+#Else
+Friend Function ProcAddressGet(ByVal DllName As String, _
+                               ByVal ProcName As String) As Long
+    Dim DllPtr As Long
+    Dim ProcPtr As Long
+#End If
+    Dim ProcKey As String
+    ProcKey = LCase$(DllName & "." & ProcName)
+    With this.ProcPtrCache
+        If .Exists(ProcKey) Then
+            ProcAddressGet = .Item(ProcKey)
+            Exit Function
+        End If
+    End With
+    
+    Dim DllNameLC As String
+    DllNameLC = LCase$(DllName)
+    Dim DllNameAlt As String
+    If Len(DllNameLC) > 4 And DllNameLC Like "*.???" Then
+        DllNameAlt = Left$(DllNameLC, Len(DllNameLC) - 4)
+    Else
+        DllNameAlt = DllNameLC & ".dll"
+    End If
+    With this.DllMan.Dlls
+        If .Exists(DllNameLC) Then
+            DllPtr = .Item(DllNameLC)
+        ElseIf .Exists(DllNameAlt) Then
+            DllPtr = .Item(DllNameAlt)
+        Else
+            Err.Raise ErrNo.MemberNotExistErr, MODULE_NAME & "/ ProcAddressGet", _
+                "DLL <" & DllName & "> has not been loaded or been unloaded."
+        End If
+    End With
+    ProcPtr = GetProcAddress(DllPtr, ProcName)
+    If ProcPtr = 0 Then
+        Err.Raise ErrNo.MemberNotExistErr, MODULE_NAME & "/ ProcAddressGet", _
+            "Could not obtain address of " & DllName & "." & ProcName & "."
+    End If
+    With this.ProcPtrCache
+        .Item(ProcKey) = ProcPtr
+        ProcAddressGet = ProcPtr
+    End With
+End Function
+
+
+Public Function IndirectCall( _
+            ByVal ModuleName As String, _
+            ByVal ProcName As Variant, _
+            ByVal CallnigConv As CALLCONV, _
+            ByVal ReturnType As VbVarType, _
+            ByRef Arguments As Variant) As Variant
+    #If VBA7 Then
+        Dim COMInstancePtr As LongPtr
+        Dim ProcPtr As LongPtr
+        Dim ReturnPtr As LongPtr
+        Dim ArgPtrs() As LongPtr
+        Dim ArgPtrsPtr As LongPtr
+        Dim ArgTypesPtr As LongPtr
+    #Else
+        Dim COMInstancePtr As Long
+        Dim ProcPtr As Long
+        Dim ReturnPtr As Long
+        Dim ArgPtrs() As Long
+        Dim ArgPtrsPtr As Long
+        Dim ArgTypesPtr As Long
+    #End If
+    
+    COMInstancePtr = 0
+    ProcPtr = ProcAddressGet(ModuleName, ProcName)
+    
+    Dim ReturnValue As Variant: ReturnValue = 0 '''' RB workaround
+    ReturnPtr = IIf(ReturnType <> vbEmpty, VarPtr(ReturnValue), 0)
+    
+    '@Ignore IntegerDataType
+    Dim ArgTypes() As Integer
+    Dim ArgCount As Long
+    Dim ArgIndex As Long
+    If IsEmpty(Arguments) Then
+        ArgCount = 0
+        ArgPtrsPtr = 0
+        ArgTypesPtr = 0
+    Else
+        Dim ArgsLB As Long
+        Dim ArgsUB As Long
+        ArgsLB = LBound(Arguments)
+        ArgsUB = UBound(Arguments)
+        ArgCount = ArgsUB - ArgsLB + 1
+        ReDim ArgPtrs(ArgsLB To ArgsUB)
+        ReDim ArgTypes(ArgsLB To ArgsUB)
+        For ArgIndex = ArgsLB To ArgsUB
+            ArgPtrs(ArgIndex) = VarPtr(Arguments(ArgIndex))
+            ArgTypes(ArgIndex) = VarType(Arguments(ArgIndex))
+        Next ArgIndex
+        ArgPtrsPtr = VarPtr(ArgPtrs(ArgsLB))
+        ArgTypesPtr = VarPtr(ArgTypes(ArgsLB))
+    End If
+    
+    Dim CallResut As HRESULT
+    CallResut = DispCallFunc(COMInstancePtr, ProcPtr, CallnigConv, ReturnType, _
+                             ArgCount, ArgTypesPtr, ArgPtrsPtr, ReturnPtr)
+    If CallResut <> S_OK Then
+        Err.Raise CallResut, MODULE_NAME & "/IndirectCall", _
+                  "HRESULT error 0x" & Hex(CallResut)
+    End If
+    IndirectCall = ReturnValue
+End Function
