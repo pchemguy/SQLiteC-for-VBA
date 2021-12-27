@@ -13,6 +13,7 @@ Attribute VB_Description = "Retrieves prepared statement metadata."
 '@PredeclaredId
 '@Exposed
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteCMeta"
 
 #If VBA7 Then

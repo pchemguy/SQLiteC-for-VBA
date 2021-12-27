@@ -1,5 +1,6 @@
 Attribute VB_Name = "DllCallDemo"
 '@Folder "SQLite.C.Config"
+'@IgnoreModule AssignedByValParameter, IndexedDefaultMemberAccess, ProcedureNotUsed
 Option Explicit
 
 Private Type TModuleState
@@ -95,3 +96,5 @@ Private Sub CallFunctionArgs6Ret1Long()
         CC_STDCALL, vbLong, Arguments)
     Debug.Print "Result: " & CStr(Result)
 End Sub
+
+

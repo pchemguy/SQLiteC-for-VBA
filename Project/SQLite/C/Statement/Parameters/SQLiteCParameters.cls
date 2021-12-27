@@ -14,6 +14,7 @@ Attribute VB_Description = "Handles query parameters"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteCParameters"
 
 Public Enum SQLiteMemoryManagement

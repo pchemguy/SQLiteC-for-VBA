@@ -14,6 +14,7 @@ Attribute VB_Description = "Provides convenience utilities"
 '@IgnoreModule IndexedDefaultMemberAccess, IntegerDataType
 Option Explicit
 
+Private Const MODULE_NAME As String = "FixUtils"
 
 '''' Examples:
 ''''   >>>?Fixutils.AsciiByteArrayToString(FixUtils.ByteArray(65, 66, 67))
@@ -71,11 +72,7 @@ Attribute ByteArray.VB_Description = "Generates byte array from either multiple 
             End Select
         Next ByteIndex
     ElseIf VarType(ValuesLocal(0)) = vbString Then
-        Size = Len(ValuesLocal(0)) - 1
-        ReDim Buffer(0 To Size)
-        For ByteIndex = 0 To Size
-            Buffer(ByteIndex) = Asc(Mid$(ValuesLocal(0), ByteIndex + 1, 1))
-        Next ByteIndex
+        Buffer = StrConv(ValuesLocal(0), vbFromUnicode)
     Else
         GoTo INVALID_INPUT:
     End If
@@ -84,22 +81,9 @@ Attribute ByteArray.VB_Description = "Generates byte array from either multiple 
     Exit Function
     
 INVALID_INPUT:
-    Err.Raise ErrNo.TypeMismatchErr, "SQLiteCTestFixObj", _
+    Err.Raise ErrNo.TypeMismatchErr, MODULE_NAME & "/SQLiteCTestFixObj", _
               "Invalid input for byte array. Element #" & _
               CStr(ByteIndex + 1) & " <<" & CStr(Element) & ">>"
-End Function
-
-
-'''' Examples:
-''''   >>>?FixUtils.ByteToHex(&H41)
-''''   "41"
-''''
-'@Description "Given a byte, generates its hex string representation."
-Public Function ByteToHex(ByVal ByteCode As Byte) As String
-Attribute ByteToHex.VB_Description = "Given a byte, generates its hex string representation."
-    Dim HexDigitMap As Variant
-    HexDigitMap = Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F")
-    ByteToHex = HexDigitMap(ByteCode \ 16) & HexDigitMap(ByteCode Mod 16)
 End Function
 
 
@@ -115,42 +99,48 @@ Attribute BytesFromHexString.VB_Description = "converts hex-encoded string to by
     Buffer = Replace(Buffer, ".", vbNullString)
     Buffer = Replace(Buffer, "|", vbNullString)
     Buffer = Replace(Buffer, ":", vbNullString)
+    Dim LenBuf As Long
+    LenBuf = Len(Buffer)
     
     '''' Verify that the argument is not empty, has even length, and starts with '0x'.
-    If Len(Buffer) = 0 Then
-        Err.Raise 13, "FixUtils", "Empty string received."
-    ElseIf Len(Buffer) Mod 2 <> 0 Then
-        Err.Raise 13, "FixUtils", "HexString must have even length."
-    ElseIf UCase$(Left$(Buffer, 2)) <> "0X" Then
-        Err.Raise 13, "FixUtils", "HexString must have '0x' prefix."
-    End If
+    Dim ErrMsg As String
+    Select Case True
+        Case LenBuf = 0
+            ErrMsg = "Empty string received."
+        Case LenBuf Mod 2 <> 0
+            ErrMsg = "HexString must have even length."
+        '@Ignore UnreachableCase: False positive
+        Case UCase$(Left$(Buffer, 2)) <> "0X"
+            ErrMsg = "HexString must have '0x' prefix."
+        Case Else
+            ErrMsg = vbNullString
+    End Select
+    If Len(ErrMsg) > 0 Then GoTo TYPE_MISMATCH:
     
     Dim HexByteCodes As String
-    HexByteCodes = UCase$(Right$(Buffer, Len(Buffer) - 2))
+    HexByteCodes = UCase$(Right$(Buffer, LenBuf - 2))
     Dim ByteCount As Long
     ByteCount = Len(HexByteCodes) \ 2
     Dim Bytes() As Byte
     ReDim Bytes(0 To ByteCount - 1)
+    Dim HexVal As Byte
+    Dim HexCode As String * 2
     Dim ByteIndex As Long
-    Dim HiBits As Byte
-    Dim LoBits As Byte
     For ByteIndex = 0 To ByteCount - 1
-        HiBits = Asc(Mid$(HexByteCodes, ByteIndex * 2 + 1, 1))
-        LoBits = Asc(Mid$(HexByteCodes, ByteIndex * 2 + 2, 1))
-        If HiBits < Asc("0") Or HiBits > Asc("F") Or _
-           HiBits > Asc("9") And HiBits < Asc("A") Or _
-           LoBits < Asc("0") Or LoBits > Asc("F") Or _
-           LoBits > Asc("9") And LoBits < Asc("A") _
-           Then
-          Err.Raise 13, "FixUtils", "Invalid hex digits found."
+        HexCode = Mid$(HexByteCodes, ByteIndex * 2 + 1, 2)
+        HexVal = Val("&H" & HexCode)
+        If HexVal = 0 And HexCode <> "00" Then
+            ErrMsg = "Invalid hex digits near pos. " & CStr(ByteIndex * 2 + 1)
+            GoTo TYPE_MISMATCH:
         End If
-        HiBits = HiBits - &H30
-        LoBits = LoBits - &H30
-        HiBits = IIf(HiBits > 9, HiBits - 7, HiBits)
-        LoBits = IIf(LoBits > 9, LoBits - 7, LoBits)
-        Bytes(ByteIndex) = HiBits * 16 + LoBits
+        Bytes(ByteIndex) = HexVal
     Next ByteIndex
+    
     BytesFromHexString = Bytes
+    Exit Function
+    
+TYPE_MISMATCH:
+    Err.Raise ErrNo.TypeMismatchErr, MODULE_NAME & "/BytesFromHexString", ErrMsg
 End Function
 
 
@@ -195,7 +185,7 @@ Attribute XorElements.VB_Description = "Calculates XOR-hash of a whole number ar
                 Result = Result Xor Elements(ElementIndex)
             Next ElementIndex
         Case Else
-            Err.Raise ErrNo.TypeMismatchErr, "FixUtils", _
+            Err.Raise ErrNo.TypeMismatchErr, MODULE_NAME & "/XorElements", _
                       "Expected an array of whole numbers."
     End Select
     XorElements = Result

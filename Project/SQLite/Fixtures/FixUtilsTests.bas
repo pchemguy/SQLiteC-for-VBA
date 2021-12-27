@@ -266,23 +266,6 @@ TestFail:
 End Sub
 
 
-'@TestMethod("ByteToHex")
-Private Sub ztcByteToHex_VerifiesByteConversion()
-    On Error GoTo TestFail
-    TestCounter = TestCounter + 1
-
-Arrange:
-Act:
-Assert:
-    Assert.AreEqual "41", FixUtils.ByteToHex(&H41), "Code mismatch."
-
-CleanExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Error: " & Err.Number & " - " & Err.Description
-End Sub
-
-
 '@TestMethod("ValidInput")
 Private Sub ztcKeysValuesToDict_VerifiesBasicDict()
     On Error GoTo TestFail

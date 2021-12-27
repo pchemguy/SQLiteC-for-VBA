@@ -14,6 +14,7 @@ Attribute VB_Description = "Manages lifecycle of the SQLite Database object (DBO
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteCConnection"
 
 #If VBA7 Then

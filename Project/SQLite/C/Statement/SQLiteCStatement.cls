@@ -14,6 +14,7 @@ Attribute VB_Description = "Manages the lifecycle of the SQLite3 Prerpared State
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteCStatement"
 
 Implements ILiteADO

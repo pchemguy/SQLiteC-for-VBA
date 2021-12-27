@@ -22,6 +22,7 @@ Attribute VB_Description = "Provides common workflows for SQLite db interactions
 ''''         https://www.sqlite.org/c3ref/open.html#urifilenamesinsqlite3open
 ''''
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteC"
 
 #If VBA7 Then
@@ -73,6 +74,7 @@ Private Type TSQLiteC
     SQLITE_VERSION_NUMBER As Long
     CompileOptions As Scripting.Dictionary
     URIAvailable As Variant
+    Initialized As Boolean
 End Type
 Private this As TSQLiteC
 
@@ -113,6 +115,7 @@ Friend Sub Init(ByVal DllPath As String, _
     Set this.CompileOptions = CompileOptionGetAll()
     this.URIAvailable = FeatureAvailable("URI")
     this.SQLITE_VERSION_NUMBER = Version(Numeric:=True)
+    this.Initialized = False
 End Sub
 
 '@Ignore ProcedureNotUsed: Guard.DefaultInstance
@@ -177,6 +180,7 @@ End Function
 Public Function Shutdown() As SQLiteResultCodes
 Attribute Shutdown.VB_Description = "Shuts down the library. No connection is necessary."
     Shutdown = sqlite3_shutdown()
+    this.Initialized = False
 End Function
 
 '''' vbNullString is an acceptable DbPathName.
@@ -189,19 +193,25 @@ Attribute CreateConnection.VB_Description = "Creates a new SQLiteCConnection ins
     Dim PathCheck As LiteFSCheck
     Set PathCheck = LiteFSCheck(DbPathName, AllowNonExistent)
     Guard.ExpressionTrueErr PathCheck.ErrNumber <> 0, PathCheck.ErrNumber, _
-        "SQLiteCConnection/Init", PathCheck.ErrDescription
+        MODULE_NAME & "/CreateConnection", PathCheck.ErrDescription
     Dim FilePathName As String
     FilePathName = PathCheck.DatabasePathName
     If this.Connections.Exists(FilePathName) Then
-        Err.Raise ErrNo.KeyAlreadyExistsErr, "SQLiteC", _
+        Err.Raise ErrNo.KeyAlreadyExistsErr, MODULE_NAME & "/CreateConnection", _
                   "Connection pathname already exists!"
     End If
     Dim DbConn As SQLiteCConnection
     Set DbConn = SQLiteCConnection(FilePathName)
-    If DbConn Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, _
-        "SQLiteC", "Failed to create an SQLiteCConnection instance."
+    If DbConn Is Nothing Then Err.Raise ErrNo.ObjectCreateErr, MODULE_NAME & _
+        "/CreateConnection", "Failed to create an SQLiteCConnection instance."
     Set this.Connections(FilePathName) = DbConn
     If IsNull(this.MainDB) And Len(FilePathName) > 0 Then this.MainDB = FilePathName
+    If Not this.Initialized Then
+        Dim ResultCode As SQLiteResultCodes
+        ResultCode = Initialize
+        If Not ResultCode = SQLITE_OK Then Err.Raise ResultCode, _
+            MODULE_NAME & "/CreateConnection", "Error initializing SQLite."
+    End If
     Set CreateConnection = DbConn
 End Function
 

@@ -14,6 +14,7 @@ Attribute VB_Description = "Executes statement and retrieves data"
 '@Exposed
 '@IgnoreModule IndexedDefaultMemberAccess
 Option Explicit
+
 Private Const MODULE_NAME As String = "SQLiteCStatement"
 
 #If VBA7 Then

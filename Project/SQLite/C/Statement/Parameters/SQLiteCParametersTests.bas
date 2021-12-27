@@ -156,7 +156,7 @@ Arrange:
     Dim TestStr As String
     TestStr = String(TestCharCount, Chr$(TestChar))
     Dim Expected As String
-    Expected = Replace(String(TestCharCount, "*"), "*", FixUtils.ByteToHex(TestChar))
+    Expected = Replace(String(TestCharCount, "*"), "*", Hex$(TestChar))
     Expected = "SELECT x'" & Expected & "';"
 Act:
     Dim ResultCode As SQLiteResultCodes

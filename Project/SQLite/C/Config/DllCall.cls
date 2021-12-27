@@ -120,7 +120,13 @@ Friend Function ProcAddressGet(ByVal DllName As String, _
     Dim ProcPtr As Long
 #End If
     Dim ProcKey As String
-    ProcKey = LCase$(DllName & "." & ProcName)
+    Dim FileName As String
+    If DllName Like "*.???" Then
+        FileName = LCase$(DllName)
+    Else
+        FileName = LCase$(DllName) & ".dll"
+    End If
+    ProcKey = LCase$(FileName & "." & ProcName)
     With this.ProcPtrCache
         If .Exists(ProcKey) Then
             ProcAddressGet = .Item(ProcKey)
@@ -128,19 +134,9 @@ Friend Function ProcAddressGet(ByVal DllName As String, _
         End If
     End With
     
-    Dim DllNameLC As String
-    DllNameLC = LCase$(DllName)
-    Dim DllNameAlt As String
-    If Len(DllNameLC) > 4 And DllNameLC Like "*.???" Then
-        DllNameAlt = Left$(DllNameLC, Len(DllNameLC) - 4)
-    Else
-        DllNameAlt = DllNameLC & ".dll"
-    End If
     With this.DllMan.Dlls
-        If .Exists(DllNameLC) Then
-            DllPtr = .Item(DllNameLC)
-        ElseIf .Exists(DllNameAlt) Then
-            DllPtr = .Item(DllNameAlt)
+        If .Exists(FileName) Then
+            DllPtr = .Item(FileName)
         Else
             Err.Raise ErrNo.MemberNotExistErr, MODULE_NAME & "/ ProcAddressGet", _
                 "DLL <" & DllName & "> has not been loaded or been unloaded."
@@ -151,10 +147,10 @@ Friend Function ProcAddressGet(ByVal DllName As String, _
         Err.Raise ErrNo.MemberNotExistErr, MODULE_NAME & "/ ProcAddressGet", _
             "Could not obtain address of " & DllName & "." & ProcName & "."
     End If
-    With this.ProcPtrCache
-        .Item(ProcKey) = ProcPtr
-        ProcAddressGet = ProcPtr
-    End With
+    '@Ignore IndexedDefaultMemberAccess
+    this.ProcPtrCache(ProcKey) = ProcPtr
+    
+    ProcAddressGet = ProcPtr
 End Function
 
 
@@ -215,7 +211,7 @@ Public Function IndirectCall( _
                              ArgCount, ArgTypesPtr, ArgPtrsPtr, ReturnPtr)
     If CallResut <> S_OK Then
         Err.Raise CallResut, MODULE_NAME & "/IndirectCall", _
-                  "HRESULT error 0x" & Hex(CallResut)
+                  "HRESULT error 0x" & Hex$(CallResut)
     End If
     IndirectCall = ReturnValue
 End Function

@@ -32,6 +32,7 @@ Attribute VB_Description = "Provides common database operations via the ILiteADO
 ''''     added by the code.
 
 Option Explicit
+
 Private Const MODULE_NAME As String = "LiteADOlib"
 
 Private Type TObjectState
