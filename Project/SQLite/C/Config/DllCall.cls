@@ -11,64 +11,24 @@ Attribute VB_Description = "Call dll routine via dll/routine names."
 '@Folder "SQLite.C.Config"
 '@ModuleDescription "Call dll routine via dll/routine names."
 '@PredeclaredId
+'@IgnoreModule IndexedDefaultMemberAccess
+''''
+'''' WARNING: Dll calls can crash the application. With calls via DispCallFunc,
+'''' the VBA compiler cannot perform any correctness checks on the target call.
+'''' Make sure your work is saved and be prepared for Excel crashing.
+''''
 Option Explicit
 
 Private Const MODULE_NAME As String = "DllCall"
 
-'''' https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.comtypes.callconv
-Public Enum CALLCONV
-    CC_CDECL = 1&
-    CC_MSCPASCAL = 2&
-    CC_PASCAL = 2&
-    CC_MACPASCAL = 3&
-    CC_STDCALL = 4&
-    CC_RESERVED = 5&
-    CC_SYSCALL = 6&
-    CC_MPWCDECL = 7&
-    CC_MPWPASCAL = 8&
-    CC_MAX = 9&
-End Enum
-
-Public Enum HRESULT
-    S_OK = &H0&                 '''' Operation successful
-    E_ABORT = &H80004004        '''' Operation aborted
-    E_ACCESSDENIED = &H80070005 '''' General access denied error
-    E_FAIL = &H80004005         '''' Unspecified failure
-    E_HANDLE = &H80070006       '''' Handle that is not valid
-    E_INVALIDARG = &H80070057   '''' One or more arguments are not valid
-    E_NOINTERFACE = &H80004002  '''' No such interface supported
-    E_NOTIMPL = &H80004001      '''' Not implemented
-    E_OUTOFMEMORY = &H8007000E  '''' Failed to allocate necessary memory
-    E_POINTER = &H80004003      '''' Pointer that is not valid
-    E_UNEXPECTED = &H8000FFFF   '''' Unexpected failure
-End Enum
-
 #If VBA7 Then
-    Private Declare PtrSafe Function DispCallFunc Lib "OleAut32" ( _
-        ByVal pvInstance As LongPtr, _
-        ByVal oVft As LongPtr, _
-        ByVal cc As CALLCONV, _
-        ByVal vtReturn As Integer, _
-        ByVal cActuals As Long, _
-        ByVal prgvt As LongPtr, _
-        ByVal prgpvarg As LongPtr, _
-        ByVal pvargResult As LongPtr _
-    ) As Long
-    Private Declare PtrSafe Function GetProcAddress Lib "kernel32" ( _
-        ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
+Private Declare PtrSafe Function DispCallFunc Lib "OleAut32" (ByVal pvInstance As LongPtr, ByVal oVft As LongPtr, ByVal cc As CALLCONV, _
+    ByVal vtReturn As Integer, ByVal cActuals As Long, ByVal prgvt As LongPtr, ByVal prgpvarg As LongPtr, ByVal pvargResult As LongPtr) As Long
+Private Declare PtrSafe Function GetProcAddress Lib "kernel32" (ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
 #Else
-    Private Declare Function DispCallFunc Lib "OleAut32" ( _
-        ByVal pvInstance As Long, _
-        ByVal oVft As Long, _
-        ByVal CC As CALLCONV, _
-        ByVal vtReturn As Integer, _
-        ByVal cActuals As Long, _
-        ByVal prgvt As Long, _
-        ByVal prgpvarg As Long, _
-        ByVal pvargResult As Long _
-    ) As Long
-    Private Declare Function GetProcAddress Lib "kernel32" ( _
-        ByVal hModule As Long, ByVal lpProcName As String) As Long
+Private Declare Function DispCallFunc Lib "OleAut32" (ByVal pvInstance As Long, ByVal oVft As Long, ByVal CC As CALLCONV, _
+    ByVal vtReturn As Integer, ByVal cActuals As Long, ByVal prgvt As Long, ByVal prgpvarg As Long, ByVal pvargResult As Long) As Long
+Private Declare Function GetProcAddress Lib "kernel32" (ByVal hModule As Long, ByVal lpProcName As String) As Long
 #End If
 
 Private Type TObjectState
@@ -97,25 +57,22 @@ End Sub
 
 
 #If VBA7 Then
-Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, _
-                                                    ByVal ProcPtr As LongPtr)
+Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, ByVal ProcPtr As LongPtr)
 #Else
-Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, _
-                                                    ByVal ProcPtr As Long)
+Friend Sub CacheProcPtr(ByVal ModuleName As String, ByVal ProcName As String, ByVal ProcPtr As Long)
 #End If
-    '@Ignore IndexedDefaultMemberAccess
-    this.ProcPtrCache(ModuleName & "." & ProcName) = ProcPtr
+    Dim FileName As String
+    FileName = LCase$(ModuleName) & IIf(ModuleName Like "*.???", vbNullString, ".dll")
+    this.ProcPtrCache(FileName & "." & LCase$(ProcName)) = ProcPtr
 End Sub
 
 
 #If VBA7 Then
-Friend Function ProcAddressGet(ByVal DllName As String, _
-                               ByVal ProcName As String) As LongPtr
+Friend Function ProcAddressGet(ByVal DllName As String, ByVal ProcName As String) As LongPtr
     Dim DllPtr As LongPtr
     Dim ProcPtr As LongPtr
 #Else
-Friend Function ProcAddressGet(ByVal DllName As String, _
-                               ByVal ProcName As String) As Long
+Friend Function ProcAddressGet(ByVal DllName As String, ByVal ProcName As String) As Long
     Dim DllPtr As Long
     Dim ProcPtr As Long
 #End If
@@ -147,7 +104,6 @@ Friend Function ProcAddressGet(ByVal DllName As String, _
         Err.Raise ErrNo.MemberNotExistErr, MODULE_NAME & "/ ProcAddressGet", _
             "Could not obtain address of " & DllName & "." & ProcName & "."
     End If
-    '@Ignore IndexedDefaultMemberAccess
     this.ProcPtrCache(ProcKey) = ProcPtr
     
     ProcAddressGet = ProcPtr
