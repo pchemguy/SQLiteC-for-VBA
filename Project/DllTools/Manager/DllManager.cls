@@ -43,7 +43,9 @@ Private Const LoadingDllErr As Long = 48
 
 Private Type TDllManager
     DefaultPath As String
-    Dlls As Scripting.Dictionary '''' Dll file name to handle map
+    '''' DllFileName => DllHandle map. Always convert filename to lower case and
+    '''' include extension. If no extension is provided, add ".dll" as default.
+    Dlls As Scripting.Dictionary
 End Type
 Private this As TDllManager
 
@@ -64,7 +66,8 @@ Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
     Me.DefaultPath = DefaultPath
     If Not IsEmpty(DllNames) Then
         If Not LoadMultiple(DllNames) = LOAD_OK Then
-            Err.Raise LoadingDllErr, MODULE_NAME & "/Constructor", "Failed to load Dlls"
+            Err.Raise LoadingDllErr, MODULE_NAME & "/Constructor", _
+                      "Failed to load Dlls"
         End If
     End If
 End Sub
@@ -137,11 +140,12 @@ Public Function Load(ByVal DllName As String, _
             Optional ByVal ResolvePath As Boolean = True) As DllLoadStatus
     Guard.EmptyString DllName
     
-    Dim LogMsg As String
     Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
-    FileName = fso.GetFileName(DllName)
+    FileName = LCase$(fso.GetFileName(DllName))
+    If Not FileName Like "*.???" Then FileName = FileName & ".dll"
     
+    Dim LogMsg As String
     If this.Dlls.Exists(FileName) Then
         LogMsg = "A library with file name <" & FileName & "> has already been loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_WARN
@@ -192,7 +196,7 @@ Public Function Load(ByVal DllName As String, _
     #End If
     DllHandle = LoadLibrary(FilePathName)
     If DllHandle <> 0 Then
-        this.Dlls(LCase$(FileName)) = DllHandle
+        this.Dlls(FileName) = DllHandle
         LogMsg = "<" & DllName & "> loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_INFO
         Load = LOAD_OK
@@ -203,8 +207,8 @@ Public Function Load(ByVal DllName As String, _
         If LastDllError = ERROR_BAD_EXE_FORMAT Then
             '''' TODO: Make PE Format analyzer class to check target architechture
             ''''       and imports (dependencies).
-            Err.Raise LoadingDllErr, MODULE_NAME, "LoadLibrary error 193: <" _
-                      & FilePathName & ">" & vbNewLine & _
+            Err.Raise LoadingDllErr, MODULE_NAME & "/Load", "LoadLibrary " & _
+                      "error 193: <" & FilePathName & ">" & vbNewLine & _
                       "Check that DLL bitness matches that of Office."
         End If
         Load = LOAD_FAIL
@@ -213,12 +217,15 @@ End Function
 
 
 Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
-    Dim LogMsg As String
-    Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
-    FileName = LCase$(fso.GetFileName(DllName))
-    Dim Result As Long
+    If DllName Like "*.???" Then
+        FileName = LCase$(DllName)
+    Else
+        FileName = LCase$(DllName) & ".dll"
+    End If
     If this.Dlls Is Nothing Then Exit Function
+    Dim Result As Long
+    Dim LogMsg As String
     If Not this.Dlls.Exists(FileName) Then
         LogMsg = "<" & DllName & "> not loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_WARN
@@ -280,9 +287,13 @@ End Function
 
 Public Function GetDllPath(ByVal DllName As String) As String
     Guard.EmptyString DllName
-    Dim DllNameLC As String
-    DllNameLC = LCase$(DllName)
-    If Not this.Dlls.Exists(DllNameLC) Then
+    Dim FileName As String
+    If DllName Like "*.???" Then
+        FileName = LCase$(DllName)
+    Else
+        FileName = LCase$(DllName) & ".dll"
+    End If
+    If Not this.Dlls.Exists(FileName) Then
         GetDllPath = vbNullString
         Exit Function
     End If
@@ -290,7 +301,7 @@ Public Function GetDllPath(ByVal DllName As String) As String
     Dim PathName As String
     PathName = Space$(MAX_PATH + 1)
     Dim PathLength As Long
-    PathLength = GetModuleFileName(this.Dlls(DllNameLC), StrPtr(PathName), MAX_PATH)
+    PathLength = GetModuleFileName(this.Dlls(FileName), StrPtr(PathName), MAX_PATH)
     If PathLength = 0 Then Err.Raise ErrNo.UnknownClassErr, MODULE_NAME, _
                            "Failed to obtain Dll path."
     GetDllPath = PathName
