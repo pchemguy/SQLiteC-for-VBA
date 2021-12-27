@@ -1,5 +1,5 @@
 Attribute VB_Name = "DllCallDemoVBACall"
-'@Folder "SQLite.C.Config.Demo"
+'@Folder "DllTools.Demo.DllCall"
 ''''
 '''' WARNING: Dll calls can crash the application. With calls via DispCallFunc,
 '''' the VBA compiler cannot perform any correctness checks on the target call.
@@ -33,9 +33,7 @@ Private this As TModuleState
 Private Sub Main()
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(vbNullString)
-    Dim dbConf As DllCall
-    Set dbConf = DllCall(DllMan)
-    dbConf.CacheProcPtr "DllCallDemoVBACall", "In3Out3Ret1", AddressOf In3Out3Ret1
+    DllMan.CacheProcPtr "DllCallDemoVBACall", "In3Out3Ret1", AddressOf In3Out3Ret1
     
     With this
         .ByteVal = 10
@@ -60,7 +58,7 @@ Private Sub Main()
     
     Dim Result As Long
     Debug.Print "==================== In3Out3Ret1 ===================="
-    Result = dbConf.IndirectCall("DllCallDemoVBACall", "In3Out3Ret1", _
+    Result = DllMan.IndirectCall("DllCallDemoVBACall", "In3Out3Ret1", _
                                  CC_STDCALL, vbLong, Arguments)
     
     Debug.Print vbNewLine & "----- VERIFYING RETURNED VALUES -----"

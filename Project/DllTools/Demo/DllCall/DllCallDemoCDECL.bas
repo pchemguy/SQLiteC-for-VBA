@@ -1,5 +1,5 @@
 Attribute VB_Name = "DllCallDemoCDECL"
-'@Folder "SQLite.C.Config.Demo"
+'@Folder "DllTools.Demo.DllCall"
 ''''
 '''' WARNING: Dll calls can crash the application. With calls via DispCallFunc,
 '''' the VBA compiler cannot perform any correctness checks on the target call.
@@ -14,8 +14,6 @@ Option Explicit
 Private Sub Main()
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(vbNullString, "user32", False)
-    Dim dbConf As DllCall
-    Set dbConf = DllCall(DllMan)
     
     Dim Buffer As String
     Buffer = String(1024, vbNullChar)
@@ -36,12 +34,10 @@ Private Sub Main()
 
     Dim Result As Long
     Debug.Print "==================== DLL-CDECL ===================="
-    Result = dbConf.IndirectCall("user32", "wsprintfW", CC_CDECL, vbLong, Arguments)
+    Result = DllMan.IndirectCall("user32", "wsprintfW", CC_CDECL, vbLong, Arguments)
     Buffer = Left$(Buffer, Result)
     Debug.Print "ResultL = " & CStr(Result) & String(9, vbTab) & IIf(Result = 31, "MATCHED", "MISMATCHED")
     Debug.Print "Result  = """ & Buffer & """" & vbTab & vbTab & _
                 IIf(Buffer = "Param1 = 1048576 , Param2 = ABC", "MATCHED", "MISMATCHED")
     Debug.Print "-------------------- DLL-CDECL --------------------"
 End Sub
-
-

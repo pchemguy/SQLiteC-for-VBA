@@ -14,8 +14,6 @@ Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
     "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP
 
-Private Const LoadingDllErr As Long = 48
-
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -481,3 +479,50 @@ TestFail:
 End Sub
 
 
+'@TestMethod("ProcAddress")
+Private Sub ztcProcAddressGet_VerifiesProcAddress()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllMan As DllManager
+    Set DllMan = zfxGetDefaultManager
+    Dim LoadResult As DllLoadStatus
+    LoadResult = DllMan.Load("kernel32", , False)
+Assert:
+    Assert.AreNotEqual 0, DllMan.ProcAddressGet("kernel32", "GetProcAddress"), "Failed to get an address."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub
+
+
+'@TestMethod("IndirectCall")
+Private Sub ztcIndirectCall_VerifiesFunc0ArgsReturnLong()
+    On Error GoTo TestFail
+    TestCounter = TestCounter + 1
+
+Arrange:
+    Dim DllMan As DllManager
+    Set DllMan = zfxGetDefaultManager
+Act:
+    Dim Result As Long
+    Result = DllMan.IndirectCall("SQLite3", "sqlite3_libversion_number", CC_STDCALL, vbLong, Empty)
+Assert:
+    Assert.IsTrue Result > 3 * 10 ^ 6, "Failed to call dll function/args-0/ret-Long."
+
+CleanExit:
+    Exit Sub
+TestFail:
+    If Not Assert Is Nothing Then
+        Assert.Fail "Error: " & Err.Number & " - " & Err.Description
+    Else
+        Debug.Print "Assert is Nothing. ## Error: " & Err.Number & " - " & Err.Description
+    End If
+End Sub

@@ -2,6 +2,9 @@ Attribute VB_Name = "DllGlobals"
 '@Folder "DllTools"
 Option Explicit
 
+Public Const ERROR_BAD_EXE_FORMAT As Long = 193
+Public Const LoadingDllErr As Long = 48
+
 '''' https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.comtypes.callconv
 Public Enum CALLCONV
     CC_CDECL = 1&
@@ -30,4 +33,8 @@ Public Enum HRESULT
     E_UNEXPECTED = &H8000FFFF   '''' Unexpected failure
 End Enum
 
-
+Public Enum DllLoadStatus
+    LOAD_OK = -1
+    LOAD_FAIL = 0
+    LOAD_ALREADY_LOADED = 1
+End Enum
