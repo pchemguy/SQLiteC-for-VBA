@@ -51,25 +51,32 @@ Private this As TDllManager
 
 
 Public Function Create(Optional ByVal DefaultPath As String = vbNullString, _
-                       Optional ByVal DllNames As Variant = Empty) As DllManager
+                       Optional ByVal DllNames As Variant = Empty, _
+                       Optional ByVal ResolvePath As Boolean = True) As DllManager
     Dim Instance As DllManager
     Set Instance = New DllManager
-    Instance.Init DefaultPath, DllNames
+    Instance.Init DefaultPath, DllNames, ResolvePath
     Set Create = Instance
 End Function
 
 
 Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
-                Optional ByVal DllNames As Variant = Empty)
+                Optional ByVal DllNames As Variant = Empty, _
+                Optional ByVal ResolvePath As Boolean = True)
     Set this.Dlls = New Scripting.Dictionary
     this.Dlls.CompareMode = TextCompare
     Me.DefaultPath = DefaultPath
     If Not IsEmpty(DllNames) Then
-        If Not LoadMultiple(DllNames) = LOAD_OK Then
-            Err.Raise LoadingDllErr, MODULE_NAME & "/Constructor", _
-                      "Failed to load Dlls"
+        If VarType(DllNames) = vbString Then
+            If Not Load(DllNames, , ResolvePath) = LOAD_OK Then GoTo LOAD_FAIL:
+        Else
+            If Not LoadMultiple(DllNames) = LOAD_OK Then GoTo LOAD_FAIL:
         End If
     End If
+    
+    Exit Sub
+LOAD_FAIL:
+    Err.Raise LoadingDllErr, MODULE_NAME & "/Constructor", "Failed to load Dlls"
 End Sub
 
 
