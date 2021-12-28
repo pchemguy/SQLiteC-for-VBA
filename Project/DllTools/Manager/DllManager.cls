@@ -381,6 +381,7 @@ Public Function IndirectCall( _
             ByVal CallnigConv As CALLCONV, _
             ByVal ReturnType As VbVarType, _
             ByRef Arguments As Variant) As Variant
+Attribute IndirectCall.VB_Description = "Calls a dll routine using dll/proc names via DispCallFunc."
     #If VBA7 Then
         Dim COMInstancePtr As LongPtr
         Dim ProcPtr As LongPtr

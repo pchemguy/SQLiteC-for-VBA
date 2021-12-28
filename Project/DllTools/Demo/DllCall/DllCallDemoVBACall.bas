@@ -15,6 +15,7 @@ Private Type TModuleState
     StrVal As String
     StrRef As String
 End Type
+'@Ignore MoveFieldCloserToUsage
 Private this As TModuleState
 
 
@@ -30,6 +31,7 @@ Private this As TModuleState
 ''''
 '''' Loosely follows https://akihitoyamashiro.blogspot.com/2020/07/how-to-use-function-pointer-in-vba-2.html
 ''''
+'@EntryPoint
 Private Sub Main()
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(vbNullString)
@@ -75,6 +77,7 @@ Private Sub Main()
 End Sub
 
 
+'@Ignore AssignedByValParameter, UseMeaningfulName
 Private Function In3Out3Ret1(ByVal ByteVal As Byte, ByVal LongVal As Long, ByVal StrVal As String, _
                              ByRef ByteRef As Byte, ByRef LongRef As Long, ByRef StrRef As String) As Long
     Debug.Print "----- VERIFYING RECEIVED ARGUEMNTS -----"
@@ -93,3 +96,5 @@ Private Function In3Out3Ret1(ByVal ByteVal As Byte, ByVal LongVal As Long, ByVal
     StrVal = "StrValNew"
     StrRef = "StrRefNew"
 End Function
+
+

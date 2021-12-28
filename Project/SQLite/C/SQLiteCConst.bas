@@ -18,7 +18,7 @@ Public Enum SQLiteDataType
     SQLITE_NULL = 5&
 End Enum
 
-Public Const SQLITE_DEFAULT_MMAP_SIZE As Long = &H8000000
+Public Const SQLITE_DEFAULT_MMAP_SIZE As Long = &H10000000
 
 Public Enum SQLiteFeatureVersion
     '''' https://www.sqlite.org/src/info/4374b7e83ea0a3fb

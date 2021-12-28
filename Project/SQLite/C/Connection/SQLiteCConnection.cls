@@ -20,7 +20,6 @@ Private Const MODULE_NAME As String = "SQLiteCConnection"
 #If VBA7 Then
 Private Declare PtrSafe Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
-Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteResultCodes
 Private Declare PtrSafe Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr, _
     ByVal iFlags As Long, ByVal zVfs As LongPtr) As SQLiteResultCodes ' PtrDb
 Private Declare PtrSafe Function sqlite3_close Lib "SQLite3" (ByVal hDb As LongPtr) As Long
@@ -42,7 +41,6 @@ Private Declare PtrSafe Function sqlite3_extended_errcode Lib "SQLite3" (ByVal h
 #Else
 Private Declare Function sqlite3_libversion_number Lib "SQLite3" () As Long
 '''' Open/close connection
-Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_open_v2 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long, ByVal iFlags As Long, _
     ByVal zVfs As Long) As SQLiteResultCodes ' PtrDb
 Private Declare Function sqlite3_close Lib "SQLite3" (ByVal hDb As Long) As Long
@@ -74,7 +72,8 @@ Public Enum SQLiteOpenFlags
     SQLITE_OPEN_SHAREDCACHE = &H20000
     SQLITE_OPEN_PRIVATECACHE = &H40000
     SQLITE_OPEN_NOFOLLOW = &H1000000
-    SQLITE_OPEN_DEFAULT = SQLITE_OPEN_READWRITE Or SQLITE_OPEN_CREATE
+    SQLITE_OPEN_EXRESCODE = &H2000000
+    SQLITE_OPEN_DEFAULT = SQLITE_OPEN_READWRITE Or SQLITE_OPEN_CREATE Or SQLITE_OPEN_URI Or SQLITE_OPEN_EXRESCODE
 End Enum
 
 Public Enum SQLiteTxnType
@@ -183,28 +182,28 @@ Attribute OpenDb.VB_Description = "Generates SQLite DBO instance."
         Exit Function
     End If
     Dim ResultCode As SQLiteResultCodes
-    If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
-        ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
+'        If Flags = SQLITE_OPEN_DEFAULT And Len(vfsName) = 0 Then
+'            ResultCode = sqlite3_open16(StrPtr(this.DbPathName), this.DbHandle)
+'        Else
+'        End If
+    #If VBA7 Then
+        Dim DbPathNamePtr As LongPtr
+        Dim vfsNamePtr As LongPtr
+    #Else
+        Dim DbPathNamePtr As Long
+        Dim vfsNamePtr As Long
+    #End If
+    Dim DbPathNameUTF8B() As Byte
+    DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
+    DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
+    If Len(vfsName) = 0 Then
+        vfsNamePtr = 0
     Else
-        #If VBA7 Then
-            Dim DbPathNamePtr As LongPtr
-            Dim vfsNamePtr As LongPtr
-        #Else
-            Dim DbPathNamePtr As Long
-            Dim vfsNamePtr As Long
-        #End If
-        Dim DbPathNameUTF8B() As Byte
-        DbPathNameUTF8B = UTFlib.UTF8BytesFromStr(this.DbPathName)
-        DbPathNamePtr = VarPtr(DbPathNameUTF8B(0))
-        If Len(vfsName) = 0 Then
-            vfsNamePtr = 0
-        Else
-            Dim vfsNameUTF8B() As Byte
-            vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
-            vfsNamePtr = VarPtr(vfsNameUTF8B(0))
-        End If
-        ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
+        Dim vfsNameUTF8B() As Byte
+        vfsNameUTF8B = UTFlib.UTF8BytesFromStr(vfsName)
+        vfsNamePtr = VarPtr(vfsNameUTF8B(0))
     End If
+    ResultCode = sqlite3_open_v2(DbPathNamePtr, this.DbHandle, Flags, vfsNamePtr)
     If ResultCode <> SQLITE_OK Then
         ResultCode = ErrInfoRetrieve
     Else
@@ -246,14 +245,13 @@ Public Property Get ErrInfo() As SQLiteCErr
     ErrInfo = this.ErrInfo
 End Property
 
-'''' Reference: https://www.sqlite.org/pragma.html#pragma_mmap_size
-''''
 '@Description "Returns memory size used for mapping database files."
 Public Property Get MappedMemorySize() As Long
 Attribute MappedMemorySize.VB_Description = "Returns memory size used for mapping database files."
     MappedMemorySize = this.MappedMemorySize
 End Property
 
+'''' Reference: https://www.sqlite.org/mmap.html
 '''' Reference: https://www.sqlite.org/pragma.html#pragma_mmap_size
 ''''
 '@Description "Returns memory size used for mapping database files."
@@ -600,3 +598,13 @@ Public Function DbIsLocked() As Variant
         DbIsLocked = CVErr(this.ErrInfo.ErrorCode)
     End If
 End Function
+
+''''
+'''' URI filenames
+'''' https://www.sqlite.org/uri.html
+'''' https://www.sqlite.org/c3ref/open.html#urifilenamesinsqlite3open
+'''' https://www.sqlite.org/inmemorydb.html
+''''
+'''' Private Declare PtrSafe Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As LongPtr, ByRef hDb As LongPtr) As SQLiteResultCodes
+'''' Private Declare Function sqlite3_open16 Lib "SQLite3" (ByVal pwsFileName As Long, ByRef hDb As Long) As SQLiteResultCodes ' PtrDb
+''''

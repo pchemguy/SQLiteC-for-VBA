@@ -18,6 +18,7 @@ Private Const LIB_RPREFIX As String = _
 '''' If successful, this routine should print out numeric and textual forms of
 '''' the SQLite library being used and should print "VERSIONS MATCHED" message.
 ''''
+'@EntryPoint
 Private Sub Main()
     Dim PtrType As VbVarType
     Dim DllNames As Variant
@@ -47,3 +48,4 @@ Private Sub Main()
     End If
     Debug.Print "-------------------- SQLite --------------------" & vbNewLine
 End Sub
+

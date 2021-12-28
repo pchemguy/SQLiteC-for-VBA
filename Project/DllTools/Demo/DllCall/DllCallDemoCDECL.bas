@@ -11,6 +11,7 @@ Option Explicit
 ''''
 '''' Loosely follows https://akihitoyamashiro.blogspot.com/2020/07/how-to-use-function-pointer-in-vba-3.html
 ''''
+'@EntryPoint
 Private Sub Main()
     Dim DllMan As DllManager
     Set DllMan = DllManager.Create(vbNullString, "user32", False)
@@ -41,3 +42,4 @@ Private Sub Main()
                 IIf(Buffer = "Param1 = 1048576 , Param2 = ABC", "MATCHED", "MISMATCHED")
     Debug.Print "-------------------- DLL-CDECL --------------------"
 End Sub
+

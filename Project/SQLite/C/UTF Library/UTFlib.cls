@@ -50,26 +50,30 @@ Public Function StrFromUTF8Ptr(ByVal UTF8Ptr As Long) As String
             Debug.Print "StrFromUTF8Ptr Error:", Err.LastDllError
             Buffer = vbNullString
         End If
+    Else
+        Buffer = vbNullString
     End If
     StrFromUTF8Ptr = Buffer
 End Function
 
 
-Public Function UTF8BytesFromStr(ByVal U16Str As String) As Variant
-    Dim Length As Long
-    Length = WideCharToMultiByte(CP_UTF8, 0, StrPtr(U16Str), -1, 0, 0, 0, 0)
-    If Length = 0 Then
-        Exit Function
+Public Function UTF8BytesFromStr(ByVal UTF16Str As String) As Variant
+    Dim StrLen As Long
+    StrLen = WideCharToMultiByte(CP_UTF8, 0, StrPtr(UTF16Str), -1, 0, 0, 0, 0)
+    Dim UTF8StrMB() As Byte
+    ReDim UTF8StrMB(StrLen)
+    If StrLen = 0 Then
+        UTF8StrMB(0) = 0
+        UTF8BytesFromStr = UTF8StrMB
+    Else
+        If WideCharToMultiByte(CP_UTF8, 0, StrPtr(UTF16Str), -1, _
+                               VarPtr(UTF8StrMB(0)), StrLen, 0, 0) = 0 Then
+            Debug.Print "UTF8BytesFromStr Error:", Err.LastDllError
+            UTF8BytesFromStr = CVErr(Err.LastDllError)
+        Else
+            UTF8BytesFromStr = UTF8StrMB
+        End If
     End If
-    Dim Buffer() As Byte
-    ReDim Buffer(Length)
-    Dim RetVal As Long
-    RetVal = WideCharToMultiByte(CP_UTF8, 0, StrPtr(U16Str), -1, VarPtr(Buffer(0)), Length, 0, 0)
-    If RetVal = 0 Then
-        Debug.Print "UTF8BytesFromStr Error:", Err.LastDllError
-        Exit Function
-    End If
-    UTF8BytesFromStr = Buffer
 End Function
 
 
