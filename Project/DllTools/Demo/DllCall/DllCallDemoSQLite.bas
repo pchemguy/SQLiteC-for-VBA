@@ -39,13 +39,14 @@ Private Sub Main()
     SQLiteVerLng = DllMan.IndirectCall("SQLite3", "sqlite3_libversion_number", CC_STDCALL, vbLong, Empty)
     Debug.Print "SQLite version: " & CStr(SQLiteVerLng)
     Dim SQLiteVerStr As String
-    SQLiteVerStr = UTFlib.StrFromUTF8Ptr(DllMan.IndirectCall("SQLite3", "sqlite3_libversion", CC_STDCALL, PtrType, Empty))
+    SQLiteVerStr = UTFlib.StrFromUTF8Ptr( _
+        DllMan.IndirectCall("SQLite3", "sqlite3_libversion", CC_STDCALL, PtrType, Empty))
     Debug.Print "SQLite version: " & SQLiteVerStr
-    If Replace(Replace(SQLiteVerStr, ".", "0"), "0", vbNullString) = Replace(CStr(SQLiteVerLng), "0", vbNullString) Then
+    If Replace(Replace(SQLiteVerStr, ".", "0"), "0", vbNullString) = _
+       Replace(CStr(SQLiteVerLng), "0", vbNullString) Then
         Debug.Print "VERSIONS MATCHED"
     Else
         Debug.Print "VERSIONS MISMATCHED"
     End If
     Debug.Print "-------------------- SQLite --------------------" & vbNewLine
 End Sub
-

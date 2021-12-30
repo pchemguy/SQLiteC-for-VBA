@@ -14,6 +14,7 @@ Private Const PATH_SEP As String = "\"
 Private Const LIB_RPREFIX As String = _
     "Library" & PATH_SEP & LIB_NAME & PATH_SEP & "dll" & PATH_SEP
 
+#Const LateBind = 0     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else

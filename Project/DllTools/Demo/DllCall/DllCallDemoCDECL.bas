@@ -42,4 +42,3 @@ Private Sub Main()
                 IIf(Buffer = "Param1 = 1048576 , Param2 = ABC", "MATCHED", "MISMATCHED")
     Debug.Print "-------------------- DLL-CDECL --------------------"
 End Sub
-

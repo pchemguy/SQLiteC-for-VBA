@@ -15,6 +15,8 @@ Attribute VB_Description = "Class for common guards."
 Option Explicit
 Option Compare Text
 
+#Const LateBind = 0     '''' RubberDuck Tests
+
 Private Const MsgExpectedErrNotRaised As String = "Expected error was not raised."
 Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
 
@@ -504,9 +506,14 @@ Attribute NotArray.VB_Description = "Raises a run-time error if the specified re
 End Sub
 
 
+#If LateBind Then
+Friend Sub AssertExpectedError(ByVal Assert As Object, _
+                      Optional ByVal ExpectedErrorNo As ErrNo = ErrNo.PassedNoErr)
+#Else
 Friend Sub AssertExpectedError(ByVal Assert As Rubberduck.PermissiveAssertClass, _
                       Optional ByVal ExpectedErrorNo As ErrNo = ErrNo.PassedNoErr)
     Debug.Assert TypeOf Assert Is Rubberduck.PermissiveAssertClass
+#End If
     
     Dim ErrorDetails As String
     ErrorDetails = " Error: #" & Err.Number & " - " & Err.Description

@@ -11,6 +11,7 @@ Option Private Module
 Private Const MODULE_NAME As String = "CommonRoutinesTests"
 Private TestCounter As Long
 
+#Const LateBind = 0     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else

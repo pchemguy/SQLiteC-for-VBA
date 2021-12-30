@@ -58,8 +58,8 @@ Private Sub Main()
         )
     End With
     
-    Dim Result As Long
     Debug.Print "==================== In3Out3Ret1 ===================="
+    Dim Result As Long
     Result = DllMan.IndirectCall("DllCallDemoVBACall", "In3Out3Ret1", _
                                  CC_STDCALL, vbLong, Arguments)
     
@@ -96,5 +96,3 @@ Private Function In3Out3Ret1(ByVal ByteVal As Byte, ByVal LongVal As Long, ByVal
     StrVal = "StrValNew"
     StrRef = "StrRefNew"
 End Function
-
-

@@ -18,6 +18,12 @@ Option Explicit
 
 Private Const MODULE_NAME As String = "DllManager"
 
+#If Win64 Then
+Private Const ARCH As String = "x64"
+#Else
+Private Const ARCH As String = "x32"
+#End If
+
 #If VBA7 Then
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
     Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal hLibModule As LongPtr) As Long
@@ -63,14 +69,18 @@ Friend Sub Init(Optional ByVal DefaultPath As String = vbNullString, _
                 Optional ByVal ResolvePath As Boolean = True)
     Set this.Dlls = New Scripting.Dictionary
     this.Dlls.CompareMode = TextCompare
-    Me.DefaultPath = DefaultPath
-    If Not IsEmpty(DllNames) Then
-        If VarType(DllNames) = vbString Then
-            If Not Load(DllNames, , ResolvePath) = LOAD_OK Then GoTo LOAD_FAIL:
-        Else
-            If Not LoadMultiple(DllNames) = LOAD_OK Then GoTo LOAD_FAIL:
-        End If
-    End If
+    Me.DefaultPath = IIf(Len(DefaultPath) > 0, DefaultPath, _
+        "Library\" & ThisWorkbook.VBProject.Name & "\dll\" & ARCH)
+    Select Case VarType(DllNames)
+        Case vbString
+            If Len(DllNames) > 0 Then _
+                If Load(DllNames, , ResolvePath) <> LOAD_OK Then GoTo LOAD_FAIL:
+        Case Is >= vbArray
+            If LoadMultiple(DllNames) <> LOAD_OK Then GoTo LOAD_FAIL:
+        Case Else
+            If Not (IsEmpty(DllNames) Or IsNull(DllNames)) Then Debug.Print _
+                "Unusable second argument is ignored."
+    End Select
     Set this.ProcPtrCache = New Scripting.Dictionary
     this.ProcPtrCache.CompareMode = TextCompare
     
@@ -81,7 +91,7 @@ End Sub
 
 
 Private Sub Class_Terminate()
-    ResetDllSearchPath
+    Me.DefaultPath = vbNullString
     Dim ResultCode As DllLoadStatus
     ResultCode = FreeMultiple
     Debug.Assert ResultCode = LOAD_OK
@@ -101,14 +111,14 @@ End Property
 Public Property Let DefaultPath(ByVal Value As String)
     Dim fso As New Scripting.FileSystemObject
     Dim Path As String
-    Path = IIf(Len(Value) > 0, Value, _
-               "Library\" & ThisWorkbook.VBProject.Name & "\dll\" & CStr(ARCH))
-    If fso.FolderExists(Path) Then
+    If Len(Value) = 0 Then
+        Path = vbNullString
+    ElseIf fso.FolderExists(Value) Then
         '''' Absolute existing path is provided
-        Path = fso.GetAbsolutePathName(Path)
-    ElseIf fso.FolderExists(ThisWorkbook.Path & "\" & Path) Then
+        Path = fso.GetAbsolutePathName(Value)
+    ElseIf fso.FolderExists(ThisWorkbook.Path & "\" & Value) Then
         '''' Relative existing path is provided
-        Path = fso.GetAbsolutePathName(ThisWorkbook.Path & "\" & Path)
+        Path = fso.GetAbsolutePathName(ThisWorkbook.Path & "\" & Value)
     Else
         Err.Raise ErrNo.FileNotFoundErr, MODULE_NAME, _
                   "DefaultPath not found: <" & Value & ">"
@@ -128,20 +138,6 @@ Public Property Let DefaultPath(ByVal Value As String)
 End Property
 
 
-'''' https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectorya#remarks
-Public Sub ResetDllSearchPath()
-    Dim ExecStatus As Boolean
-    ExecStatus = SetDllDirectory(vbNullString)
-    If ExecStatus Then
-        this.DefaultPath = vbNullString
-    Else
-        Dim LogMsg As String
-        LogMsg = "Reset SetDllDirectory failed. Error code: " & CStr(Err.LastDllError)
-        Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
-    End If
-End Sub
-
-
 Public Function Load(ByVal DllName As String, _
             Optional ByVal Path As String = vbNullString, _
             Optional ByVal ResolvePath As Boolean = True) As DllLoadStatus
@@ -154,7 +150,8 @@ Public Function Load(ByVal DllName As String, _
     
     Dim LogMsg As String
     If this.Dlls.Exists(FileName) Then
-        LogMsg = "A library with file name <" & FileName & "> has already been loaded."
+        LogMsg = "A library with file name <" & FileName & _
+                 "> has already been loaded."
         Logger.Logg LogMsg, , DEBUGLEVEL_WARN
         Load = LOAD_ALREADY_LOADED
         Exit Function
@@ -178,21 +175,15 @@ Public Function Load(ByVal DllName As String, _
                           "Path not found: <" & Path & ">"
             End If
         End If
-        Prefix = fso.GetAbsolutePathName(Prefix)
-        
-        If fso.FileExists(DllName) Then
-            FilePathName = DllName
-        ElseIf fso.FileExists(fso.BuildPath(Prefix, DllName)) Then
-            FilePathName = fso.BuildPath(Prefix, DllName)
-        ElseIf fso.FileExists(fso.BuildPath(this.DefaultPath, DllName)) Then
-            FilePathName = fso.BuildPath(this.DefaultPath, DllName)
+        FilePathName = fso.BuildPath(Prefix, DllName)
+        If fso.FileExists(FilePathName) Then
+            FilePathName = fso.GetAbsolutePathName(FilePathName)
         Else
             Err.Raise ErrNo.FileNotFoundErr, MODULE_NAME, _
-                      "DllName not found: <" & DllName & ">"
+                "DllName not found: <" & DllName & ">"
         End If
-        FilePathName = fso.GetAbsolutePathName(FilePathName)
     Else
-        FilePathName = DllName
+        FilePathName = IIf(Len(Path) > 0, Path & "\", Path) & DllName
     End If
     
     Dim LastDllError As Long
@@ -209,14 +200,15 @@ Public Function Load(ByVal DllName As String, _
         Load = LOAD_OK
     Else
         LastDllError = Err.LastDllError
-        LogMsg = "Library <" & FilePathName & "> loading error: " & CStr(LastDllError)
+        LogMsg = "Library <" & FilePathName & "> loading error: " & _
+                 CStr(LastDllError)
         Logger.Logg LogMsg, , DEBUGLEVEL_ERROR
         If LastDllError = ERROR_BAD_EXE_FORMAT Then
-            '''' TODO: Make PE Format analyzer class to check target architechture
-            ''''       and imports (dependencies).
+            '''' TODO: Make PE Format analyzer class to check target
+            ''''       architechture and imports (dependencies).
             Err.Raise LoadingDllErr, MODULE_NAME & "/Load", "LoadLibrary " & _
-                      "error 193: <" & FilePathName & ">" & vbNewLine & _
-                      "Check that DLL bitness matches that of Office."
+                "error " & ERROR_BAD_EXE_FORMAT & ": <" & FilePathName & ">" _
+                & vbNewLine & "Check that DLL bitness matches that of Office."
         End If
         Load = LOAD_FAIL
     End If
@@ -224,13 +216,11 @@ End Function
 
 
 Public Function Free(Optional ByVal DllName As String) As DllLoadStatus
-    Dim FileName As String
-    If DllName Like "*.???" Then
-        FileName = LCase$(DllName)
-    Else
-        FileName = LCase$(DllName) & ".dll"
-    End If
     If this.Dlls Is Nothing Then Exit Function
+    Dim fso As New Scripting.FileSystemObject
+    Dim FileName As String
+    FileName = LCase$(fso.GetFileName(DllName))
+    If Not FileName Like "*.???" Then FileName = FileName & ".dll"
     Dim Result As Long
     Dim LogMsg As String
     If Not this.Dlls.Exists(FileName) Then
@@ -294,16 +284,13 @@ End Function
 
 Public Function GetDllPath(ByVal DllName As String) As String
     Guard.EmptyString DllName
+    GetDllPath = vbNullString
+    Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
-    If DllName Like "*.???" Then
-        FileName = LCase$(DllName)
-    Else
-        FileName = LCase$(DllName) & ".dll"
-    End If
-    If Not this.Dlls.Exists(FileName) Then
-        GetDllPath = vbNullString
-        Exit Function
-    End If
+    FileName = LCase$(fso.GetFileName(DllName))
+    If Not FileName Like "*.???" Then FileName = FileName & ".dll"
+    If this.Dlls Is Nothing Then Exit Function
+    If Not this.Dlls.Exists(FileName) Then Exit Function
     Const MAX_PATH As Long = 260
     Dim PathName As String
     PathName = Space$(MAX_PATH + 1)
@@ -336,12 +323,10 @@ Public Function ProcAddressGet(ByVal DllName As String, ByVal ProcName As String
     Dim ProcPtr As Long
 #End If
     Dim ProcKey As String
+    Dim fso As New Scripting.FileSystemObject
     Dim FileName As String
-    If DllName Like "*.???" Then
-        FileName = LCase$(DllName)
-    Else
-        FileName = LCase$(DllName) & ".dll"
-    End If
+    FileName = LCase$(fso.GetFileName(DllName))
+    If Not FileName Like "*.???" Then FileName = FileName & ".dll"
     ProcKey = LCase$(FileName & "." & ProcName)
     With this.ProcPtrCache
         If .Exists(ProcKey) Then

@@ -17,6 +17,7 @@ Private ErrSource As String
 Private ErrDescription As String
 Private ErrStack As String
 
+#Const LateBind = 0     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else

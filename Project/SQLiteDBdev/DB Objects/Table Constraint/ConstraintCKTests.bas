@@ -6,6 +6,7 @@ Attribute VB_Name = "ConstraintCKTests"
 Option Explicit
 Option Private Module
 
+#Const LateBind = 0     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else
