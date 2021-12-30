@@ -1,5 +1,6 @@
 Attribute VB_Name = "MaterialGetVBAProcAddress"
 '@Folder "DllTools.Drafts"
+'@IgnoreModule
 Option Explicit
 
 Private Const LIB_NAME As String = "DllTools"
@@ -40,7 +41,11 @@ Private Sub GetMyAddressMemToolsLib()
     Debug.Print CStr(GetRoutineAddress(AddressOf GetMyAddressCopyMem))
 End Sub
 
+#If VBA7 Then
+Private Function GetFuncAddress(ByVal FuncAddress As LongPtr) As LongPtr
+#Else
 Private Function GetFuncAddress(ByVal FuncAddress As Long) As Long
+#End If
     GetFuncAddress = FuncAddress
 End Function
 

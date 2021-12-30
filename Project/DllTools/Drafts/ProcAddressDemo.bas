@@ -1,5 +1,6 @@
 Attribute VB_Name = "ProcAddressDemo"
 '@Folder "DllTools.Drafts"
+'@IgnoreModule
 Option Explicit
 
 

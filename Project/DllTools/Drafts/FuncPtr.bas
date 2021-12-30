@@ -1,5 +1,6 @@
 Attribute VB_Name = "FuncPtr"
 '@Folder "DllTools.Drafts"
+'@IgnoreModule
 Option Explicit
 
 '''' https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.comtypes.callconv

@@ -1,5 +1,6 @@
 Attribute VB_Name = "RtlMoveMemoryDemo"
 '@Folder "DllTools.Drafts"
+'@IgnoreModule
 Option Explicit
 
 Private Const CRYPT_STRING_BINARY As Long = &H2&
