@@ -7,7 +7,7 @@ Attribute VB_Description = "Tests for the Logger class."
 Option Explicit
 Option Private Module
 
-#Const LateBind = 0     '''' RubberDuck Tests
+#Const LateBind = 1     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else

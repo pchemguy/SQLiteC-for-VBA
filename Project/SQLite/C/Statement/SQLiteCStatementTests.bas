@@ -8,7 +8,7 @@ Option Private Module
 Private Const MODULE_NAME As String = "SQLiteCStatementTests"
 Private TestCounter As Long
 
-#Const LateBind = 0     '''' RubberDuck Tests
+#Const LateBind = 1     '''' RubberDuck Tests
 #If LateBind Then
     Private Assert As Object
 #Else
@@ -904,7 +904,7 @@ Assert:
     Assert.AreEqual UBound(RowSet2D, 1), UBound(RowSet2DRst, 1), "R-size mismatch"
     Assert.AreEqual UBound(RowSet2D, 2), UBound(RowSet2DRst, 2), "C-size mismatch"
     Assert.AreEqual RowSet2DRst(0, 3), RowSet2D(0, 3), "Value mismatch"
-    Assert.AreEqual RowSet2DRst(0, 5)(2), RowSet2D(0, 5)(2), "Value mismatch"
+    Assert.AreEqual RowSet2DRst(0, 5)(2) + 0, RowSet2D(0, 5)(2) + 0, "Value mismatch"
 CleanUp:
     ResultCode = dbs.Finalize
     Assert.AreEqual SQLITE_OK, ResultCode, "Unexpected Finalize error."

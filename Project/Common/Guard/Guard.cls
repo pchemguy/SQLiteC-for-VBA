@@ -15,7 +15,7 @@ Attribute VB_Description = "Class for common guards."
 Option Explicit
 Option Compare Text
 
-#Const LateBind = 0     '''' RubberDuck Tests
+#Const LateBind = 1     '''' RubberDuck Tests
 
 Private Const MsgExpectedErrNotRaised As String = "Expected error was not raised."
 Private Const MsgUnexpectedErrRaised As String = "Unexpected error was raised."
