@@ -24,6 +24,10 @@ MEMTOOLSAPI void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, siz
   return;
 }
 
+MEMTOOLSAPI size_t MEMTOOLSCALL GetRoutineAddress(size_t Address) {
+  return Address;
+}
+
 // Volatile loop counter should be used here to prevent optimization.
 MEMTOOLSAPI int MEMTOOLSCALL PerfGauge(unsigned int ForCount) {
   struct timeb start, end;

@@ -4,4 +4,5 @@ EXPORTS
     DummyFnc3Args@12 @3
     DummySub0Args@0 @4
     DummySub3Args@12 @5
-    PerfGauge@4 @6
+    GetRoutineAddress@4 @6
+    PerfGauge@4 @7

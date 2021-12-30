@@ -40,9 +40,10 @@ extern "C" {
 #endif
 
 /* Declare our function using the above definitions. */
-MEMTOOLSAPI void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, size_t Length);
-MEMTOOLSAPI  int MEMTOOLSCALL PerfGauge(unsigned int ForCount);
+MEMTOOLSAPI   void MEMTOOLSCALL CopyMem(void* Destination, const void* Source, size_t Length);
+MEMTOOLSAPI size_t MEMTOOLSCALL GetRoutineAddress(size_t Address);
 
+MEMTOOLSAPI  int MEMTOOLSCALL PerfGauge(unsigned int ForCount);
 MEMTOOLSAPI void MEMTOOLSCALL DummySub0Args();
 MEMTOOLSAPI void MEMTOOLSCALL DummySub3Args(void*, const void*, size_t);
 MEMTOOLSAPI  int MEMTOOLSCALL DummyFnc0Args();
