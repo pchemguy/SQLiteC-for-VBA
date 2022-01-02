@@ -77,8 +77,12 @@ Assert:
     Assert.AreEqual 4294967296@, Values(1, 1), "Record #2 xi mismatch."
     Assert.AreEqual 900000000000000@, Values(1, 2), "Record #3 xi mismatch."
     Assert.AreEqual 922337203685477@, Values(1, 3), "Record #4 xi mismatch."
-    Assert.AreEqual 900000000000000@, Values(1, 4), "Record #5 xi mismatch."
-
+    #If Win64 Then
+        Assert.AreEqual 1234567890123456789^, Values(1, 4), "Record #5 xi mismatch."
+    #Else
+        Assert.AreEqual 900000000000000@, Values(1, 4), "Record #5 xi mismatch."
+    #End If
+          
 CleanExit:
     Exit Sub
 TestFail:
