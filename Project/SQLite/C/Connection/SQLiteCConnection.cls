@@ -116,6 +116,7 @@ Private Type TSQLiteCConnection
     ErrInfo As SQLiteCErr
     URIAvailable As Variant
     MappedMemorySize As Long                ' Amount of memory allocated for memory mapping database files
+    SourceFilePathName As String            ' Use this field when an in-memory database is used as a cache
 End Type
 Private this As TSQLiteCConnection
 

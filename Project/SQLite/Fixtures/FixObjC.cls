@@ -234,6 +234,29 @@ Attribute CreateITRBTableWithData.VB_Description = "Given SQLiteCConnection obje
     CreateITRBTableWithData = AffectedRows
 End Function
 
+'''' If database connection is not opened, it is opened and closed.
+'@Description "Given SQLiteCConnection object, creates the 'ITRB' table with data."
+Public Function CreateITRBTableWithExtraData(ByVal dbc As SQLiteCConnection) As Long
+    Dim HandleConnection As Boolean
+    HandleConnection = (dbc.DbHandle = 0)
+    Dim SQLQuery As String
+    SQLQuery = FixSQLITRB.CreateRowidWithExtraData
+    Dim AffectedRows As Long
+    AffectedRows = -2
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.OpenDb <> SQLITE_OK, _
+        ErrNo.ConnectionOpenErr, "FixObjC", "Failed to open db."
+    Dim ResultCode As SQLiteResultCodes
+    ResultCode = dbc.ExecuteNonQueryPlain(SQLQuery, AffectedRows)
+    Guard.ExpressionTrueErr ResultCode <> SQLITE_OK, ErrNo.UnknownClassErr, _
+        "FixObjC", "Failed to create table."
+    Dim LogMsg As String
+    LogMsg = "Table create query is complete, AffectedRows = " & CStr(AffectedRows) & "."
+    Logger.Logg LogMsg, , DEBUGLEVEL_INFO
+    If HandleConnection Then Guard.ExpressionTrueErr dbc.CloseDb <> SQLITE_OK, _
+        ErrNo.ConnectionCloseErr, "FixObjC", "Failed to close db."
+    CreateITRBTableWithExtraData = AffectedRows
+End Function
+
 '@Description "Generates a path pointing to a randomly named non-existing file in the temp folder."
 Public Function RandomTempFileName(Optional ByVal FileExt As String = ".db") As String
 Attribute RandomTempFileName.VB_Description = "Generates a path pointing to a randomly named non-existing file in the temp folder."
@@ -296,6 +319,37 @@ Attribute GetDBCTmpITRBWithData.VB_Description = "Returns a connection (SQLiteCC
         Set GetDBCTmpITRBWithData = Nothing
     Else
         Set GetDBCTmpITRBWithData = dbc
+    End If
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object with blank Tmp database."
+Public Function GetDBSTmp() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCTmp()
+    Set GetDBSTmp = dbc.CreateStatement(vbNullString)
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object with Tmp database with 'ITRB' table and extradata."
+Public Function GetDBSTmpITRBWithExtraData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCTmp
+    If CreateITRBTableWithExtraData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSTmpITRBWithExtraData = Nothing
+    Else
+        Set GetDBSTmpITRBWithExtraData = dbc.CreateStatement(vbNullString)
+    End If
+End Function
+
+'@Description "Returns an SQLiteCStatement/ILiteADO object using created/opened in-memory database with 'ITRB' table and extradata."
+Public Function GetDBSMemITRBWithExtraData() As ILiteADO
+    Dim dbc As SQLiteCConnection
+    Set dbc = GetDBCMem(OpenDb:=True)
+    If CreateITRBTableWithExtraData(dbc) <= 0 Then
+        Set dbc = Nothing
+        Set GetDBSMemITRBWithExtraData = Nothing
+    Else
+        Set GetDBSMemITRBWithExtraData = dbc.CreateStatement(vbNullString)
     End If
 End Function
 

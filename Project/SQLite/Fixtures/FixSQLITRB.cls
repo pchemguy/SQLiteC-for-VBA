@@ -70,12 +70,36 @@ Public Function InsertPlain() As String
     ), vbNewLine)
 End Function
 
+Public Function InsertPlainExtra() As String
+    Dim InsertValues As Variant
+    InsertValues = Array( _
+        "INSERT INTO itrb(id,                    xi,    xt, xr,   xb) ", _
+        "VALUES          (10,            2147483647,  NULL,  0, NULL),", _
+        "                (11,            4294967296,  NULL,  0, NULL),", _
+        "                (12,       900000000000000,  NULL,  0, NULL),", _
+        "                (13,       922337203685477,  NULL,  0, NULL),", _
+        vbNullString _
+    )
+    #If Win64 Then
+        InsertValues(5) = _
+        "                (14,   1234567890123456789,  NULL,  0, NULL);"
+    #Else
+        InsertValues(5) = _
+        "                (14,       900000000000000,  NULL,  0, NULL);"
+    #End If
+    InsertPlainExtra = Join(InsertValues, vbNewLine)
+End Function
+
 Public Function CreateWithData() As String
     CreateWithData = Create & vbNewLine & InsertPlain
 End Function
 
 Public Function CreateRowidWithData() As String
     CreateRowidWithData = CreateRowid & vbNewLine & InsertPlain
+End Function
+
+Public Function CreateRowidWithExtraData() As String
+    CreateRowidWithExtraData = CreateRowid & vbNewLine & InsertPlainExtra
 End Function
 
 Public Function InsertParamName() As String

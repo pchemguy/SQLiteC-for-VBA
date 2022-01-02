@@ -147,7 +147,7 @@ End Property
 
 
 Public Property Get DefaultOptions() As String
-    DefaultOptions = "StepAPI=True;NoTXN=False;NoWCHAR=False;SyncPragma=NORMAL;FKSupport=True;"
+    DefaultOptions = "StepAPI=True;NoTXN=False;NoWCHAR=False;SyncPragma=NORMAL;FKSupport=True;BigInt=True;"
 End Property
 
 
@@ -161,6 +161,7 @@ Public Property Get DefaultOptionsDict() As Scripting.Dictionary
         .Item("NoWCHAR") = False
         .Item("SyncPragma") = "NORMAL"
         .Item("FKSupport") = True
+        .Item("BigInt") = True
     End With
     Set DefaultOptionsDict = Options
 End Property
