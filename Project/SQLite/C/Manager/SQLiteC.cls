@@ -103,8 +103,10 @@ Friend Sub Init(ByVal DllPath As String, _
             '''' SQLite3.dll-x32 is built with MSVC and follows STDCALL
             '''' LoadLibrary fails to resolve/load dependencies automatically,
             '''' so loading them explicitly.
-            FileNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
-                              "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+            FileNames = Array( _
+                "icudt" & SQL_ICU_V & ".dll", "icuuc" & SQL_ICU_V & ".dll", _
+                "icuin" & SQL_ICU_V & ".dll", "icuio" & SQL_ICU_V & ".dll", _
+                "icutu" & SQL_ICU_V & ".dll", "sqlite3.dll")
         #End If
     End If
     '''' DllManager is responsible for DllPath validation/resolution

@@ -3,6 +3,8 @@ Attribute VB_Name = "SQLiteGlobals"
 Option Explicit
 Option Compare Text
 
+Public Const SQL_ICU_V As String = "68"
+
 Public Enum EnvArchEnum
     ENVARCH_NOTSUP = -1&
     ENVARCH_NATIVE = 1&

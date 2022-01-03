@@ -55,8 +55,10 @@ Friend Sub Init(Optional ByVal DllMan As DllManager = Nothing)
         #If Win64 Then
             FileNames = "sqlite3.dll"
         #Else
-            FileNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
-                              "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+            FileNames = Array( _
+                "icudt" & SQL_ICU_V & ".dll", "icuuc" & SQL_ICU_V & ".dll", _
+                "icuin" & SQL_ICU_V & ".dll", "icuio" & SQL_ICU_V & ".dll", _
+                "icutu" & SQL_ICU_V & ".dll", "sqlite3.dll")
         #End If
         Set this.DllMan = DllManager.Create(vbNullString, FileNames)
     End If

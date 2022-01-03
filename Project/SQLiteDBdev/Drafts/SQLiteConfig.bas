@@ -22,8 +22,8 @@ Private Sub Main()
         DllNames = "sqlite3.dll"
     #Else
         PtrType = vbLong
-        DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
-                         "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+        DllNames = Array("icudt" & SQL_ICU_V & ".dll", "icuuc" & SQL_ICU_V & ".dll", "icuin" & SQL_ICU_V & ".dll", _
+                         "icuio" & SQL_ICU_V & ".dll", "icutu" & SQL_ICU_V & ".dll", "sqlite3.dll")
     #End If
     Dim DllPath As String
     DllPath = LIB_RPREFIX & ARCH
@@ -56,8 +56,10 @@ Private Sub InitDBQC()
         DllNames = "sqlite3.dll"
     #Else
         DllPath = ThisWorkbook.Path & "\Library\SQLiteCAdo\dll\x32"
-        DllNames = Array("icudt68.dll", "icuuc68.dll", "icuin68.dll", _
-                         "icuio68.dll", "icutu68.dll", "sqlite3.dll")
+        DllNames = Array( _
+            "icudt" & SQL_ICU_V & ".dll", "icuuc" & SQL_ICU_V & ".dll", _
+            "icuin" & SQL_ICU_V & ".dll", "icuio" & SQL_ICU_V & ".dll", _
+            "icutu" & SQL_ICU_V & ".dll", "sqlite3.dll")
     #End If
     Dim dbm As SQLiteC
     Set dbm = SQLiteC(DllPath, DllNames)
