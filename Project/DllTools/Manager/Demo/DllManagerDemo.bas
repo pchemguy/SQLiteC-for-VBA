@@ -61,11 +61,11 @@ Private Sub SQLiteLoadMultipleArray()
         DllNames = "sqlite3.dll"
     Else
         DllNames = Array( _
-            "icudt68.dll", _
-            "icuuc68.dll", _
-            "icuin68.dll", _
-            "icuio68.dll", _
-            "icutu68.dll", _
+            "icudt" & DT_ICU_V & ".dll", _
+            "icuuc" & DT_ICU_V & ".dll", _
+            "icuin" & DT_ICU_V & ".dll", _
+            "icuio" & DT_ICU_V & ".dll", _
+            "icutu" & DT_ICU_V & ".dll", _
             "sqlite3.dll" _
         )
     End If
@@ -103,11 +103,11 @@ Private Sub SQLiteLoadMultipleArrayCompact()
     #Else
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
         DllNames = Array( _
-            "icudt68.dll", _
-            "icuuc68.dll", _
-            "icuin68.dll", _
-            "icuio68.dll", _
-            "icutu68.dll", _
+            "icudt" & DT_ICU_V & ".dll", _
+            "icuuc" & DT_ICU_V & ".dll", _
+            "icuin" & DT_ICU_V & ".dll", _
+            "icuio" & DT_ICU_V & ".dll", _
+            "icutu" & DT_ICU_V & ".dll", _
             "sqlite3.dll" _
         )
     #End If
@@ -130,11 +130,11 @@ Private Sub SQLiteLoadMultipleParamArray()
         DllMan.LoadMultiple "sqlite3.dll"
     #Else
         DllMan.LoadMultiple _
-            "icudt68.dll", _
-            "icuuc68.dll", _
-            "icuin68.dll", _
-            "icuio68.dll", _
-            "icutu68.dll", _
+            "icudt" & DT_ICU_V & ".dll", _
+            "icuuc" & DT_ICU_V & ".dll", _
+            "icuin" & DT_ICU_V & ".dll", _
+            "icuio" & DT_ICU_V & ".dll", _
+            "icutu" & DT_ICU_V & ".dll", _
             "sqlite3.dll"
     #End If
 End Sub
@@ -149,11 +149,11 @@ Private Sub SQLiteLoad()
     #Else
         DllPath = ThisWorkbook.Path & PATH_SEP & LIB_RPREFIX & "x32"
         DllNames = Array( _
-            "icudt68.dll", _
-            "icuuc68.dll", _
-            "icuin68.dll", _
-            "icuio68.dll", _
-            "icutu68.dll", _
+            "icudt" & DT_ICU_V & ".dll", _
+            "icuuc" & DT_ICU_V & ".dll", _
+            "icuin" & DT_ICU_V & ".dll", _
+            "icuio" & DT_ICU_V & ".dll", _
+            "icutu" & DT_ICU_V & ".dll", _
             "sqlite3.dll" _
         )
     #End If
